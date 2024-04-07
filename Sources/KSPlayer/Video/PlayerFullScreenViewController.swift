@@ -4,9 +4,10 @@
 //
 //  Created by kintan on 2021/8/20.
 //
-#if canImport(UIKit) && os(iOS)
+#if canImport(UIKit) && !os(tvOS)
 
 import UIKit
+
 protocol PlayerViewFullScreenDelegate: AnyObject {
     func player(isMaskShow: Bool, isFullScreen: Bool)
 }

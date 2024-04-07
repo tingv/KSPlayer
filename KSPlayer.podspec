@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name             = 'KSPlayer'
-    s.version          = '1.0'
+    s.version          = '1.1.0'
     s.summary          = 'Video Player Using Swift, based on AVPlayer,FFmpeg'
 
     s.description      = <<-DESC
@@ -35,6 +35,7 @@ Pod::Spec.new do |s|
         ss.ios.frameworks  = 'UIKit'
         ss.tvos.frameworks  = 'UIKit'
         ss.osx.frameworks  = 'AppKit'
+        ss.dependency 'DisplayCriteria'
     end
     #ffmpeg播放内核
     s.subspec 'MEPlayer' do |ss|

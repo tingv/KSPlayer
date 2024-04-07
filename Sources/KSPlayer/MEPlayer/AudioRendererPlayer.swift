@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  AudioRendererPlayer.swift
 //  KSPlayer
 //
 //  Created by kintan on 2022/12/2.
@@ -8,8 +8,8 @@
 import AVFoundation
 import Foundation
 
-public class AudioRendererPlayer: AudioPlayer, FrameOutput {
-    var playbackRate: Float = 1 {
+public class AudioRendererPlayer: AudioOutput {
+    public var playbackRate: Float = 1 {
         didSet {
             if !isPaused {
                 synchronizer.rate = playbackRate
@@ -17,7 +17,7 @@ public class AudioRendererPlayer: AudioPlayer, FrameOutput {
         }
     }
 
-    var volume: Float {
+    public var volume: Float {
         get {
             renderer.volume
         }
@@ -26,7 +26,7 @@ public class AudioRendererPlayer: AudioPlayer, FrameOutput {
         }
     }
 
-    var isMuted: Bool {
+    public var isMuted: Bool {
         get {
             renderer.isMuted
         }
@@ -35,142 +35,98 @@ public class AudioRendererPlayer: AudioPlayer, FrameOutput {
         }
     }
 
-    var attackTime: Float = 0
-
-    var releaseTime: Float = 0
-
-    var threshold: Float = 0
-
-    var expansionRatio: Float = 0
-
-    var overallGain: Float = 0
-
-    weak var renderSource: OutputRenderSourceDelegate?
+    public weak var renderSource: OutputRenderSourceDelegate?
     private var periodicTimeObserver: Any?
     private let renderer = AVSampleBufferAudioRenderer()
-    private var desc: CMAudioFormatDescription?
     private let synchronizer = AVSampleBufferRenderSynchronizer()
     private let serializationQueue = DispatchQueue(label: "ks.player.serialization.queue")
-    private var sampleSize = UInt32(MemoryLayout<Float>.size)
     var isPaused: Bool {
         synchronizer.rate == 0
     }
 
-    init() {
+    public required init() {
         synchronizer.addRenderer(renderer)
+        if #available(macOS 11.3, iOS 14.5, tvOS 14.5, *) {
+            synchronizer.delaysRateChangeUntilHasSufficientMediaData = false
+        }
 //        if #available(tvOS 15.0, iOS 15.0, macOS 12.0, *) {
 //            renderer.allowedAudioSpatializationFormats = .monoStereoAndMultichannel
 //        }
     }
 
-    func prepare(options: KSOptions, audioDescriptor: AudioDescriptor) {
-        var channels = max(audioDescriptor.channels, 2)
-        #if os(macOS)
-        channels = 2
-        #else
-        let maxChannels = AVAudioChannelCount(AVAudioSession.sharedInstance().maximumOutputNumberOfChannels)
-        KSOptions.setAudioSession()
-        if channels > maxChannels {
-            if #available(tvOS 15.0, iOS 15.0, *) {
-                if let port = AVAudioSession.sharedInstance().currentRoute.outputs.first, port.isSpatialAudioEnabled || port.portType == AVAudioSession.Port.bluetoothA2DP {
-                } else {
-                    channels = maxChannels
-                }
+    public func prepare(audioFormat _: AVAudioFormat) {}
+
+    public func play() {
+        let time: CMTime
+        if #available(macOS 11.3, iOS 14.5, tvOS 14.5, *) {
+            // 判断是否有足够的缓存，有的话就用当前的时间。seek的话，需要清空缓存，这样才能取到最新的时间。
+            if renderer.hasSufficientMediaDataForReliablePlaybackStart {
+                time = synchronizer.currentTime()
             } else {
-                channels = maxChannels
+                if let currentRender = renderSource?.getAudioOutputRender() {
+                    time = currentRender.cmtime
+                } else {
+                    time = .zero
+                }
+            }
+        } else {
+            if let currentRender = renderSource?.getAudioOutputRender() {
+                time = currentRender.cmtime
+            } else {
+                time = .zero
             }
         }
-        try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(channels))
-        #endif
-        renderer.audioTimePitchAlgorithm = channels > 2 ? .spectral : .timeDomain
-        options.audioFormat = audioDescriptor.audioFormat(channels: channels)
-        sampleSize = options.audioFormat.sampleSize
-        desc = options.audioFormat.formatDescription
-    }
-
-    func play(time: TimeInterval) {
-        synchronizer.setRate(playbackRate, time: CMTime(seconds: time))
+        synchronizer.setRate(playbackRate, time: time)
+        // 要手动的调用下，这样才能及时的更新音频的时间
+        renderSource?.setAudio(time: time, position: -1)
         renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
             guard let self else {
                 return
             }
             self.request()
         }
-        periodicTimeObserver = synchronizer.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 1000), queue: .main) { [weak self] _ in
+        periodicTimeObserver = synchronizer.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.02), queue: .main) { [weak self] time in
             guard let self else {
                 return
             }
-            self.renderSource?.setAudio(time: self.synchronizer.currentTime())
+            self.renderSource?.setAudio(time: time, position: -1)
         }
     }
 
-    func pause() {
+    public func pause() {
         synchronizer.rate = 0
         renderer.stopRequestingMediaData()
-        renderer.flush()
         if let periodicTimeObserver {
             synchronizer.removeTimeObserver(periodicTimeObserver)
             self.periodicTimeObserver = nil
         }
     }
 
-    func flush() {}
+    public func flush() {
+        renderer.flush()
+    }
 
     private func request() {
-        guard let desc else {
-            return
-        }
-
         while renderer.isReadyForMoreMediaData, !isPaused {
-            guard let render = renderSource?.getAudioOutputRender() else {
+            guard var render = renderSource?.getAudioOutputRender() else {
                 break
             }
-            var outBlockListBuffer: CMBlockBuffer?
-            CMBlockBufferCreateEmpty(allocator: kCFAllocatorDefault, capacity: 0, flags: 0, blockBufferOut: &outBlockListBuffer)
-            guard let outBlockListBuffer else {
-                continue
-            }
-            let n = render.data.count
-            let dataByteSize = Int(render.numberOfSamples * sampleSize * render.channels) / n
-            if dataByteSize > render.dataSize {
-                assertionFailure("dataByteSize: \(dataByteSize),render.dataSize: \(render.dataSize)")
-            }
-            for i in 0 ..< n {
-                var outBlockBuffer: CMBlockBuffer?
-                CMBlockBufferCreateWithMemoryBlock(
-                    allocator: kCFAllocatorDefault,
-                    memoryBlock: nil,
-                    blockLength: dataByteSize,
-                    blockAllocator: kCFAllocatorDefault,
-                    customBlockSource: nil,
-                    offsetToData: 0,
-                    dataLength: dataByteSize,
-                    flags: kCMBlockBufferAssureMemoryNowFlag,
-                    blockBufferOut: &outBlockBuffer
-                )
-                if let outBlockBuffer {
-                    CMBlockBufferReplaceDataBytes(
-                        with: render.data[i]!,
-                        blockBuffer: outBlockBuffer,
-                        offsetIntoDestination: 0,
-                        dataLength: dataByteSize
-                    )
-                    CMBlockBufferAppendBufferReference(
-                        outBlockListBuffer,
-                        targetBBuf: outBlockBuffer,
-                        offsetToData: 0,
-                        dataLength: CMBlockBufferGetDataLength(outBlockBuffer),
-                        flags: 0
-                    )
+            var array = [render]
+            let loopCount = Int32(render.audioFormat.sampleRate) / 20 / Int32(render.numberOfSamples) - 2
+            if loopCount > 0 {
+                for _ in 0 ..< loopCount {
+                    if let render = renderSource?.getAudioOutputRender() {
+                        array.append(render)
+                    }
                 }
             }
-            var sampleBuffer: CMSampleBuffer?
-            let sampleCount = CMItemCount(render.numberOfSamples)
-            CMAudioSampleBufferCreateReadyWithPacketDescriptions(allocator: kCFAllocatorDefault, dataBuffer: outBlockListBuffer, formatDescription: desc, sampleCount: sampleCount, presentationTimeStamp: render.cmtime, packetDescriptions: nil, sampleBufferOut: &sampleBuffer)
-            guard let sampleBuffer else {
-                continue
+            if array.count > 1 {
+                render = AudioFrame(array: array)
             }
-            renderer.enqueue(sampleBuffer)
+            if let sampleBuffer = render.toCMSampleBuffer() {
+                renderer.audioTimePitchAlgorithm = render.audioFormat.channelCount > 2 ? .spectral : .timeDomain
+                renderer.enqueue(sampleBuffer)
+            }
         }
     }
 }

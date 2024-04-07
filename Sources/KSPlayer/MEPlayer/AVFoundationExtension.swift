@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  AVFoundationExtension.swift
 //
 //
 //  Created by kintan on 2023/1/9.
@@ -11,37 +11,12 @@ import FFmpegKit
 import Libavutil
 
 extension OSType {
-    func planeCount() -> UInt8 {
+    var bitDepth: Int32 {
         switch self {
-        case
-            kCVPixelFormatType_48RGB,
-            kCVPixelFormatType_32ABGR,
-            kCVPixelFormatType_32ARGB,
-            kCVPixelFormatType_32BGRA,
-            kCVPixelFormatType_32RGBA,
-            kCVPixelFormatType_24BGR,
-            kCVPixelFormatType_24RGB,
-            kCVPixelFormatType_16BE555,
-            kCVPixelFormatType_16LE555,
-            kCVPixelFormatType_16BE565,
-            kCVPixelFormatType_16LE565,
-            kCVPixelFormatType_16BE555,
-            kCVPixelFormatType_OneComponent8,
-            kCVPixelFormatType_1Monochrome:
-            return 1
-        case
-            kCVPixelFormatType_444YpCbCr8,
-            kCVPixelFormatType_4444YpCbCrA8R,
-            kCVPixelFormatType_444YpCbCr10,
-            kCVPixelFormatType_4444AYpCbCr16,
-            kCVPixelFormatType_422YpCbCr8,
-            kCVPixelFormatType_422YpCbCr8_yuvs,
-            kCVPixelFormatType_422YpCbCr10,
-            kCVPixelFormatType_422YpCbCr16,
-            kCVPixelFormatType_420YpCbCr8Planar,
-            kCVPixelFormatType_420YpCbCr8PlanarFullRange:
-            return 3
-        default: return 2
+        case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange, kCVPixelFormatType_420YpCbCr10BiPlanarFullRange, kCVPixelFormatType_422YpCbCr10BiPlanarFullRange, kCVPixelFormatType_444YpCbCr10BiPlanarFullRange:
+            return 10
+        default:
+            return 8
         }
     }
 }
@@ -71,16 +46,16 @@ extension AudioUnit {
         AudioUnitGetProperty(self, kAudioUnitProperty_AudioChannelLayout, kAudioUnitScope_Output, 0, data, &size)
         let layout = data.bindMemory(to: AudioChannelLayout.self, capacity: 1)
         let tag = layout.pointee.mChannelLayoutTag
-        KSLog("audio unit channelLayout tag: \(tag)")
+        KSLog("[audio] unit tag: \(tag)")
         if tag == kAudioChannelLayoutTag_UseChannelDescriptions {
-            KSLog("audio unit channelLayout channelDescriptions: \(layout.channelDescriptions)")
+            KSLog("[audio] unit channelDescriptions: \(layout.channelDescriptions)")
             return layout
         }
         if tag == kAudioChannelLayoutTag_UseChannelBitmap {
             return layout.pointee.mChannelBitmap.channelLayout
         } else {
             let layout = tag.channelLayout
-            KSLog("audio unit channelLayout channelDescriptions: \(layout.channelDescriptions)")
+            KSLog("[audio] unit channelDescriptions: \(layout.channelDescriptions)")
             return layout
         }
     }
@@ -130,17 +105,23 @@ extension UnsafeMutablePointer<AudioChannelLayout> {
     }
 }
 
+extension AudioChannelLayout: CustomStringConvertible {
+    public var description: String {
+        "AudioChannelLayoutTag: \(mChannelLayoutTag), mNumberChannelDescriptions: \(mNumberChannelDescriptions)"
+    }
+}
+
 extension AVAudioChannelLayout {
     func channelLayout() -> AVChannelLayout {
-        KSLog("KSOptions channelLayout: \(layout.pointee)")
+        KSLog("[audio] channelLayout: \(layout.pointee.description)")
         var mask: UInt64?
         if layoutTag == kAudioChannelLayoutTag_UseChannelDescriptions {
             var newMask = UInt64(0)
-            layout.channelDescriptions.forEach { description in
+            for description in layout.channelDescriptions {
                 let label = description.mChannelLabel
-                KSLog("KSOptions channelLayout label: \(label)")
+                KSLog("[audio] label: \(label)")
                 let channel = label.avChannel.rawValue
-                KSLog("KSOptions channelLayout avChannel: \(channel)")
+                KSLog("[audio] avChannel: \(channel)")
                 if channel >= 0 {
                     newMask |= 1 << channel
                 }
@@ -158,8 +139,12 @@ extension AVAudioChannelLayout {
         } else {
             av_channel_layout_default(&outChannel, Int32(channelCount))
         }
-        KSLog("out channelLayout mask: \(outChannel.u.mask) nb_channels: \(outChannel.nb_channels)")
+        KSLog("[audio] out mask: \(outChannel.u.mask) nb_channels: \(outChannel.nb_channels)")
         return outChannel
+    }
+
+    public var channelDescriptions: String {
+        "tag: \(layoutTag), channelDescriptions: \(layout.channelDescriptions)"
     }
 }
 
@@ -182,20 +167,24 @@ extension AVAudioFormat {
     }
 
     var sampleSize: UInt32 {
-        UInt32(av_get_bytes_per_sample(sampleFormat))
+        switch commonFormat {
+        case .pcmFormatFloat32:
+            return isInterleaved ? channelCount * 4 : 4
+        case .pcmFormatFloat64:
+            return isInterleaved ? channelCount * 8 : 8
+        case .pcmFormatInt16:
+            return isInterleaved ? channelCount * 2 : 2
+        case .pcmFormatInt32:
+            return isInterleaved ? channelCount * 4 : 4
+        case .otherFormat:
+            return isInterleaved ? channelCount * 4 : channelCount * 4
+        @unknown default:
+            return isInterleaved ? channelCount * 4 : channelCount * 4
+        }
     }
 
-    func toPCMBuffer(frame: AudioFrame) -> AVAudioPCMBuffer? {
-        guard let pcmBuffer = AVAudioPCMBuffer(pcmFormat: self, frameCapacity: UInt32(frame.dataSize) / streamDescription.pointee.mBytesPerFrame) else {
-            return nil
-        }
-        pcmBuffer.frameLength = pcmBuffer.frameCapacity
-        for i in 0 ..< min(Int(pcmBuffer.format.channelCount), frame.data.count) {
-            frame.data[i]?.withMemoryRebound(to: Float.self, capacity: Int(pcmBuffer.frameCapacity)) { srcFloatsForChannel in
-                pcmBuffer.floatChannelData?[i].assign(from: srcFloatsForChannel, count: Int(pcmBuffer.frameCapacity))
-            }
-        }
-        return pcmBuffer
+    func isChannelEqual(_ object: AVAudioFormat) -> Bool {
+        sampleRate == object.sampleRate && channelCount == object.channelCount && commonFormat == object.commonFormat && sampleRate == object.sampleRate && isInterleaved == object.isInterleaved
     }
 }
 

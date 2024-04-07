@@ -1,5 +1,5 @@
 //
-//  MainWindowController.swift
+//  MainWindow.swift
 //  demo-macOS
 //
 //  Created by kintan on 2018/10/29.
@@ -8,6 +8,7 @@
 
 import Cocoa
 import KSPlayer
+
 class MainWindow: NSWindow {
     let vc: ViewController
     override init(contentRect: NSRect, styleMask style: NSWindow.StyleMask, backing backingStoreType: NSWindow.BackingStoreType, defer flag: Bool) {

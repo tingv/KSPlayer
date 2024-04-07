@@ -1,5 +1,5 @@
 //
-//  ObjectQueue.swift
+//  CircularBuffer.swift
 //  KSPlayer
 //
 //  Created by kintan on 2018/3/9.
@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// 这个是单生产者，多消费者的阻塞队列和单生产者，多消费者的阻塞环形队列。并且环形队列还要有排序的能力。
+/// 因为seek需要清空队列，所以导致他是多消费者。后续可以看下能不能改成单消费者的。
 public class CircularBuffer<Item: ObjectQueueItem> {
     private var _buffer = ContiguousArray<Item?>()
 //    private let semaphore = DispatchSemaphore(value: 0)
@@ -16,22 +18,24 @@ public class CircularBuffer<Item: ObjectQueueItem> {
     private let expanding: Bool
     private let sorted: Bool
     private var destroyed = false
-    @inline(__always) private var _count: Int { Int(tailIndex &- headIndex) }
-    @inline(__always) public var count: Int {
-        condition.lock()
-        defer { condition.unlock() }
-        return _count
+    @inline(__always)
+    private var _count: Int { Int(tailIndex &- headIndex) }
+    @inline(__always)
+    public var count: Int {
+//        condition.lock()
+//        defer { condition.unlock() }
+        Int(tailIndex &- headIndex)
     }
 
-    public var maxCount: Int
+    public internal(set) var fps: Float = 24
+    public private(set) var maxCount: Int
     private var mask: UInt
-
     public init(initialCapacity: Int = 256, sorted: Bool = false, expanding: Bool = true) {
         self.expanding = expanding
         self.sorted = sorted
         let capacity = initialCapacity.nextPowerOf2()
-        _buffer = ContiguousArray<Item?>(repeating: nil, count: capacity)
-        maxCount = capacity
+        _buffer = ContiguousArray<Item?>(repeating: nil, count: Int(capacity))
+        maxCount = Int(capacity)
         mask = UInt(maxCount - 1)
         assert(_buffer.count == capacity)
     }
@@ -42,6 +46,9 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         if destroyed {
             return
         }
+        if _buffer[Int(tailIndex & mask)] != nil {
+            assertionFailure("value is not nil of headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
+        }
         _buffer[Int(tailIndex & mask)] = value
         if sorted {
             // 不用sort进行排序，这个比较高效
@@ -51,7 +58,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
                     assertionFailure("value is nil of index: \((index - 1) & mask) headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count),  mask: \(mask)")
                     break
                 }
-                if item.position <= _buffer[Int(index & mask)]!.position {
+                if item.timestamp <= _buffer[Int(index & mask)]!.timestamp {
                     break
                 }
                 _buffer.swapAt(Int((index - 1) & mask), Int(index & mask))
@@ -74,7 +81,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         }
     }
 
-    public func pop(wait: Bool = false, where predicate: ((Item) -> Bool)? = nil) -> Item? {
+    public func pop(wait: Bool = false, where predicate: ((Item, Int) -> Bool)? = nil) -> Item? {
         condition.lock()
         defer { condition.unlock() }
         if destroyed {
@@ -95,7 +102,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
             assertionFailure("value is nil of index: \(index) headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
             return nil
         }
-        if let predicate, !predicate(item) {
+        if let predicate, !predicate(item, _count) {
             return nil
         } else {
             headIndex &+= 1
@@ -107,23 +114,25 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         }
     }
 
-    public func search(where predicate: (Item) -> Bool) -> Item? {
+    public func search(where predicate: (Item) -> Bool) -> [Item] {
         condition.lock()
         defer { condition.unlock() }
         var i = headIndex
+        var result = [Item]()
         while i < tailIndex {
             if let item = _buffer[Int(i & mask)] {
                 if predicate(item) {
-                    headIndex = i
-                    return item
+                    result.append(item)
+                    _buffer[Int(i & mask)] = nil
+                    headIndex = i + 1
                 }
             } else {
                 assertionFailure("value is nil of index: \(i) headIndex: \(headIndex), tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
-                return nil
+                return result
             }
             i += 1
         }
-        return nil
+        return result
     }
 
     public func flush() {
@@ -131,10 +140,8 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         defer { condition.unlock() }
         headIndex = 0
         tailIndex = 0
-        if destroyed {
-            _buffer.removeAll(keepingCapacity: true)
-            _buffer.append(contentsOf: ContiguousArray<Item?>(repeating: nil, count: maxCount))
-        }
+        _buffer.removeAll(keepingCapacity: !destroyed)
+        _buffer.append(contentsOf: ContiguousArray<Item?>(repeating: nil, count: destroyed ? 1 : maxCount))
         condition.broadcast()
     }
 
@@ -166,7 +173,8 @@ public class CircularBuffer<Item: ObjectQueueItem> {
 
 extension FixedWidthInteger {
     /// Returns the next power of two.
-    @inline(__always) func nextPowerOf2() -> Self {
+    @inline(__always)
+    func nextPowerOf2() -> Self {
         guard self != 0 else {
             return 1
         }

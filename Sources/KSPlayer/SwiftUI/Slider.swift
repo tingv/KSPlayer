@@ -9,12 +9,14 @@ import SwiftUI
 
 #if os(tvOS)
 import Combine
+
 @available(tvOS 15.0, *)
 public struct Slider: View {
     private let process: Binding<Float>
     private let onEditingChanged: (Bool) -> Void
-    @FocusState private var isFocused: Bool
-    init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0 ... 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    @FocusState
+    private var isFocused: Bool
+    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0 ... 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         process = Binding {
             Float((value.wrappedValue - bounds.lowerBound) / (bounds.upperBound - bounds.lowerBound))
         } set: { newValue in
@@ -31,9 +33,10 @@ public struct Slider: View {
 
 @available(tvOS 15.0, *)
 public struct TVOSSlide: UIViewRepresentable {
-    let process: Binding<Float>
-    @FocusState var isFocused: Bool
-    let onEditingChanged: (Bool) -> Void
+    public let process: Binding<Float>
+    @FocusState
+    public var isFocused: Bool
+    public let onEditingChanged: (Bool) -> Void
     public typealias UIViewType = TVSlide
     public func makeUIView(context _: Context) -> UIViewType {
         TVSlide(process: process, onEditingChanged: onEditingChanged)
@@ -52,7 +55,7 @@ public struct TVOSSlide: UIViewRepresentable {
 }
 
 public class TVSlide: UIControl {
-    let processView = UIProgressView()
+    fileprivate let processView = UIProgressView()
     private lazy var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(actionPanGesture(sender:)))
     private var beganProgress = Float(0.0)
     private let onEditingChanged: (Bool) -> Void
@@ -131,7 +134,6 @@ public class TVSlide: UIControl {
             onEditingChanged(false)
         case .cancelled, .failed:
             process.wrappedValue = beganProgress
-            onEditingChanged(false)
         @unknown default:
             break
         }
@@ -166,13 +168,7 @@ public class TVSlide: UIControl {
             }
             preMoveDirection = .right
             preMoveTime = CACurrentMediaTime()
-        case .upArrow:
-            preMoveDirection = .up
-            preMoveTime = CACurrentMediaTime()
-            timer.fireDate = Date.distantFuture
-            onEditingChanged(false)
-        case .downArrow:
-            preMoveDirection = .down
+        case .select:
             preMoveTime = CACurrentMediaTime()
             timer.fireDate = Date.distantFuture
             onEditingChanged(false)

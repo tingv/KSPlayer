@@ -1,5 +1,5 @@
 //
-//  Packet.swift
+//  Model.swift
 //  KSPlayer
 //
 //  Created by kintan on 2018/3/9.
@@ -8,6 +8,9 @@
 import AVFoundation
 import CoreMedia
 import Libavcodec
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: enum
 
@@ -25,11 +28,11 @@ enum MESourceState {
 
 // MARK: delegate
 
-protocol OutputRenderSourceDelegate: AnyObject {
+public protocol OutputRenderSourceDelegate: AnyObject {
     func getVideoOutputRender(force: Bool) -> VideoVTBFrame?
     func getAudioOutputRender() -> AudioFrame?
-    func setVideo(time: CMTime)
-    func setAudio(time: CMTime)
+    func setAudio(time: CMTime, position: Int64)
+    func setVideo(time: CMTime, position: Int64)
 }
 
 protocol CodecCapacityDelegate: AnyObject {
@@ -40,29 +43,34 @@ protocol MEPlayerDelegate: AnyObject {
     func sourceDidChange(loadingState: LoadingState)
     func sourceDidOpened()
     func sourceDidFailed(error: NSError?)
-    func sourceDidFinished(type: AVFoundation.AVMediaType, allSatisfy: Bool)
+    func sourceDidFinished()
     func sourceDidChange(oldBitRate: Int64, newBitrate: Int64)
 }
 
 // MARK: protocol
 
 public protocol ObjectQueueItem {
+    var timebase: Timebase { get }
+    var timestamp: Int64 { get set }
     var duration: Int64 { get set }
+    // byte position
     var position: Int64 { get set }
     var size: Int32 { get set }
 }
 
-protocol FrameOutput: AnyObject {
+extension ObjectQueueItem {
+    var seconds: TimeInterval { cmtime.seconds }
+    var cmtime: CMTime { timebase.cmtime(for: timestamp) }
+}
+
+public protocol FrameOutput: AnyObject {
     var renderSource: OutputRenderSourceDelegate? { get set }
+    func pause()
+    func flush()
 }
 
 protocol MEFrame: ObjectQueueItem {
     var timebase: Timebase { get set }
-}
-
-extension MEFrame {
-    public var seconds: TimeInterval { cmtime.seconds }
-    public var cmtime: CMTime { timebase.cmtime(for: position) }
 }
 
 // MARK: model
@@ -71,10 +79,12 @@ extension MEFrame {
 public extension KSOptions {
     /// 开启VR模式的陀飞轮
     static var enableSensor = true
-    static var stackSize = 32768
+    static var stackSize = 65536
     static var isClearVideoWhereReplace = true
     /// true: AVSampleBufferAudioRenderer false: AVAudioEngine
-    static var isUseAudioRenderer = false
+    static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
+    static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
+    static var yadifMode = 1
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
@@ -85,8 +95,10 @@ public extension KSOptions {
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
                 if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
                     return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
+                } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
+                    return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
                 } else {
-                    return CGColorSpace(name: CGColorSpace.itur_2020)
+                    return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
                 }
             } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
                 if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
@@ -99,7 +111,48 @@ public extension KSOptions {
             }
 
         default:
-            return nil
+            return CGColorSpace(name: CGColorSpace.sRGB)
+        }
+    }
+
+    static func colorSpace(colorPrimaries: CFString?) -> CGColorSpace? {
+        switch colorPrimaries {
+        case kCVImageBufferColorPrimaries_ITU_R_709_2:
+            return CGColorSpace(name: CGColorSpace.sRGB)
+        case kCVImageBufferColorPrimaries_DCI_P3:
+            if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
+                return CGColorSpace(name: CGColorSpace.displayP3_PQ)
+            } else {
+                return CGColorSpace(name: CGColorSpace.displayP3_PQ_EOTF)
+            }
+        case kCVImageBufferColorPrimaries_ITU_R_2020:
+            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
+                return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
+            } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
+                return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
+            } else {
+                return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+            }
+        default:
+            return CGColorSpace(name: CGColorSpace.sRGB)
+        }
+    }
+
+    static func pixelFormat(planeCount: Int, bitDepth: Int32) -> [MTLPixelFormat] {
+        if planeCount == 3 {
+            if bitDepth > 8 {
+                return [.r16Unorm, .r16Unorm, .r16Unorm]
+            } else {
+                return [.r8Unorm, .r8Unorm, .r8Unorm]
+            }
+        } else if planeCount == 2 {
+            if bitDepth > 8 {
+                return [.r16Unorm, .rg16Unorm]
+            } else {
+                return [.r8Unorm, .rg8Unorm]
+            }
+        } else {
+            return [colorPixelFormat(bitDepth: bitDepth)]
         }
     }
 
@@ -121,7 +174,7 @@ enum MECodecState {
     case finished
 }
 
-struct Timebase {
+public struct Timebase {
     static let defaultValue = Timebase(num: 1, den: 1)
     public let num: Int32
     public let den: Int32
@@ -141,17 +194,32 @@ extension Timebase {
 
 final class Packet: ObjectQueueItem {
     var duration: Int64 = 0
+    var timestamp: Int64 = 0
     var position: Int64 = 0
     var size: Int32 = 0
-    var assetTrack: FFmpegAssetTrack!
     private(set) var corePacket = av_packet_alloc()
-    func fill() {
-        guard let corePacket else {
-            return
+    var timebase: Timebase {
+        assetTrack.timebase
+    }
+
+    var isKeyFrame: Bool {
+        if let corePacket {
+            return corePacket.pointee.flags & AV_PKT_FLAG_KEY == AV_PKT_FLAG_KEY
+        } else {
+            return false
         }
-        position = corePacket.pointee.pts == Int64.min ? corePacket.pointee.dts : corePacket.pointee.pts
-        duration = corePacket.pointee.duration
-        size = corePacket.pointee.size
+    }
+
+    var assetTrack: FFmpegAssetTrack! {
+        didSet {
+            guard let packet = corePacket?.pointee else {
+                return
+            }
+            timestamp = packet.pts == Int64.min ? packet.dts : packet.pts
+            position = packet.pos
+            duration = packet.duration
+            size = packet.size
+        }
     }
 
     deinit {
@@ -161,6 +229,7 @@ final class Packet: ObjectQueueItem {
 }
 
 final class SubtitleFrame: MEFrame {
+    var timestamp: Int64 = 0
     var timebase: Timebase
     var duration: Int64 = 0
     var position: Int64 = 0
@@ -172,20 +241,48 @@ final class SubtitleFrame: MEFrame {
     }
 }
 
-final class AudioFrame: MEFrame {
-    var timebase = Timebase.defaultValue
-    var duration: Int64 = 0
-    var position: Int64 = 0
-    var size: Int32 = 0
-    var numberOfSamples: UInt32 = 0
-    let channels: UInt32
+public final class AudioFrame: MEFrame {
     let dataSize: Int
+    let audioFormat: AVAudioFormat
+    public var timebase = Timebase.defaultValue
+    public var timestamp: Int64 = 0
+    public var duration: Int64 = 0
+    public var position: Int64 = 0
+    public var size: Int32 = 0
+    var numberOfSamples: UInt32 = 0
     var data: [UnsafeMutablePointer<UInt8>?]
-    public init(bufferSize: Int32, channels: UInt32, count: Int) {
-        self.channels = channels
-        dataSize = Int(bufferSize)
+    public init(dataSize: Int, audioFormat: AVAudioFormat) {
+        self.dataSize = dataSize
+        self.audioFormat = audioFormat
+        let count = audioFormat.isInterleaved ? 1 : audioFormat.channelCount
         data = (0 ..< count).map { _ in
-            UnsafeMutablePointer<UInt8>.allocate(capacity: Int(bufferSize))
+            UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
+        }
+    }
+
+    init(array: [AudioFrame]) {
+        audioFormat = array[0].audioFormat
+        timebase = array[0].timebase
+        timestamp = array[0].timestamp
+        position = array[0].position
+        var dataSize = 0
+        for frame in array {
+            duration += frame.duration
+            dataSize += frame.dataSize
+            size += frame.size
+            numberOfSamples += frame.numberOfSamples
+        }
+        self.dataSize = dataSize
+        let count = audioFormat.isInterleaved ? 1 : audioFormat.channelCount
+        data = (0 ..< count).map { _ in
+            UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
+        }
+        var offset = 0
+        for frame in array {
+            for i in 0 ..< data.count {
+                data[i]?.advanced(by: offset).initialize(from: frame.data[i]!, count: frame.dataSize)
+            }
+            offset += frame.dataSize
         }
     }
 
@@ -196,14 +293,106 @@ final class AudioFrame: MEFrame {
         }
         data.removeAll()
     }
+
+    func toPCMBuffer() -> AVAudioPCMBuffer? {
+        guard let pcmBuffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: numberOfSamples) else {
+            return nil
+        }
+        pcmBuffer.frameLength = pcmBuffer.frameCapacity
+        let capacity = Int(pcmBuffer.frameCapacity)
+        for i in 0 ..< min(Int(pcmBuffer.format.channelCount), data.count) {
+            switch audioFormat.commonFormat {
+            case .pcmFormatInt16:
+                data[i]?.withMemoryRebound(to: Int16.self, capacity: capacity) { src in
+                    pcmBuffer.int16ChannelData?[i].update(from: src, count: capacity)
+                }
+            case .pcmFormatInt32:
+                data[i]?.withMemoryRebound(to: Int32.self, capacity: capacity) { src in
+                    pcmBuffer.int32ChannelData?[i].update(from: src, count: capacity)
+                }
+            default:
+                data[i]?.withMemoryRebound(to: Float.self, capacity: capacity) { src in
+                    pcmBuffer.floatChannelData?[i].update(from: src, count: capacity)
+                }
+            }
+        }
+        return pcmBuffer
+    }
+
+    func toCMSampleBuffer() -> CMSampleBuffer? {
+        var outBlockListBuffer: CMBlockBuffer?
+        CMBlockBufferCreateEmpty(allocator: kCFAllocatorDefault, capacity: UInt32(data.count), flags: 0, blockBufferOut: &outBlockListBuffer)
+        guard let outBlockListBuffer else {
+            return nil
+        }
+        let sampleSize = Int(audioFormat.sampleSize)
+        let sampleCount = CMItemCount(numberOfSamples)
+        let dataByteSize = sampleCount * sampleSize
+        if dataByteSize > dataSize {
+            assertionFailure("dataByteSize: \(dataByteSize),render.dataSize: \(dataSize)")
+        }
+        for i in 0 ..< data.count {
+            var outBlockBuffer: CMBlockBuffer?
+            CMBlockBufferCreateWithMemoryBlock(
+                allocator: kCFAllocatorDefault,
+                memoryBlock: nil,
+                blockLength: dataByteSize,
+                blockAllocator: kCFAllocatorDefault,
+                customBlockSource: nil,
+                offsetToData: 0,
+                dataLength: dataByteSize,
+                flags: kCMBlockBufferAssureMemoryNowFlag,
+                blockBufferOut: &outBlockBuffer
+            )
+            if let outBlockBuffer {
+                CMBlockBufferReplaceDataBytes(
+                    with: data[i]!,
+                    blockBuffer: outBlockBuffer,
+                    offsetIntoDestination: 0,
+                    dataLength: dataByteSize
+                )
+                CMBlockBufferAppendBufferReference(
+                    outBlockListBuffer,
+                    targetBBuf: outBlockBuffer,
+                    offsetToData: 0,
+                    dataLength: CMBlockBufferGetDataLength(outBlockBuffer),
+                    flags: 0
+                )
+            }
+        }
+        var sampleBuffer: CMSampleBuffer?
+        // 因为sampleRate跟timescale没有对齐，所以导致杂音。所以要让duration为invalid
+//        let duration = CMTime(value: CMTimeValue(sampleCount), timescale: CMTimeScale(audioFormat.sampleRate))
+        let duration = CMTime.invalid
+        let timing = CMSampleTimingInfo(duration: duration, presentationTimeStamp: cmtime, decodeTimeStamp: .invalid)
+        let sampleSizeEntryCount: CMItemCount
+        let sampleSizeArray: [Int]?
+        if audioFormat.isInterleaved {
+            sampleSizeEntryCount = 1
+            sampleSizeArray = [sampleSize]
+        } else {
+            sampleSizeEntryCount = 0
+            sampleSizeArray = nil
+        }
+        CMSampleBufferCreateReady(allocator: kCFAllocatorDefault, dataBuffer: outBlockListBuffer, formatDescription: audioFormat.formatDescription, sampleCount: sampleCount, sampleTimingEntryCount: 1, sampleTimingArray: [timing], sampleSizeEntryCount: sampleSizeEntryCount, sampleSizeArray: sampleSizeArray, sampleBufferOut: &sampleBuffer)
+        return sampleBuffer
+    }
 }
 
-final class VideoVTBFrame: MEFrame {
-    var timebase = Timebase.defaultValue
-    var duration: Int64 = 0
-    var position: Int64 = 0
-    var size: Int32 = 0
-    var corePixelBuffer: CVPixelBuffer?
+public final class VideoVTBFrame: MEFrame {
+    public var timebase = Timebase.defaultValue
+    // 交叉视频的duration会不准，直接减半了
+    public var duration: Int64 = 0
+    public var position: Int64 = 0
+    public var timestamp: Int64 = 0
+    public var size: Int32 = 0
+    public let fps: Float
+    public let isDovi: Bool
+    var corePixelBuffer: PixelBufferProtocol?
+    init(fps: Float, isDovi: Bool) {
+        self.fps = fps
+        self.isDovi = isDovi
+    }
 }
 
 extension Array {

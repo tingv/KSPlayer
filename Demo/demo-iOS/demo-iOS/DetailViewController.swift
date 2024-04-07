@@ -9,6 +9,7 @@
 import CoreServices
 import KSPlayer
 import UIKit
+
 protocol DetailProtocol: UIViewController {
     var resource: KSPlayerResource? { get set }
 }
@@ -86,6 +87,8 @@ class DetailViewController: UIViewController, DetailProtocol {
 }
 
 extension DetailViewController: PlayerControllerDelegate {
+    func playerController(seek _: TimeInterval) {}
+
     func playerController(state _: KSPlayerState) {}
 
     func playerController(currentTime _: TimeInterval, totalTime _: TimeInterval) {}

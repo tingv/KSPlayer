@@ -28,6 +28,7 @@ KSPlayer是一款基于 AVPlayer, FFmpeg  纯Swift的音视频播放器，支持
 ## 三、要求
 - iOS 13 +,  macOS 10.15 +, tvOS 13 +
 
+
 ## 四、安装
 ### CocoaPods
 
@@ -53,6 +54,11 @@ dependencies: [
 ### Demo
 
 进Demo目录打开Demo.xcworkspace。
+
+## License
+KSPlayer默认采用 GPL 协议(需开源自己的项目代码)，希望大家能自觉尊重 KSPlayer 项目的授权协议。另外有一个付费版本是采用LGPL协议。(联系我们)
+
+如果由于商业原因，不希望遵守 GPL 协议或 LGPL 协议，那你可以联系我们，经过我们的授权，你可以拥有更加宽松的授权协议。
 
 ## 五、使用
 
@@ -144,7 +150,8 @@ public protocol PlayerControllerDelegate: class {
   open class KSOptions {
     //    public static let shared = KSOptions()
     /// 最低缓存视频时间
-    @Published public var preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
+    @Published 
+    public var preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
     /// 最大缓存视频时间
     public var maxBufferDuration = KSOptions.maxBufferDuration
     /// 是否开启秒开
@@ -168,8 +175,7 @@ public protocol PlayerControllerDelegate: class {
     public var cache = false
     public var outputURL: URL?
     public var display = DisplayEnum.plane
-    public var audioDelay = 0.0 // s
-    public var subtitleDelay = 0.0 // s
+    public var videoDelay = 0.0 // s
     public var videoDisable = false
     public var audioFilters: String?
     public var videoFilters: String?

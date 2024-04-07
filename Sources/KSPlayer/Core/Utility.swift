@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Utility.swift
 //  KSPlayer
 //
 //  Created by kintan on 2018/3/9.
@@ -76,7 +76,31 @@ extension String {
 }
 
 public extension UIColor {
-    convenience init(hex: Int, alpha: CGFloat = 1) {
+    convenience init?(assColor: String) {
+        var colorString = assColor
+        // 移除颜色字符串中的前缀 &H 和后缀 &
+        if colorString.hasPrefix("&H") {
+            colorString = String(colorString.dropFirst(2))
+        }
+        if colorString.hasSuffix("&") {
+            colorString = String(colorString.dropLast())
+        }
+        if let hex = Scanner(string: colorString).scanInt(representation: .hexadecimal) {
+            self.init(abgr: hex)
+        } else {
+            return nil
+        }
+    }
+
+    convenience init(abgr hex: Int) {
+        let alpha = 1 - (CGFloat(hex >> 24 & 0xFF) / 255)
+        let blue = CGFloat((hex >> 16) & 0xFF)
+        let green = CGFloat((hex >> 8) & 0xFF)
+        let red = CGFloat(hex & 0xFF)
+        self.init(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, alpha: alpha)
+    }
+
+    convenience init(rgb hex: Int, alpha: CGFloat = 1) {
         let red = CGFloat((hex >> 16) & 0xFF)
         let green = CGFloat((hex >> 8) & 0xFF)
         let blue = CGFloat(hex & 0xFF)
@@ -136,22 +160,31 @@ extension AVAsset {
         }
     }
 
-    private func ceateComposition(beginTime: TimeInterval, endTime: TimeInterval) throws -> AVMutableComposition {
+    private func ceateComposition(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVMutableComposition {
         let compositionM = AVMutableComposition()
         let audioTrackM = compositionM.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         let videoTrackM = compositionM.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
         let cutRange = CMTimeRange(start: beginTime, end: endTime)
+        #if os(xrOS)
+        if let assetAudioTrack = try await loadTracks(withMediaType: .audio).first {
+            try audioTrackM?.insertTimeRange(cutRange, of: assetAudioTrack, at: .zero)
+        }
+        if let assetVideoTrack = try await loadTracks(withMediaType: .video).first {
+            try videoTrackM?.insertTimeRange(cutRange, of: assetVideoTrack, at: .zero)
+        }
+        #else
         if let assetAudioTrack = tracks(withMediaType: .audio).first {
             try audioTrackM?.insertTimeRange(cutRange, of: assetAudioTrack, at: .zero)
         }
         if let assetVideoTrack = tracks(withMediaType: .video).first {
             try videoTrackM?.insertTimeRange(cutRange, of: assetVideoTrack, at: .zero)
         }
+        #endif
         return compositionM
     }
 
-    func ceateExportSession(beginTime: TimeInterval, endTime: TimeInterval) throws -> AVAssetExportSession? {
-        let compositionM = try ceateComposition(beginTime: beginTime, endTime: endTime)
+    func ceateExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
+        let compositionM = try await ceateComposition(beginTime: beginTime, endTime: endTime)
         guard let exportSession = AVAssetExportSession(asset: compositionM, presetName: "") else {
             return nil
         }
@@ -162,12 +195,10 @@ extension AVAsset {
 
     func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, outputURL: URL, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
         try FileManager.default.removeItem(at: outputURL)
-        guard let exportSession = try ceateExportSession(beginTime: beginTime, endTime: endTime) else { return }
-        exportSession.outputURL = outputURL
-        exportSession.exportAsynchronously { [weak exportSession] in
-            guard let exportSession else {
-                return
-            }
+        Task {
+            guard let exportSession = try await ceateExportSession(beginTime: beginTime, endTime: endTime) else { return }
+            exportSession.outputURL = outputURL
+            await exportSession.export()
             switch exportSession.status {
             case .exporting:
                 progress(Double(exportSession.progress))

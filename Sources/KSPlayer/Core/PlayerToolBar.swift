@@ -1,5 +1,5 @@
 //
-//  ChooseButton.swift
+//  PlayerToolBar.swift
 //  Pods
 //
 //  Created by kintan on 16/5/21.
@@ -12,6 +12,7 @@ import UIKit
 import AppKit
 #endif
 import AVKit
+
 public class PlayerToolBar: UIStackView {
     public let srtButton = UIButton()
     public let timeLabel = UILabel()
@@ -56,7 +57,7 @@ public class PlayerToolBar: UIStackView {
         }
     }
 
-    internal lazy var startDateTimeInteral: TimeInterval = {
+    lazy var startDateTimeInteral: TimeInterval = {
         let date = Date()
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day], from: date)
@@ -64,7 +65,7 @@ public class PlayerToolBar: UIStackView {
         return startDate?.timeIntervalSince1970 ?? 0
     }()
 
-    internal var todayInterval: TimeInterval {
+    var todayInterval: TimeInterval {
         Date().timeIntervalSince1970 - startDateTimeInteral
     }
 
@@ -110,14 +111,14 @@ public class PlayerToolBar: UIStackView {
         let focusColor = UIColor.white
         let tintColor = UIColor.gray
         distribution = .fill
-        currentTimeLabel.textColor = UIColor(hex: 0x9B9B9B)
+        currentTimeLabel.textColor = UIColor(rgb: 0x9B9B9B)
         currentTimeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         currentTimeLabel.text = 0.toString(for: timeType)
-        totalTimeLabel.textColor = UIColor(hex: 0x9B9B9B)
+        totalTimeLabel.textColor = UIColor(rgb: 0x9B9B9B)
         totalTimeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         totalTimeLabel.text = 0.toString(for: timeType)
 
-        timeLabel.textColor = UIColor(hex: 0x9B9B9B)
+        timeLabel.textColor = UIColor(rgb: 0x9B9B9B)
         timeLabel.textAlignment = .left
         timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         timeLabel.text = "\(0.toString(for: timeType)) / \(0.toString(for: timeType))"
@@ -165,7 +166,7 @@ public class PlayerToolBar: UIStackView {
             pipButton.setImage(UIImage(systemName: "pip.exit"), for: .selected)
             playButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
             playButton.setImage(UIImage(systemName: "pause.fill"), for: .selected)
-            srtButton.setImage(UIImage(systemName: "contextualmenu.and.cursorarrow"), for: .normal)
+            srtButton.setImage(UIImage(systemName: "captions.bubble"), for: .normal)
             definitionButton.setImage(UIImage(systemName: "arrow.up.right.video"), for: .normal)
             audioSwitchButton.setImage(UIImage(systemName: "waveform"), for: .normal)
             videoSwitchButton.setImage(UIImage(systemName: "video.badge.ellipsis"), for: .normal)

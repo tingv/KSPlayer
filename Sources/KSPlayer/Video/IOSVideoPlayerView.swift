@@ -10,6 +10,7 @@ import Combine
 import CoreServices
 import MediaPlayer
 import UIKit
+
 open class IOSVideoPlayerView: VideoPlayerView {
     private weak var originalSuperView: UIView?
     private var originalframeConstraints: [NSLayoutConstraint]?
@@ -18,49 +19,51 @@ open class IOSVideoPlayerView: VideoPlayerView {
     private weak var fullScreenDelegate: PlayerViewFullScreenDelegate?
     private var isVolume = false
     private let volumeView = BrightnessVolume()
-    private var cancellable: AnyCancellable?
     public var volumeViewSlider = UXSlider()
     public var backButton = UIButton()
     public var airplayStatusView: UIView = AirplayStatusView()
+    #if !os(xrOS)
     public var routeButton = AVRoutePickerView()
+    #endif
     private let routeDetector = AVRouteDetector()
     /// Image view to show video cover
     public var maskImageView = UIImageView()
-    public var landscapeButton = UIButton()
+    public var landscapeButton: UIControl = UIButton()
     override open var isMaskShow: Bool {
         didSet {
             fullScreenDelegate?.player(isMaskShow: isMaskShow, isFullScreen: landscapeButton.isSelected)
         }
     }
 
+    #if !os(xrOS)
+    private var brightness: CGFloat = UIScreen.main.brightness {
+        didSet {
+            UIScreen.main.brightness = brightness
+        }
+    }
+    #endif
+
     override open func customizeUIComponents() {
         super.customizeUIComponents()
         if UIDevice.current.userInterfaceIdiom == .phone {
             subtitleLabel.font = .systemFont(ofSize: 14)
         }
-        cancellable = srtControl.$srtListCount.sink { [weak self] count in
-            guard let self, count > 0 else {
-                return
-            }
-            if self.landscapeButton.isSelected || UIDevice.current.userInterfaceIdiom == .pad {
-                self.toolBar.srtButton.isHidden = false
-            }
-        }
         insertSubview(maskImageView, at: 0)
         maskImageView.contentMode = .scaleAspectFit
         toolBar.addArrangedSubview(landscapeButton)
         landscapeButton.tag = PlayerButtonType.landscape.rawValue
-        landscapeButton.setImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right"), for: .normal)
-        landscapeButton.setImage(UIImage(systemName: "arrow.down.right.and.arrow.up.left"), for: .selected)
         landscapeButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .touchUpInside)
         landscapeButton.tintColor = .white
+        if let landscapeButton = landscapeButton as? UIButton {
+            landscapeButton.setImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right"), for: .normal)
+            landscapeButton.setImage(UIImage(systemName: "arrow.down.right.and.arrow.up.left"), for: .selected)
+        }
         backButton.tag = PlayerButtonType.back.rawValue
         backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
         backButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .touchUpInside)
         backButton.tintColor = .white
         navigationBar.insertArrangedSubview(backButton, at: 0)
-        routeButton.isHidden = true
-        navigationBar.addArrangedSubview(routeButton)
+
         addSubview(airplayStatusView)
         volumeView.move(to: self)
         #if !targetEnvironment(macCatalyst)
@@ -69,7 +72,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
             volumeViewSlider = first
         }
         #endif
-        routeButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.translatesAutoresizingMaskIntoConstraints = false
         landscapeButton.translatesAutoresizingMaskIntoConstraints = false
         maskImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -79,11 +81,18 @@ open class IOSVideoPlayerView: VideoPlayerView {
             maskImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
             maskImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
             backButton.widthAnchor.constraint(equalToConstant: 25),
-            routeButton.widthAnchor.constraint(equalToConstant: 25),
             landscapeButton.widthAnchor.constraint(equalToConstant: 30),
             airplayStatusView.centerXAnchor.constraint(equalTo: centerXAnchor),
             airplayStatusView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
+        #if !os(xrOS)
+        routeButton.isHidden = true
+        navigationBar.addArrangedSubview(routeButton)
+        routeButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            routeButton.widthAnchor.constraint(equalToConstant: 25),
+        ])
+        #endif
         addNotification()
     }
 
@@ -92,7 +101,9 @@ open class IOSVideoPlayerView: VideoPlayerView {
         maskImageView.alpha = 1
         maskImageView.image = nil
         panGesture.isEnabled = false
+        #if !os(xrOS)
         routeButton.isHidden = !routeDetector.multipleRoutesDetected
+        #endif
     }
 
     override open func onButtonPressed(type: PlayerButtonType, button: UIButton) {
@@ -127,6 +138,9 @@ open class IOSVideoPlayerView: VideoPlayerView {
             }
             originalSuperView = superview
             originalframeConstraints = frameConstraints
+            if let originalframeConstraints {
+                NSLayoutConstraint.deactivate(originalframeConstraints)
+            }
             originalFrame = frame
             originalOrientations = viewController.supportedInterfaceOrientations
             let fullVC = PlayerFullScreenViewController(isHorizonal: isHorizonal)
@@ -150,17 +164,16 @@ open class IOSVideoPlayerView: VideoPlayerView {
                 return
             }
             let presentingVC = viewController.presentingViewController ?? viewController
-            KSOptions.supportedInterfaceOrientations = .portrait
+            if let originalOrientations {
+                KSOptions.supportedInterfaceOrientations = originalOrientations
+            }
             presentingVC.dismiss(animated: true) {
                 self.originalSuperView?.addSubview(self)
-                if let constraints = self.originalframeConstraints, constraints.count > 0 {
+                if let constraints = self.originalframeConstraints, !constraints.isEmpty {
                     NSLayoutConstraint.activate(constraints)
                 } else {
                     self.translatesAutoresizingMaskIntoConstraints = true
                     self.frame = self.originalFrame
-                }
-                if let originalOrientations = self.originalOrientations {
-                    KSOptions.supportedInterfaceOrientations = originalOrientations
                 }
             }
         }
@@ -175,12 +188,11 @@ open class IOSVideoPlayerView: VideoPlayerView {
             topMaskView.isHidden = KSOptions.topBarShowInCase != .always
         }
         toolBar.playbackRateButton.isHidden = false
-        toolBar.srtButton.isHidden = srtControl.srtListCount == 0
-        srtControl.view.isHidden = true
+        toolBar.srtButton.isHidden = srtControl.subtitleInfos.isEmpty
         if UIDevice.current.userInterfaceIdiom == .phone {
             if isLandscape {
                 landscapeButton.isHidden = true
-                toolBar.srtButton.isHidden = srtControl.srtListCount == 0
+                toolBar.srtButton.isHidden = srtControl.subtitleInfos.isEmpty
             } else {
                 toolBar.srtButton.isHidden = true
                 if let image = maskImageView.image {
@@ -221,7 +233,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
         Task {
             let image = await playerLayer?.player.thumbnailImageAtCurrentTime()
             if let image {
-                self.maskImageView.image = image
+                self.maskImageView.image = UIImage(cgImage: image)
                 self.maskImageView.alpha = 1
             }
             super.change(definitionIndex: definitionIndex)
@@ -250,7 +262,9 @@ open class IOSVideoPlayerView: VideoPlayerView {
                     volumeViewSlider.value = tmpPanValue
                 }
             } else if KSOptions.enableBrightnessGestures {
-                UIScreen.main.brightness += CGFloat(panValue(velocity: point, direction: direction, currentTime: Float(toolBar.currentTime), totalTime: Float(totalTime)))
+                #if !os(xrOS)
+                brightness += CGFloat(panValue(velocity: point, direction: direction, currentTime: Float(toolBar.currentTime), totalTime: Float(totalTime)))
+                #endif
             }
         } else {
             super.panGestureChanged(velocity: point, direction: direction)
@@ -292,7 +306,9 @@ extension IOSVideoPlayerView {
     }
 
     @objc private func routesAvailableDidChange(notification _: Notification) {
+        #if !os(xrOS)
         routeButton.isHidden = !routeDetector.multipleRoutesDetected
+        #endif
     }
 
     @objc private func orientationChanged(notification _: Notification) {
@@ -386,6 +402,7 @@ extension IOSVideoPlayerView: UIDocumentPickerDelegate {
 #endif
 
 #if os(iOS)
+@MainActor
 public class MenuController {
     public init(with builder: UIMenuBuilder) {
         builder.remove(menu: .format)
@@ -439,6 +456,7 @@ public class MenuController {
             NSLocalizedString("\(rawValue)", comment: "")
         }
 
+        @MainActor
         var command: String {
             switch self {
             case .rightArrow:

@@ -9,7 +9,7 @@ import CoreMedia
 import Libavformat
 
 protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
-    init(assetTrack: FFmpegAssetTrack, options: KSOptions)
+    init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions)
     // 是否无缝循环
     var isLoopModel: Bool { get set }
     var isEndOfFile: Bool { get set }
@@ -35,31 +35,32 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
 
     var isEndOfFile: Bool = false
     var packetCount: Int { 0 }
-    var frameCount: Int { outputRenderQueue.count }
-    let frameMaxCount: Int
     let description: String
     weak var delegate: CodecCapacityDelegate?
-    let fps: Float
     let mediaType: AVFoundation.AVMediaType
     let outputRenderQueue: CircularBuffer<Frame>
     var isLoopModel = false
+    var frameCount: Int { outputRenderQueue.count }
+    var frameMaxCount: Int {
+        outputRenderQueue.maxCount
+    }
 
-    required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
+    var fps: Float {
+        outputRenderQueue.fps
+    }
+
+    required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions) {
         self.options = options
-        options.process(assetTrack: assetTrack)
-        mediaType = assetTrack.mediaType
+        self.mediaType = mediaType
         description = mediaType.rawValue
-        fps = assetTrack.nominalFrameRate
         // 默认缓存队列大小跟帧率挂钩,经测试除以4，最优
         if mediaType == .audio {
-            let capacity = options.audioFrameMaxCount(fps: fps, channels: Int(assetTrack.audioDescriptor.channels))
-            outputRenderQueue = CircularBuffer(initialCapacity: capacity, expanding: false)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), expanding: false)
         } else if mediaType == .video {
-            outputRenderQueue = CircularBuffer(initialCapacity: options.videoFrameMaxCount(fps: fps), sorted: true, expanding: false)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: false)
         } else {
-            outputRenderQueue = CircularBuffer()
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity))
         }
-        frameMaxCount = outputRenderQueue.maxCount
     }
 
     func decode() {
@@ -70,6 +71,8 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
     func seek(time: TimeInterval) {
         if options.isAccurateSeek {
             seekTime = time
+        } else {
+            seekTime = 0
         }
         isEndOfFile = false
         state = .flush
@@ -87,7 +90,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
     }
 
-    func getOutputRender(where predicate: ((Frame) -> Bool)?) -> Frame? {
+    func getOutputRender(where predicate: ((Frame, Int) -> Bool)?) -> Frame? {
         let outputFecthRender = outputRenderQueue.pop(where: predicate)
         if outputFecthRender == nil {
             if state == .finished, frameCount == 0 {
@@ -105,48 +108,69 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         outputRenderQueue.shutdown()
     }
 
+    private var lastPacketBytes = Int32(0)
+    private var lastPacketSeconds = Double(-1)
+    var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
+        if packet.isKeyFrame, packet.assetTrack.mediaType != .subtitle {
+            let seconds = packet.seconds
+            let diff = seconds - lastPacketSeconds
+            if lastPacketSeconds < 0 || diff < 0 {
+                bitrate = 0
+                lastPacketBytes = 0
+                lastPacketSeconds = seconds
+            } else if diff > 1 {
+                bitrate = Double(lastPacketBytes) / diff
+                lastPacketBytes = 0
+                lastPacketSeconds = seconds
+            }
+        }
+        lastPacketBytes += packet.size
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
-        do {
-            try decoder.doDecode(packet: packet)
-            if options.decodeAudioTime == 0, mediaType == .audio {
-                options.decodeAudioTime = CACurrentMediaTime()
-            }
-            if options.decodeVideoTime == 0, mediaType == .video {
-                options.decodeVideoTime = CACurrentMediaTime()
-            }
-        } catch {
-            KSLog("Decoder did Failed : \(error)")
-            if decoder is VideoToolboxDecode {
-                decoder.shutdown()
-                decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: options, delegate: self)
-                KSLog("VideoCodec switch to software decompression")
-                doDecode(packet: packet)
-            } else {
-                state = .failed
-            }
-        }
-    }
-}
-
-extension SyncPlayerItemTrack: DecodeResultDelegate {
-    func decodeResult(frame: MEFrame?) {
-        guard let frame else {
-            return
-        }
-        if state == .flush || state == .closed {
-            return
-        }
-        if seekTime > 0 {
-            let timestamp = frame.position + frame.duration
-            if timestamp <= 0 || frame.timebase.cmtime(for: timestamp).seconds < seekTime {
+//        var startTime = CACurrentMediaTime()
+        decoder.decodeFrame(from: packet) { [weak self] result in
+            guard let self else {
                 return
-            } else {
-                seekTime = 0.0
+            }
+            do {
+//                if packet.assetTrack.mediaType == .video {
+//                    print("[video] decode time: \(CACurrentMediaTime()-startTime)")
+//                    startTime = CACurrentMediaTime()
+//                }
+                let frame = try result.get()
+                if self.state == .flush || self.state == .closed {
+                    return
+                }
+                if self.seekTime > 0 {
+                    let timestamp = frame.timestamp + frame.duration
+//                    KSLog("seektime \(self.seekTime), frame \(frame.seconds), mediaType \(packet.assetTrack.mediaType)")
+                    if timestamp <= 0 || frame.timebase.cmtime(for: timestamp).seconds < self.seekTime {
+                        return
+                    } else {
+                        self.seekTime = 0.0
+                    }
+                }
+                if let frame = frame as? Frame {
+                    self.outputRenderQueue.push(frame)
+                    self.outputRenderQueue.fps = packet.assetTrack.nominalFrameRate
+                }
+            } catch {
+                KSLog("Decoder did Failed : \(error)")
+                if decoder is VideoToolboxDecode {
+                    decoder.shutdown()
+                    self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
+                    KSLog("VideoCodec switch to software decompression")
+                    self.doDecode(packet: packet)
+                } else {
+                    self.state = .failed
+                }
             }
         }
-        if let frame = frame as? Frame {
-            outputRenderQueue.push(frame)
+        if options.decodeAudioTime == 0, mediaType == .audio {
+            options.decodeAudioTime = CACurrentMediaTime()
+        }
+        if options.decodeVideoTime == 0, mediaType == .video {
+            options.decodeVideoTime = CACurrentMediaTime()
         }
     }
 }
@@ -156,7 +180,7 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
     private var decodeOperation: BlockOperation!
     // 无缝播放使用的PacketQueue
     private var loopPacketQueue: CircularBuffer<Packet>?
-    private var packetQueue = CircularBuffer<Packet>()
+    var packetQueue = CircularBuffer<Packet>()
     override var packetCount: Int { packetQueue.count }
     override var isLoopModel: Bool {
         didSet {
@@ -176,9 +200,9 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         }
     }
 
-    required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
-        super.init(assetTrack: assetTrack, options: options)
-        operationQueue.name = "KSPlayer_" + description
+    required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions) {
+        super.init(mediaType: mediaType, frameCapacity: frameCapacity, options: options)
+        operationQueue.name = "KSPlayer_" + mediaType.rawValue
         operationQueue.maxConcurrentOperationCount = 1
         operationQueue.qualityOfService = .userInteractive
     }
@@ -266,29 +290,24 @@ public extension Dictionary {
 }
 
 protocol DecodeProtocol {
-    init(assetTrack: FFmpegAssetTrack, options: KSOptions, delegate: DecodeResultDelegate)
     func decode()
-    func doDecode(packet: Packet) throws
+    func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void)
     func doFlushCodec()
     func shutdown()
-}
-
-protocol DecodeResultDelegate: AnyObject {
-    func decodeResult(frame: MEFrame?)
 }
 
 extension SyncPlayerItemTrack {
     func makeDecode(assetTrack: FFmpegAssetTrack) -> DecodeProtocol {
         autoreleasepool {
             if mediaType == .subtitle {
-                return SubtitleDecode(assetTrack: assetTrack, options: options, delegate: self)
+                return SubtitleDecode(assetTrack: assetTrack, options: options)
             } else {
                 if mediaType == .video, options.asynchronousDecompression, options.hardwareDecode,
-                   let session = DecompressionSession(codecpar: assetTrack.codecpar, options: options)
+                   let session = DecompressionSession(assetTrack: assetTrack, options: options)
                 {
-                    return VideoToolboxDecode(assetTrack: assetTrack, options: options, session: session, delegate: self)
+                    return VideoToolboxDecode(options: options, session: session)
                 } else {
-                    return FFmpegDecode(assetTrack: assetTrack, options: options, delegate: self)
+                    return FFmpegDecode(assetTrack: assetTrack, options: options)
                 }
             }
         }

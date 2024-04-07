@@ -5,4 +5,4 @@ xcuserdata
 .swiftpm
 Script
 FFmpegKit
-Demo/Pods
+Package.resolved

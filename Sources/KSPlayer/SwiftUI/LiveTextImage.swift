@@ -1,15 +1,16 @@
 //
-//  LiveTextView.swift
+//  LiveTextImage.swift
 //  KSPlayer
 //
 //  Created by kintan on 2023/5/4.
 //
 
 import SwiftUI
-#if !os(tvOS)
+#if canImport(VisionKit)
 import VisionKit
+
+@available(iOS 16.0, macOS 13.0, macCatalyst 17.0, *)
 @MainActor
-@available(macOS 13.0, iOS 16.0, *)
 public struct LiveTextImage: UIViewRepresentable {
     public let uiImage: UIImage
     private let analyzer = ImageAnalyzer()
@@ -31,6 +32,7 @@ public struct LiveTextImage: UIViewRepresentable {
     }
     #else
     public typealias NSViewType = UIImageView
+    @MainActor
     private let interaction = ImageAnalysisOverlayView()
     public func makeNSView(context _: Context) -> NSViewType {
         let imageView = LiveTextImageView()
@@ -45,6 +47,7 @@ public struct LiveTextImage: UIViewRepresentable {
         updateView(view)
     }
     #endif
+    @MainActor
     private func updateView(_ view: UIImageView) {
         view.image = uiImage
         view.sizeToFit()
