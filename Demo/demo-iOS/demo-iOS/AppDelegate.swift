@@ -69,18 +69,18 @@ class CustomVideoPlayerView: VideoPlayerView {
     override open func player(layer: KSPlayerLayer, state: KSPlayerState) {
         super.player(layer: layer, state: state)
         if state == .readyToPlay {
-            print(layer.player.naturalSize)
+            KSLog(layer.player.naturalSize)
             // list the all subtitles
             let subtitleInfos = srtControl.subtitleInfos
             for subtitleInfo in subtitleInfos {
-                print(subtitleInfo.name)
+                KSLog(subtitleInfo.name)
             }
             srtControl.selectedSubtitleInfo = subtitleInfos.first
             for track in layer.player.tracks(mediaType: .audio) {
-                print("audio name: \(track.name) language: \(track.language ?? "")")
+                KSLog("audio name: \(track.name) language: \(track.language ?? "")")
             }
             for track in layer.player.tracks(mediaType: .video) {
-                print("video name: \(track.name) bitRate: \(track.bitRate) fps: \(track.nominalFrameRate) colorPrimaries: \(track.colorPrimaries ?? "") colorPrimaries: \(track.transferFunction ?? "") yCbCrMatrix: \(track.yCbCrMatrix ?? "") codecType:  \(track.mediaSubType.rawValue.string)")
+                KSLog("video name: \(track.name) bitRate: \(track.bitRate) fps: \(track.nominalFrameRate) colorPrimaries: \(track.colorPrimaries ?? "") colorPrimaries: \(track.transferFunction ?? "") yCbCrMatrix: \(track.yCbCrMatrix ?? "") codecType:  \(track.mediaSubType.rawValue.string)")
             }
         }
     }
@@ -94,36 +94,7 @@ class CustomVideoPlayerView: VideoPlayerView {
     }
 }
 
-class MEOptions: KSOptions {
-    override func process(assetTrack: some MediaPlayerTrack) {
-        if assetTrack.mediaType == .video {
-            if [FFmpegFieldOrder.bb, .bt, .tt, .tb].contains(assetTrack.fieldOrder) {
-                videoFilters.append("yadif_videotoolbox=mode=0:parity=-1:deint=1")
-                asynchronousDecompression = false
-            }
-            #if os(tvOS) || os(xrOS)
-            runOnMainThread { [weak self] in
-                guard let self else {
-                    return
-                }
-                if let displayManager = UIApplication.shared.windows.first?.avDisplayManager,
-                   displayManager.isDisplayCriteriaMatchingEnabled
-                {
-                    let refreshRate = assetTrack.nominalFrameRate
-                    if KSOptions.displayCriteriaFormatDescriptionEnabled, let formatDescription = assetTrack.formatDescription, #available(tvOS 17.0, *) {
-                        displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, formatDescription: formatDescription)
-                    } else {
-                        if let dynamicRange = assetTrack.dynamicRange {
-                            let videoDynamicRange = self.availableDynamicRange(dynamicRange) ?? dynamicRange
-                            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: videoDynamicRange.rawValue)
-                        }
-                    }
-                }
-            }
-            #endif
-        }
-    }
-}
+class MEOptions: KSOptions {}
 
 var testObjects: [KSPlayerResource] = {
     var objects = [KSPlayerResource]()

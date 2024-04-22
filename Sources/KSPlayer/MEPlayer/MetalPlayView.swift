@@ -11,12 +11,8 @@ import CoreMedia
 #if canImport(MetalKit)
 import MetalKit
 #endif
-public protocol DisplayLayerDelegate: NSObjectProtocol {
-    func change(displayLayer: AVSampleBufferDisplayLayer)
-}
 
 public protocol VideoOutput: FrameOutput {
-    var displayLayerDelegate: DisplayLayerDelegate? { get set }
     var options: KSOptions { get set }
     var displayLayer: AVSampleBufferDisplayLayer { get }
     var pixelBuffer: PixelBufferProtocol? { get }
@@ -62,14 +58,9 @@ public final class MetalPlayView: UIView, VideoOutput {
     public var options: KSOptions
     public weak var renderSource: OutputRenderSourceDelegate?
     // AVSampleBufferAudioRenderer AVSampleBufferRenderSynchronizer AVSampleBufferDisplayLayer
-    var displayView = AVSampleBufferDisplayView() {
-        didSet {
-            displayLayerDelegate?.change(displayLayer: displayView.displayLayer)
-        }
-    }
+    private let displayView = AVSampleBufferDisplayView()
 
     private let metalView = MetalView()
-    public weak var displayLayerDelegate: DisplayLayerDelegate?
     public init(options: KSOptions) {
         self.options = options
         super.init(frame: .zero)
@@ -159,7 +150,7 @@ public final class MetalPlayView: UIView, VideoOutput {
     }
 
 //    deinit {
-//        print()
+//        KSLog()
 //    }
 }
 
@@ -210,6 +201,11 @@ extension MetalPlayView {
                     size = KSOptions.sceneSize
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
+                #if !os(tvOS)
+                if #available(iOS 16, *) {
+                    metalView.metalLayer.edrMetadata = frame.edrMetadata
+                }
+                #endif
                 metalView.draw(pixelBuffer: pixelBuffer, display: options.display, size: size)
             }
             renderSource?.setVideo(time: cmtime, position: frame.position)
@@ -218,11 +214,15 @@ extension MetalPlayView {
 
     private func checkFormatDescription(pixelBuffer: PixelBufferProtocol) {
         if formatDescription == nil || !pixelBuffer.matche(formatDescription: formatDescription!) {
-            if formatDescription != nil {
-                displayView.removeFromSuperview()
-                displayView = AVSampleBufferDisplayView()
-                addSubview(displayView)
-            }
+            // 宽高不一样，先不用更换AVSampleBufferDisplayView。找不到之前为什么要这么做的记录了。
+//            if formatDescription != nil {
+//                let videoGravity = displayView.displayLayer.videoGravity
+//                displayView.removeFromSuperview()
+//                displayView = AVSampleBufferDisplayView()
+//                displayView.displayLayer.videoGravity = videoGravity
+//                displayView.frame = frame
+//                addSubview(displayView)
+//            }
             formatDescription = pixelBuffer.formatDescription
         }
     }
@@ -295,7 +295,7 @@ class MetalView: UIView {
     }
 }
 
-class AVSampleBufferDisplayView: UIView {
+private class AVSampleBufferDisplayView: UIView {
     #if canImport(UIKit)
     override public class var layerClass: AnyClass { AVSampleBufferDisplayLayer.self }
     #endif

@@ -17,39 +17,14 @@ func toDictionary(_ native: OpaquePointer?) -> [String: String] {
 }
 
 extension UnsafeMutablePointer where Pointee == AVCodecContext {
-    func getFormat() {
-        pointee.get_format = { ctx, fmt -> AVPixelFormat in
-            guard let fmt, let ctx else {
-                return AV_PIX_FMT_NONE
-            }
-            var i = 0
-            while fmt[i] != AV_PIX_FMT_NONE {
-                if fmt[i] == AV_PIX_FMT_VIDEOTOOLBOX {
-                    let deviceCtx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
-                    if deviceCtx == nil {
-                        break
-                    }
-                    // 只要有hw_device_ctx就可以了。不需要hw_frames_ctx
-                    ctx.pointee.hw_device_ctx = deviceCtx
-//                    var framesCtx = av_hwframe_ctx_alloc(deviceCtx)
-//                    if let framesCtx {
-//                        let framesCtxData = UnsafeMutableRawPointer(framesCtx.pointee.data)
-//                            .bindMemory(to: AVHWFramesContext.self, capacity: 1)
-//                        framesCtxData.pointee.format = AV_PIX_FMT_VIDEOTOOLBOX
-//                        framesCtxData.pointee.sw_format = ctx.pointee.pix_fmt.bestPixelFormat
-//                        framesCtxData.pointee.width = ctx.pointee.width
-//                        framesCtxData.pointee.height = ctx.pointee.height
-//                    }
-//                    if av_hwframe_ctx_init(framesCtx) != 0 {
-//                        av_buffer_unref(&framesCtx)
-//                        break
-//                    }
-//                    ctx.pointee.hw_frames_ctx = framesCtx
-                    return fmt[i]
-                }
-                i += 1
-            }
-            return fmt[0]
+    func createHwaccel(name: String) {
+        let type = av_hwdevice_find_type_by_name(name)
+        if type == AV_HWDEVICE_TYPE_NONE {
+            return
+        }
+        var ret = av_hwdevice_ctx_create_derived(&pointee.hw_device_ctx, type, nil, 0)
+        if ret != 0 {
+            ret = av_hwdevice_ctx_create(&pointee.hw_device_ctx, type, nil, nil, 0)
         }
     }
 }
@@ -87,9 +62,6 @@ extension AVCodecParameters {
             avcodec_free_context(&codecContextOption)
             throw NSError(errorCode: .codecContextSetParam, avErrorCode: result)
         }
-        if codec_type == AVMEDIA_TYPE_VIDEO, options?.hardwareDecode ?? false {
-            codecContext.getFormat()
-        }
         guard let codec = avcodec_find_decoder(codecContext.pointee.codec_id) else {
             avcodec_free_context(&codecContextOption)
             throw NSError(errorCode: .codecContextFindDecoder, avErrorCode: result)
@@ -109,6 +81,10 @@ extension AVCodecParameters {
             if lowres > 0 {
                 av_dict_set_int(&avOptions, "lowres", Int64(lowres), 0)
             }
+        }
+        if codec_type == AVMEDIA_TYPE_VIDEO, options?.hardwareDecode ?? false {
+            //        "videotoolbox" "vulkan"
+            codecContext.createHwaccel(name: "videotoolbox")
         }
         result = avcodec_open2(codecContext, codec, &avOptions)
         av_dict_free(&avOptions)
@@ -288,7 +264,8 @@ extension AVPixelFormat {
         case AV_PIX_FMT_RGB555LE: return kCVPixelFormatType_16LE555
         case AV_PIX_FMT_RGB565BE: return kCVPixelFormatType_16BE565
         case AV_PIX_FMT_RGB565LE: return kCVPixelFormatType_16LE565
-        case AV_PIX_FMT_BGR24: return kCVPixelFormatType_24BGR
+//             PixelBufferPool 无法支持24BGR
+//        case AV_PIX_FMT_BGR24: return kCVPixelFormatType_24BGR
         case AV_PIX_FMT_RGB24: return kCVPixelFormatType_24RGB
         case AV_PIX_FMT_0RGB: return kCVPixelFormatType_32ARGB
         case AV_PIX_FMT_ARGB: return kCVPixelFormatType_32ARGB
@@ -443,7 +420,7 @@ public struct AVError: Error, Equatable {
     }
 }
 
-extension Dictionary where Key == String {
+public extension Dictionary where Key == String {
     var avOptions: OpaquePointer? {
         var avOptions: OpaquePointer?
         forEach { key, value in
@@ -474,7 +451,7 @@ extension String {
     }
 }
 
-extension NSError {
+public extension NSError {
     convenience init(errorCode: KSPlayerErrorCode, avErrorCode: Int32) {
         let underlyingError = AVError(code: avErrorCode)
         self.init(errorCode: errorCode, userInfo: [NSUnderlyingErrorKey: underlyingError])

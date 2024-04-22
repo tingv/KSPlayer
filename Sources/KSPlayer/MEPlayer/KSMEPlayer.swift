@@ -128,7 +128,6 @@ public class KSMEPlayer: NSObject {
         playerItem.delegate = self
         audioOutput.renderSource = playerItem
         videoOutput?.renderSource = playerItem
-        videoOutput?.displayLayerDelegate = self
         #if !os(macOS)
         NotificationCenter.default.addObserver(self, selector: #selector(audioRouteChange), name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
         if #available(tvOS 15.0, iOS 15.0, *) {
@@ -178,10 +177,10 @@ private extension KSMEPlayer {
         guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt else {
             return
         }
-        let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason)
-        guard routeChangeReason == .newDeviceAvailable || routeChangeReason == .oldDeviceUnavailable else {
-            return
-        }
+//        let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason)
+//        guard [AVAudioSession.RouteChangeReason.newDeviceAvailable, .oldDeviceUnavailable, .routeConfigurationChange].contains(routeChangeReason) else {
+//            return
+//        }
         for track in tracks(mediaType: .audio) {
             (track as? FFmpegAssetTrack)?.audioDescriptor?.updateAudioFormat()
         }
@@ -315,15 +314,19 @@ extension KSMEPlayer: MediaPlayerProtocol {
     public var view: UIView? { videoOutput }
 
     public func replace(url: URL, options: KSOptions) {
-        KSLog("replaceUrl \(self)")
+        replace(item: MEPlayerItem(url: url, options: options))
+    }
+
+    public func replace(item: MEPlayerItem) {
+        KSLog("replace item \(item)")
         shutdown()
         playerItem.delegate = nil
-        playerItem = MEPlayerItem(url: url, options: options)
+        let options = item.options
+        playerItem = item
         if options.videoDisable {
             videoOutput = nil
         } else if videoOutput == nil {
             videoOutput = KSOptions.videoPlayerType.init(options: options)
-            videoOutput?.displayLayerDelegate = self
         }
         self.options = options
         playerItem.delegate = self
@@ -562,17 +565,6 @@ extension KSMEPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
             self.bufferingCountDownTimer = Timer(timeInterval: countDown, repeats: false) { _ in
                 completionHandler()
             }
-        }
-    }
-}
-
-extension KSMEPlayer: DisplayLayerDelegate {
-    public func change(displayLayer: AVSampleBufferDisplayLayer) {
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
-            let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: displayLayer, playbackDelegate: self)
-            _pipController = KSPictureInPictureController(contentSource: contentSource)
-            // 更改contentSource会直接crash
-//            pipController?.contentSource = contentSource
         }
     }
 }

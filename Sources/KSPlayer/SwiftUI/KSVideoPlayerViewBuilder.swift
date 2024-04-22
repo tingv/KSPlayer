@@ -8,27 +8,7 @@
 import SwiftUI
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-enum KSVideoPlayerViewBuilder {
-    @MainActor
-    static func playbackControlView(config: KSVideoPlayer.Coordinator, spacing: CGFloat? = nil) -> some View {
-        HStack(spacing: spacing) {
-            // Playback controls don't need spacers for visionOS, since the controls are laid out in a HStack.
-            #if os(xrOS)
-            backwardButton(config: config)
-            playButton(config: config)
-            forwardButton(config: config)
-            #else
-            Spacer()
-            backwardButton(config: config)
-            Spacer()
-            playButton(config: config)
-            Spacer()
-            forwardButton(config: config)
-            Spacer()
-            #endif
-        }
-    }
-
+public enum KSVideoPlayerViewBuilder {
     @MainActor
     static func contentModeButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
@@ -74,9 +54,9 @@ enum KSVideoPlayerViewBuilder {
 
     @MainActor
     static func titleView(title: String, config: KSVideoPlayer.Coordinator) -> some View {
-        HStack {
+        Group {
             Text(title)
-                .font(.title3)
+                .font(.headline)
             ProgressView()
                 .opacity(config.state == .buffering ? 1 : 0)
         }
@@ -89,7 +69,6 @@ enum KSVideoPlayerViewBuilder {
         } label: {
             Image(systemName: config.isMuted ? speakerDisabledSystemName : speakerSystemName)
         }
-        .shadow(color: .black, radius: 1)
     }
 
     static func infoButton(showVideoSetting: Binding<Bool>) -> some View {
@@ -106,9 +85,9 @@ enum KSVideoPlayerViewBuilder {
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-private extension KSVideoPlayerViewBuilder {
+public extension KSVideoPlayerViewBuilder {
     static var playSystemName: String {
-        #if os(xrOS)
+        #if os(xrOS) || os(macOS)
         "play.fill"
         #else
         "play.circle.fill"
@@ -116,7 +95,7 @@ private extension KSVideoPlayerViewBuilder {
     }
 
     static var pauseSystemName: String {
-        #if os(xrOS)
+        #if os(xrOS) || os(macOS)
         "pause.fill"
         #else
         "pause.circle.fill"
@@ -124,7 +103,7 @@ private extension KSVideoPlayerViewBuilder {
     }
 
     static var speakerSystemName: String {
-        #if os(xrOS)
+        #if os(xrOS) || os(macOS)
         "speaker.fill"
         #else
         "speaker.wave.2.circle.fill"
@@ -132,7 +111,7 @@ private extension KSVideoPlayerViewBuilder {
     }
 
     static var speakerDisabledSystemName: String {
-        #if os(xrOS)
+        #if os(xrOS) || os(macOS)
         "speaker.slash.fill"
         #else
         "speaker.slash.circle.fill"
@@ -147,7 +126,6 @@ private extension KSVideoPlayerViewBuilder {
                 config.skip(interval: -15)
             } label: {
                 Image(systemName: "gobackward.15")
-                    .font(.largeTitle)
             }
             #if !os(tvOS)
             .keyboardShortcut(.leftArrow, modifiers: .none)
@@ -163,7 +141,6 @@ private extension KSVideoPlayerViewBuilder {
                 config.skip(interval: 15)
             } label: {
                 Image(systemName: "goforward.15")
-                    .font(.largeTitle)
             }
             #if !os(tvOS)
             .keyboardShortcut(.rightArrow, modifiers: .none)
@@ -181,7 +158,6 @@ private extension KSVideoPlayerViewBuilder {
             }
         } label: {
             Image(systemName: config.state == .error ? "play.slash.fill" : (config.state.isPlaying ? pauseSystemName : playSystemName))
-                .font(.largeTitle)
         }
         #if os(xrOS)
         .contentTransition(.symbolEffect(.replace))
