@@ -105,7 +105,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
         }
 
-        @Published
+//        @Published
         @MainActor
         public var isMaskShow = true {
             didSet {
