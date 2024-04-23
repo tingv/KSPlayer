@@ -455,9 +455,12 @@ public enum VideoInterlacingType: String {
 }
 
 public extension KSOptions {
+    nonisolated(unsafe)
     static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
+    nonisolated(unsafe)
     static var secondPlayerType: MediaPlayerProtocol.Type?
     /// 最低缓存视频时间
+    nonisolated(unsafe)
     static var preferredForwardBufferDuration = 3.0
     /// 最大缓存视频时间
     static var maxBufferDuration = 30.0
@@ -468,6 +471,7 @@ public extension KSOptions {
     /// Applies to short videos only
     static var isLoopPlay = false
     /// 是否自动播放，默认true
+    nonisolated(unsafe)
     static var isAutoPlay = true
     /// seek完是否自动播放
     static var isSeekedAutoPlay = true
@@ -479,6 +483,7 @@ public extension KSOptions {
     static var preferredFrame = true
     static var useSystemHTTPProxy = true
     /// 日志级别
+    nonisolated(unsafe)
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {
