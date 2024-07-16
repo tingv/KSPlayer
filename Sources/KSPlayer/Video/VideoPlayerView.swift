@@ -44,8 +44,7 @@ open class VideoPlayerView: PlayerView {
     public let topMaskView = LayerContainerView()
     // 是否播放过
     private(set) var isPlayed = false
-    private var cancellable: AnyCancellable?
-
+    private var cancellables = [AnyCancellable]()
     public private(set) var currentDefinition = 0 {
         didSet {
             if let resource {
@@ -65,6 +64,21 @@ open class VideoPlayerView: PlayerView {
                 subtitleLabel.attributedText = nil
                 titleLabel.text = resource.name
                 toolBar.definitionButton.isHidden = resource.definitions.count < 2
+                if #available(iOS 14.0, tvOS 15.0, *) {
+                    #if !os(tvOS)
+                    toolBar.definitionButton.setMenu(title: NSLocalizedString("video quality", comment: ""), current: resource.definitions[currentDefinition], list: resource.definitions) { value in
+                        value.definition
+                    } completition: { [weak self] value in
+                        guard let self else { return }
+                        if let value, let index = self.resource?.definitions.firstIndex(of: value) {
+                            self.change(definitionIndex: index)
+                        }
+                    }
+                    #if os(iOS)
+                    toolBar.definitionButton.showsMenuAsPrimaryAction = true
+                    #endif
+                    #endif
+                }
                 autoFadeOutViewWithAnimation()
                 isMaskShow = true
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = resource.nowPlayingInfo?.nowPlayingInfo
@@ -126,7 +140,9 @@ open class VideoPlayerView: PlayerView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         setupUIComponents()
-        cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton)
+        if let cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
+            cancellables.append(cancellable)
+        }
         toolBar.onFocusUpdate = { [weak self] _ in
             self?.autoFadeOutViewWithAnimation()
         }
@@ -235,17 +251,7 @@ open class VideoPlayerView: PlayerView {
     override open func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         guard !isSliderSliding else { return }
         super.player(layer: layer, currentTime: currentTime, totalTime: totalTime)
-        if srtControl.subtitle(currentTime: currentTime) {
-            if let part = srtControl.parts.first {
-                subtitleBackView.image = part.image
-                subtitleLabel.attributedText = part.text
-                subtitleBackView.isHidden = false
-            } else {
-                subtitleBackView.image = nil
-                subtitleLabel.attributedText = nil
-                subtitleBackView.isHidden = true
-            }
-        }
+        srtControl.subtitle(currentTime: currentTime, size: layer.player.naturalSize.within(size: layer.player.view?.frame.size))
     }
 
     override open func player(layer: KSPlayerLayer, state: KSPlayerState) {
@@ -255,23 +261,6 @@ open class VideoPlayerView: PlayerView {
             toolBar.timeSlider.isPlayable = true
             toolBar.videoSwitchButton.isHidden = layer.player.tracks(mediaType: .video).count < 2
             toolBar.audioSwitchButton.isHidden = layer.player.tracks(mediaType: .audio).count < 2
-            if #available(iOS 14.0, tvOS 15.0, *) {
-                buildMenusForButtons()
-            }
-            if let subtitleDataSouce = layer.player.subtitleDataSouce {
-                // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
-                    guard let self else { return }
-                    self.srtControl.addSubtitle(dataSouce: subtitleDataSouce)
-                    if self.srtControl.selectedSubtitleInfo == nil, layer.options.autoSelectEmbedSubtitle {
-                        self.srtControl.selectedSubtitleInfo = self.srtControl.subtitleInfos.first { $0.isEnabled }
-                    }
-                    self.toolBar.srtButton.isHidden = self.srtControl.subtitleInfos.isEmpty
-                    if #available(iOS 14.0, tvOS 15.0, *) {
-                        self.buildMenusForButtons()
-                    }
-                }
-            }
         case .buffering:
             isPlayed = true
             replayButton.isHidden = true
@@ -403,63 +392,6 @@ open class VideoPlayerView: PlayerView {
             slider(value: Double(tmpPanValue), event: .touchUpInside)
             tmpPanValue = 0.0
         }
-    }
-}
-
-// MARK: - Action Response
-
-extension VideoPlayerView {
-    @available(iOS 14.0, tvOS 15.0, *)
-    func buildMenusForButtons() {
-        #if !os(tvOS)
-        toolBar.definitionButton.setMenu(title: NSLocalizedString("video quality", comment: ""), current: resource?.definitions[currentDefinition], list: resource?.definitions ?? []) { value in
-            value.definition
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value, let index = self.resource?.definitions.firstIndex(of: value) {
-                self.change(definitionIndex: index)
-            }
-        }
-        let videoTracks = playerLayer?.player.tracks(mediaType: .video) ?? []
-        toolBar.videoSwitchButton.setMenu(title: NSLocalizedString("switch video", comment: ""), current: videoTracks.first(where: { $0.isEnabled }), list: videoTracks) { value in
-            value.name + " \(value.naturalSize.width)x\(value.naturalSize.height)"
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value {
-                self.playerLayer?.player.select(track: value)
-            }
-        }
-        let audioTracks = playerLayer?.player.tracks(mediaType: .audio) ?? []
-        toolBar.audioSwitchButton.setMenu(title: NSLocalizedString("switch audio", comment: ""), current: audioTracks.first(where: { $0.isEnabled }), list: audioTracks) { value in
-            value.description
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value {
-                self.playerLayer?.player.select(track: value)
-            }
-        }
-        toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed", comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
-            "\(value) x"
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value {
-                self.playerLayer?.player.playbackRate = value
-            }
-        }
-        toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: srtControl.selectedSubtitleInfo, list: srtControl.subtitleInfos, addDisabled: true) { value in
-            value.name
-        } completition: { [weak self] value in
-            guard let self else { return }
-            self.srtControl.selectedSubtitleInfo = value
-        }
-        #if os(iOS)
-        toolBar.definitionButton.showsMenuAsPrimaryAction = true
-        toolBar.videoSwitchButton.showsMenuAsPrimaryAction = true
-        toolBar.audioSwitchButton.showsMenuAsPrimaryAction = true
-        toolBar.playbackRateButton.showsMenuAsPrimaryAction = true
-        toolBar.srtButton.showsMenuAsPrimaryAction = true
-        #endif
-        #endif
     }
 }
 
@@ -613,10 +545,10 @@ extension VideoPlayerView {
 
     /// change during playback
     public func updateSrt() {
-        subtitleLabel.font = SubtitleModel.textFont
+        subtitleLabel.font = KSOptions.textFont
         if #available(macOS 11.0, iOS 14, tvOS 14, *) {
-            subtitleLabel.textColor = UIColor(SubtitleModel.textColor)
-            subtitleBackView.backgroundColor = UIColor(SubtitleModel.textBackgroundColor)
+            subtitleLabel.textColor = UIColor(KSOptions.textColor)
+            subtitleBackView.backgroundColor = UIColor(KSOptions.textBackgroundColor)
         }
     }
 
@@ -645,6 +577,25 @@ extension VideoPlayerView {
             subtitleLabel.topAnchor.constraint(equalTo: subtitleBackView.topAnchor, constant: 2),
             subtitleLabel.bottomAnchor.constraint(equalTo: subtitleBackView.bottomAnchor, constant: -2),
         ])
+        let cancellable = srtControl.$parts.sink { [weak self] parts in
+            guard let self else {
+                return
+            }
+            if let part = parts.first {
+                subtitleBackView.image = part.render.left?.image
+                if KSOptions.stripSutitleStyle, let text = part.render.right?.string {
+                    subtitleLabel.text = text
+                } else {
+                    subtitleLabel.attributedText = part.render.right
+                }
+                subtitleBackView.isHidden = false
+            } else {
+                subtitleBackView.image = nil
+                subtitleLabel.attributedText = nil
+                subtitleBackView.isHidden = true
+            }
+        }
+        cancellables.append(cancellable)
     }
 
     /**

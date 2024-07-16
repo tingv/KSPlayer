@@ -136,7 +136,7 @@ public extension UIColor {
         self.init(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, alpha: alpha)
     }
 
-    func createImage(size: CGSize = CGSize(width: 1, height: 1)) -> UIImage {
+    func createImage(size: CGSize = .one) -> UIImage {
         #if canImport(UIKit)
         let rect = CGRect(origin: .zero, size: size)
         UIGraphicsBeginImageContext(rect.size)
@@ -319,7 +319,11 @@ extension CGPoint {
     }
 }
 
-extension CGSize {
+public extension CGSize {
+    static var one: CGSize {
+        CGSize(width: 1, height: 1)
+    }
+
     var reverse: CGSize {
         CGSize(width: height, height: width)
     }
@@ -331,18 +335,53 @@ extension CGSize {
     var isHorizonal: Bool {
         width > height
     }
+
+    // 维持原有的比率。但是宽高不能超过size
+    func within(size: CGSize?) -> CGSize {
+        guard let size, height != 0, width != 0 else {
+            return self
+        }
+        let aspectRatio = width / height
+        return size.height * aspectRatio < size.width ? CGSize(width: Int(size.width), height: Int(size.width / aspectRatio)) : CGSize(width: Int(size.height * aspectRatio), height: Int(size.height))
+    }
+
+    func convert(rect: CGRect, toSize: CGSize) -> CGRect {
+        guard height != 0, width != 0 else {
+            return rect
+        }
+        let hZoom = toSize.width / width
+        let vZoom = toSize.height / height
+        let zoom = min(hZoom, vZoom)
+        var newRect = rect * zoom
+        let newDisplaySize = self * zoom
+        newRect.origin.x += (toSize.width - newDisplaySize.width) / 2
+        newRect.origin.y += (toSize.height - newDisplaySize.height) / 2
+        return newRect.integral
+    }
 }
 
 func * (left: CGSize, right: CGFloat) -> CGSize {
     CGSize(width: left.width * right, height: left.height * right)
 }
 
+func / (left: CGSize, right: CGFloat) -> CGSize {
+    CGSize(width: left.width / right, height: left.height / right)
+}
+
 func * (left: CGPoint, right: CGFloat) -> CGPoint {
     CGPoint(x: left.x * right, y: left.y * right)
 }
 
+func / (left: CGPoint, right: CGFloat) -> CGPoint {
+    CGPoint(x: left.x / right, y: left.y / right)
+}
+
 func * (left: CGRect, right: CGFloat) -> CGRect {
     CGRect(origin: left.origin * right, size: left.size * right)
+}
+
+func / (left: CGRect, right: CGFloat) -> CGRect {
+    CGRect(origin: left.origin / right, size: left.size / right)
 }
 
 func - (left: CGSize, right: CGSize) -> CGSize {
@@ -409,6 +448,22 @@ public extension URL {
             let (data, _) = try await URLSession.shared.data(for: request)
             return data
         }
+    }
+
+    func string(userAgent: String? = nil, encoding: String.Encoding? = nil) async throws -> String? {
+        let data = try await data(userAgent: userAgent)
+        var string: String?
+        let encodes = [encoding ?? String.Encoding.utf8,
+                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.big5.rawValue))),
+                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue))),
+                       String.Encoding.unicode]
+        for encode in encodes {
+            string = String(data: data, encoding: encode)
+            if string != nil {
+                break
+            }
+        }
+        return string
     }
 
     func download(userAgent: String? = nil, completion: @escaping ((String, URL) -> Void)) {
@@ -752,33 +807,33 @@ extension Date: RawRepresentable {
 }
 
 extension CGImage {
-    static func combine(images: [(CGRect, CGImage)]) -> CGImage? {
+    static func combine(images: [(CGRect, CGImage)]) -> (CGRect, CGImage)? {
         if images.isEmpty {
             return nil
         }
         if images.count == 1 {
-            return images[0].1
+            return images[0]
         }
-        var width = 0
-        var height = 0
-        for (rect, _) in images {
-            width = max(width, Int(rect.maxX))
-            height = max(height, Int(rect.maxY))
-        }
+        let boundingRect = images.map(\.0).boundingRect()
         let bitsPerComponent = 8
         // RGBA(的bytes) * bitsPerComponent *width
-        let bytesPerRow = 4 * 8 * bitsPerComponent * width
-        return autoreleasepool {
-            let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        let bytesPerRow = 4 * 8 * bitsPerComponent * Int(boundingRect.width)
+        let image: CGImage? = autoreleasepool {
+            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             guard let context else {
                 return nil
             }
             //            context.clear(CGRect(origin: .zero, size: CGSize(width: width, height: height)))
             for (rect, cgImage) in images {
-                context.draw(cgImage, in: CGRect(x: rect.origin.x, y: CGFloat(height) - rect.maxY, width: rect.width, height: rect.height))
+                context.draw(cgImage, in: rect.relativeRect(to: boundingRect))
             }
             let cgImage = context.makeImage()
             return cgImage
+        }
+        if let image {
+            return (boundingRect, image)
+        } else {
+            return nil
         }
     }
 
@@ -795,6 +850,13 @@ extension CGImage {
             }
             return mutableData as Data
         }
+    }
+
+    func image(type: AVFileType = .png, quality: CGFloat = 0.2) -> UIImage? {
+        if let data = data(type: type, quality: quality) {
+            return UIImage(data: data)
+        }
+        return nil
     }
 
     static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isAlpha: Bool = false) -> CGImage? {
@@ -834,6 +896,21 @@ public extension Either {
     init(_ left: Left, or _: Right.Type) { self = .left(left) }
     init(_ left: Left) { self = .left(left) }
     init(_ right: Right) { self = .right(right) }
+    var left: Left? {
+        if case let .left(value) = self {
+            return value
+        } else {
+            return nil
+        }
+    }
+
+    var right: Right? {
+        if case let .right(value) = self {
+            return value
+        } else {
+            return nil
+        }
+    }
 }
 
 /// Allows to "box" another value.
@@ -906,5 +983,75 @@ extension Array {
             d = 1 - d // swap active array
         }
         return z[d]
+    }
+}
+
+extension Array {
+    func removeDuplicate(predicate: (_ left: Element, _ right: Element) -> Bool) -> Array {
+        enumerated().filter { index, value -> Bool in
+            firstIndex { element in
+                predicate(value, element)
+            } == index
+        }.map { _, value in
+            value
+        }
+    }
+}
+
+extension Array {
+    func asyncMap<T>(_ transform: (Element) async throws -> T) async rethrows -> [T] {
+        var values = [T]()
+        for element in self {
+            try await values.append(transform(element))
+        }
+        return values
+    }
+}
+
+extension [CGRect] {
+    /// Find the bounding rect of all rect
+    ///
+    /// - Returns: A `CGRect` containing all  rectangles.
+    func boundingRect() -> CGRect {
+        guard let minX = map(\.minX).min(),
+              let minY = map(\.minY).min(),
+              let maxX = map(\.maxX).max(),
+              let maxY = map(\.maxY).max() else { return .zero }
+        return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+    }
+}
+
+extension CGRect {
+    /** the x-coordinate of this rectangles center
+     - note: Acts as a settable midX
+     - returns: The x-coordinate of the center
+     */
+    var centerX: CGFloat {
+        get { midX }
+        set { origin.x = newValue - width / 2 }
+    }
+
+    /** the y-coordinate of this rectangles center
+     - note: Acts as a settable midY
+     - returns: The y-coordinate of the center
+     */
+    var centerY: CGFloat {
+        get { midY }
+        set { origin.y = newValue - height / 2 }
+    }
+
+    func relativeRect(to boundingRect: CGRect) -> CGRect {
+        let origin = CGPoint(x: minX - boundingRect.minX, y: minY - boundingRect.minY)
+        return CGRect(origin: origin, size: size)
+    }
+}
+
+// 性能 while > stride(from:to:by:) > for in
+@inline(__always)
+func loop(iterations: Int, stride: Int = 1, body: (Int) -> Void) {
+    var index = 0
+    while index < iterations {
+        body(index)
+        index += stride
     }
 }

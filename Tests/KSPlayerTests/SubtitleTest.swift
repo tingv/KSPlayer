@@ -1,6 +1,13 @@
 @testable import KSPlayer
 import XCTest
 
+extension XCTestCase {
+    // 用swift test的话无法返回url
+    func testURLForResource(_ resourceName: String) -> URL {
+        Bundle(url: Bundle(for: type(of: self)).url(forResource: "KSPlayer_KSPlayerTests.bundle", withExtension: nil)!)!.url(forResource: resourceName, withExtension: nil)!
+    }
+}
+
 class SubtitleTest: XCTestCase {
     func testSrt() {
         let string = """
@@ -53,9 +60,31 @@ class SubtitleTest: XCTestCase {
         let scanner = Scanner(string: string)
         let parse = SrtParse()
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
-        let parts = parse.parse(scanner: scanner)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 9)
         XCTAssertEqual(parts[8].end, 3601.14)
+    }
+
+    func testSrt2() async {
+        let string = """
+        1
+        00:00:06,886 --> 00:00:08,569
+        嘿
+        <font size="8px">Hey.</font>
+
+        2
+        00:00:09,419 --> 00:00:10,569
+        早上好
+        <font color="#4096d1">本字幕仅供学习交流，严禁用于商业用途</font>
+
+        """
+        let scanner = Scanner(string: string)
+        let parse = SrtParse()
+        XCTAssertEqual(parse.canParse(scanner: scanner), true)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
+        XCTAssertEqual(parts.count, 2)
+        XCTAssertEqual(parts[0].render.right?.string.contains("<"), false)
+        XCTAssertEqual(parts[1].render.right?.string.contains("<"), false)
     }
 
     func testVtt() {
@@ -96,7 +125,7 @@ class SubtitleTest: XCTestCase {
         let scanner = Scanner(string: string)
         let parse = VTTParse()
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
-        let parts = parse.parse(scanner: scanner)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 7)
     }
 
@@ -121,7 +150,7 @@ class SubtitleTest: XCTestCase {
         let scanner = Scanner(string: string)
         let parse = VTTParse()
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
-        let parts = parse.parse(scanner: scanner)
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 3)
     }
 }

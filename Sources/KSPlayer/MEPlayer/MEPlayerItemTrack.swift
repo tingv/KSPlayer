@@ -16,6 +16,8 @@ protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
     var delegate: CodecCapacityDelegate? { get set }
     func decode()
     func seek(time: TimeInterval)
+    func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt?
+    func updateCache(headIndex: UInt)
     func putPacket(packet: Packet)
 //    func getOutputRender<Frame: ObjectQueueItem>(where predicate: ((Frame) -> Bool)?) -> Frame?
     func shutdown()
@@ -60,7 +62,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: false)
         } else {
             // 有的图片字幕不按顺序来输出，所以要排序下。
-            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, isClearItem: !options.seekUsePacketCache)
         }
     }
 
@@ -100,6 +102,12 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         return outputFecthRender
     }
+
+    func seekCache(time _: TimeInterval, needKeyFrame _: Bool) -> UInt? {
+        nil
+    }
+
+    func updateCache(headIndex _: UInt) {}
 
     func shutdown() {
         if state == .idle {
@@ -181,7 +189,7 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
     private var decodeOperation: BlockOperation!
     // 无缝播放使用的PacketQueue
     private var loopPacketQueue: CircularBuffer<Packet>?
-    var packetQueue = CircularBuffer<Packet>()
+    var packetQueue: CircularBuffer<Packet>
     override var packetCount: Int { packetQueue.count }
     override var isLoopModel: Bool {
         didSet {
@@ -202,6 +210,7 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
     }
 
     required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions) {
+        packetQueue = CircularBuffer<Packet>(isClearItem: !options.seekUsePacketCache)
         super.init(mediaType: mediaType, frameCapacity: frameCapacity, options: options)
         operationQueue.name = "KSPlayer_" + mediaType.rawValue
         operationQueue.maxConcurrentOperationCount = 1
@@ -228,6 +237,18 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         decodeOperation.queuePriority = .veryHigh
         decodeOperation.qualityOfService = .userInteractive
         operationQueue.addOperation(decodeOperation)
+    }
+
+    override func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt? {
+        packetQueue.seek(seconds: time, needKeyFrame: needKeyFrame)
+    }
+
+    override func updateCache(headIndex: UInt) {
+        isEndOfFile = false
+        state = .flush
+        outputRenderQueue.flush()
+        isLoopModel = false
+        packetQueue.update(headIndex: headIndex)
     }
 
     private func decodeThread() {

@@ -79,6 +79,7 @@ public class KSMEPlayer: NSObject {
         didSet {
             if playbackRate != audioOutput.playbackRate {
                 audioOutput.playbackRate = playbackRate
+                playerItem.playbackRate = playbackRate
                 if audioOutput is AudioUnitPlayer {
                     var audioFilters = options.audioFilters.filter {
                         !$0.hasPrefix("atempo=")
@@ -142,7 +143,6 @@ public class KSMEPlayer: NSObject {
         #endif
         NotificationCenter.default.removeObserver(self)
         videoOutput?.invalidate()
-        playerItem.shutdown()
     }
 }
 
@@ -302,14 +302,10 @@ extension KSMEPlayer: MediaPlayerProtocol {
         }
     }
 
-    public var isPlaying: Bool { playbackState == .playing }
-
     @MainActor
     public var naturalSize: CGSize {
         options.display == .plane ? playerItem.naturalSize : KSOptions.sceneSize
     }
-
-    public var isExternalPlaybackActive: Bool { false }
 
     public var view: UIView? { videoOutput }
 
@@ -425,16 +421,6 @@ extension KSMEPlayer: MediaPlayerProtocol {
         options.decodeVideoTime = 0
         if KSOptions.isClearVideoWhereReplace {
             videoOutput?.flush()
-        }
-    }
-
-    @MainActor
-    public var contentMode: UIViewContentMode {
-        get {
-            view?.contentMode ?? .center
-        }
-        set {
-            view?.contentMode = newValue
         }
     }
 

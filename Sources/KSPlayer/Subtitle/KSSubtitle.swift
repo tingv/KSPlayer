@@ -11,15 +11,24 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
-public class SubtitlePart: CustomStringConvertible, Identifiable {
+public struct SubtitleImageInfo {
+    public let rect: CGRect
+    public let image: UIImage
+    public let displaySize: CGSize
+    public init(rect: CGRect, image: UIImage, displaySize: CGSize) {
+        self.rect = rect
+        self.image = image
+        self.displaySize = displaySize
+    }
+}
+
+public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
     public var start: TimeInterval
     public var end: TimeInterval
-    public var origin: CGPoint = .zero
-    public let text: NSAttributedString?
-    public var image: UIImage?
     public var textPosition: TextPosition?
+    public var render: Either<SubtitleImageInfo, NSAttributedString>
     public var description: String {
-        "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: text))"
+        "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
 
     public convenience init(_ start: TimeInterval, _ end: TimeInterval, _ string: String) {
@@ -29,11 +38,36 @@ public class SubtitlePart: CustomStringConvertible, Identifiable {
         self.init(start, end, attributedString: NSAttributedString(string: text))
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString?) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString) {
         self.start = start
         self.end = end
-        text = attributedString
+        render = .right(attributedString)
     }
+
+    public init(_ start: TimeInterval, _ end: TimeInterval, image: SubtitleImageInfo) {
+        self.start = start
+        self.end = end
+        render = .left(image)
+    }
+
+    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<SubtitleImageInfo, NSAttributedString>) {
+        self.start = start
+        self.end = end
+        self.render = render
+    }
+
+    public func render(size _: CGSize) -> SubtitlePart {
+        self
+    }
+
+    public func isEqual(time: TimeInterval) -> Bool {
+        start <= time && end >= time
+    }
+}
+
+public protocol SubtitlePartProtocol: Equatable {
+    func render(size: CGSize) -> SubtitlePart
+    func isEqual(time: TimeInterval) -> Bool
 }
 
 public struct TextPosition {
@@ -95,11 +129,7 @@ public struct TextPosition {
 
 extension SubtitlePart: Comparable {
     public static func == (left: SubtitlePart, right: SubtitlePart) -> Bool {
-        if left.start == right.start, left.end == right.end {
-            return true
-        } else {
-            return false
-        }
+        left.start == right.start && left.end == right.end && left.render.right == right.render.right
     }
 
     public static func < (left: SubtitlePart, right: SubtitlePart) -> Bool {
@@ -123,7 +153,7 @@ extension SubtitlePart: NumericComparable {
 }
 
 public protocol KSSubtitleProtocol {
-    func search(for time: TimeInterval) -> [SubtitlePart]
+    func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart]
 }
 
 public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifiable {
@@ -148,43 +178,20 @@ public extension SubtitleInfo {
 }
 
 public class KSSubtitle {
-    public var parts: [SubtitlePart] = []
+    public var searchProtocol: KSSubtitleProtocol?
     public init() {}
 }
 
 extension KSSubtitle: KSSubtitleProtocol {
     /// Search for target group for time
-    public func search(for time: TimeInterval) -> [SubtitlePart] {
-        var result = [SubtitlePart]()
-        for part in parts {
-            if part == time {
-                result.append(part)
-            } else if part.start > time {
-                break
-            }
-        }
-        return result
+    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
+        await searchProtocol?.search(for: time, size: size) ?? []
     }
 }
 
 public extension KSSubtitle {
     func parse(url: URL, userAgent: String? = nil, encoding: String.Encoding? = nil) async throws {
-        let data = try await url.data(userAgent: userAgent)
-        try parse(data: data, encoding: encoding)
-    }
-
-    func parse(data: Data, encoding: String.Encoding? = nil) throws {
-        var string: String?
-        let encodes = [encoding ?? String.Encoding.utf8,
-                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.big5.rawValue))),
-                       String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue))),
-                       String.Encoding.unicode]
-        for encode in encodes {
-            string = String(data: data, encoding: encode)
-            if string != nil {
-                break
-            }
-        }
+        let string = try await url.string(userAgent: userAgent, encoding: encoding)
         guard let subtitle = string else {
             throw NSError(errorCode: .subtitleUnEncoding)
         }
@@ -192,10 +199,7 @@ public extension KSSubtitle {
         _ = scanner.scanCharacters(from: .controlCharacters)
         let parse = KSOptions.subtitleParses.first { $0.canParse(scanner: scanner) }
         if let parse {
-            parts = parse.parse(scanner: scanner)
-            if parts.count == 0 {
-                throw NSError(errorCode: .subtitleUnParse)
-            }
+            searchProtocol = parse.parse(scanner: scanner)
         } else {
             throw NSError(errorCode: .subtitleFormatUnSupport)
         }
@@ -277,17 +281,6 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public static var textColor: Color = .white
-    public static var textBackgroundColor: Color = .clear
-    public static var textFont: UIFont {
-        textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
-    }
-
-    public static var textFontSize = SubtitleModel.Size.standard.rawValue
-    public static var textBold = false
-    public static var textItalic = false
-    public static var textPosition = TextPosition()
-    public static var audioRecognizes = [any AudioRecognize]()
     private var subtitleDataSouces: [SubtitleDataSouce] = KSOptions.subtitleDataSouces
     @Published
     public private(set) var subtitleInfos = [any SubtitleInfo]()
@@ -299,7 +292,7 @@ open class SubtitleModel: ObservableObject {
             subtitleInfos.removeAll()
             searchSubtitle(query: nil, languages: [])
             if url != nil {
-                subtitleInfos.append(contentsOf: SubtitleModel.audioRecognizes)
+                subtitleInfos.append(contentsOf: KSOptions.audioRecognizes)
             }
             for datasouce in subtitleDataSouces {
                 addSubtitle(dataSouce: datasouce)
@@ -331,29 +324,22 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func subtitle(currentTime: TimeInterval) -> Bool {
-        var newParts = [SubtitlePart]()
-        if let subtile = selectedSubtitleInfo {
-            let currentTime = currentTime - subtile.delay - subtitleDelay
-            newParts = subtile.search(for: currentTime)
-            if newParts.isEmpty {
-                newParts = parts.filter { part in
-                    part == currentTime
+    public func subtitle(currentTime: TimeInterval, size: CGSize) {
+        Task { @MainActor in
+            var newParts = [SubtitlePart]()
+            if let subtile = selectedSubtitleInfo {
+                let currentTime = currentTime - subtile.delay - subtitleDelay
+                newParts = await subtile.search(for: currentTime, size: size)
+                if newParts.isEmpty {
+                    newParts = parts.filter { part in
+                        part == currentTime
+                    }
                 }
             }
-        }
-        // swiftUI不会判断是否相等。所以需要这边判断下。
-        if newParts != parts {
-            for part in newParts {
-                if let text = part.text as? NSMutableAttributedString {
-                    text.addAttributes([.font: SubtitleModel.textFont],
-                                       range: NSRange(location: 0, length: text.length))
-                }
+            // swiftUI不会判断是否相等。所以需要这边判断下。
+            if newParts != parts {
+                parts = newParts
             }
-            parts = newParts
-            return true
-        } else {
-            return false
         }
     }
 

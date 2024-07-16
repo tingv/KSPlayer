@@ -11,7 +11,7 @@ public class EmptySubtitleInfo: SubtitleInfo {
     public let subtitleID: String = ""
     public var delay: TimeInterval = 0
     public let name = NSLocalizedString("no show subtitle", comment: "")
-    public func search(for _: TimeInterval) -> [SubtitlePart] {
+    public func search(for _: TimeInterval, size _: CGSize) -> [SubtitlePart] {
         []
     }
 }
@@ -19,7 +19,7 @@ public class EmptySubtitleInfo: SubtitleInfo {
 public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
     public var isEnabled: Bool = false {
         didSet {
-            if isEnabled, parts.isEmpty {
+            if isEnabled, searchProtocol == nil {
                 Task {
                     try? await parse(url: downloadURL, userAgent: userAgent)
                 }
@@ -390,7 +390,7 @@ extension URL {
 
         let offsets: [UInt64] = [
             4096,
-            fileSize / 3 * 2,
+            fileSize * 2 / 3,
             fileSize / 3,
             fileSize - 8192,
         ]

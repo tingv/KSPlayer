@@ -1,0 +1,6 @@
+framework module MPVPlayer {
+  umbrella header "MPVPlayer-macOS-umbrella.h"
+
+  export *
+  module * { export * }
+}

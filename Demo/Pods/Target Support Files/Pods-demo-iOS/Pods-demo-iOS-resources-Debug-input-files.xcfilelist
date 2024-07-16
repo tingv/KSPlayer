@@ -1,2 +1,3 @@
 ${PODS_ROOT}/Target Support Files/Pods-demo-iOS/Pods-demo-iOS-resources.sh
+${PODS_CONFIGURATION_BUILD_DIR}/FFmpegKit-iOS/FFmpegKit_FFmpegKit.bundle
 ${PODS_CONFIGURATION_BUILD_DIR}/KSPlayer-iOS/KSPlayer_KSPlayer.bundle

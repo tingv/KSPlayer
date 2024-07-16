@@ -58,32 +58,24 @@ public struct KSVideoPlayerView: View {
     }
 
     public var body: some View {
-        ZStack {
-            GeometryReader { proxy in
-                playView
-                HStack {
-                    Spacer()
-                    VideoSubtitleView(model: playerCoordinator.subtitleModel)
-                        .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
-                    Spacer()
-                }
-                .padding()
-                controllerView(playerWidth: proxy.size.width)
+        playView
+            .overlay {
+                VideoSubtitleView(model: playerCoordinator.subtitleModel)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+            }
+            .overlay {
+                VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
+                    .focused($focusableField, equals: .controller)
+                    .opacity(playerCoordinator.isMaskShow ? 1 : 0)
                 #if os(tvOS)
                     .ignoresSafeArea()
                 #endif
-                #if os(tvOS)
-                if isDropdownShow {
-                    VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
-                        .focused($focusableField, equals: .info)
-                }
-                #endif
             }
-        }
-        .preferredColorScheme(.dark)
-        .tint(.white)
-        .persistentSystemOverlays(.hidden)
-        .toolbar(.hidden, for: .automatic)
+            .preferredColorScheme(.dark)
+            .tint(.white)
+            .persistentSystemOverlays(.hidden)
+            .toolbar(.hidden, for: .automatic)
         #if os(tvOS)
             .onPlayPauseCommand {
                 if playerCoordinator.state.isPlaying {
@@ -103,6 +95,24 @@ public struct KSVideoPlayerView: View {
                         focusableField = .play
                     }
                 }
+            }
+            .onMoveCommand { direction in
+                switch direction {
+                case .left:
+                    playerCoordinator.skip(interval: -15)
+                case .right:
+                    playerCoordinator.skip(interval: 15)
+                case .up:
+                    playerCoordinator.mask(show: true, autoHide: false)
+                case .down:
+                    focusableField = .info
+                @unknown default:
+                    break
+                }
+            }
+            .sheet(isPresented: $isDropdownShow) {
+                VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
+                    .focused($focusableField, equals: .info)
             }
         #endif
     }
@@ -192,40 +202,19 @@ public struct KSVideoPlayerView: View {
         .onTapGesture {
             playerCoordinator.isMaskShow.toggle()
         }
-        #if os(tvOS)
-        .onMoveCommand { direction in
-            switch direction {
-            case .left:
-                playerCoordinator.skip(interval: -15)
-            case .right:
-                playerCoordinator.skip(interval: 15)
-            case .up:
-                playerCoordinator.mask(show: true, autoHide: false)
-            case .down:
-                focusableField = .info
-            @unknown default:
-                break
-            }
-        }
-        #else
+        #if !os(tvOS)
         .onHover { _ in
-                playerCoordinator.isMaskShow = true
-            }
-            .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
-                providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
-                    if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-                        openURL(url)
-                    }
+            playerCoordinator.isMaskShow = true
+        }
+        .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
+            providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
+                if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    openURL(url)
                 }
-                return true
             }
+            return true
+        }
         #endif
-    }
-
-    private func controllerView(playerWidth: Double) -> some View {
-        VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerWidth, focusableField: $focusableField)
-            .focused($focusableField, equals: .controller)
-            .opacity(playerCoordinator.isMaskShow ? 1 : 0)
     }
 
     fileprivate enum FocusableField {
@@ -288,7 +277,7 @@ struct VideoControllerView: View {
     fileprivate var subtitleModel: SubtitleModel
     @Binding
     fileprivate var title: String
-    fileprivate var playerWidth: Double
+    fileprivate let playerWidth: CGFloat
     @FocusState.Binding
     fileprivate var focusableField: KSVideoPlayerView.FocusableField?
     @State
@@ -462,7 +451,7 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
             }
-            .frame(width: playerWidth / 1.5)
+            .frame(minWidth: playerWidth / 1.5)
             .buttonStyle(.plain)
             .padding(.vertical, 24)
             .padding(.horizontal, 36)
@@ -648,43 +637,46 @@ private extension SubtitlePart {
     @available(iOS 16, tvOS 16, macOS 13, *)
     @MainActor
     var subtitleView: some View {
-        VStack {
-            if let image {
-                Spacer()
+        Group {
+            switch self.render {
+            case let .left(info):
                 GeometryReader { geometry in
-                    let fitRect = image.fitRect(geometry.size)
-                    VideoSubtitleView.imageView(image)
-                        .offset(CGSize(width: fitRect.origin.x, height: fitRect.origin.y))
-                        .frame(width: fitRect.size.width, height: fitRect.size.height)
+                    // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
+                    let rect = info.displaySize.convert(rect: info.rect, toSize: geometry.size)
+                    VideoSubtitleView.imageView(info.image)
+                        .offset(CGSize(width: rect.origin.x, height: rect.origin.y))
+                        .frame(width: rect.width, height: rect.height)
                 }
-                // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
-//                .scaledToFit()
-                .padding()
-            } else if let text {
-                let textPosition = textPosition ?? SubtitleModel.textPosition
-                if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
-                    Spacer()
-                }
-                Text(AttributedString(text))
-                    .font(Font(SubtitleModel.textFont))
-                    .shadow(color: .black.opacity(0.9), radius: 1, x: 1, y: 1)
-                    .foregroundColor(SubtitleModel.textColor)
-                    .italic(SubtitleModel.textItalic)
-                    .background(SubtitleModel.textBackgroundColor)
+            case let .right(text):
+                VStack {
+                    let textPosition = self.textPosition ?? KSOptions.textPosition
+                    if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
+                        Spacer()
+                    }
+                    Group {
+                        if KSOptions.stripSutitleStyle {
+                            Text(text.string)
+                                .italic(KSOptions.textItalic)
+                        } else {
+                            Text(AttributedString(text))
+                        }
+                    }
+                    .font(Font(KSOptions.textFont))
+                    .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
+                    .foregroundColor(KSOptions.textColor)
+                    .background(KSOptions.textBackgroundColor)
                     .multilineTextAlignment(.center)
                     .alignmentGuide(textPosition.horizontalAlign) {
                         $0[.leading]
                     }
                     .padding(textPosition.edgeInsets)
-                #if !os(tvOS)
-                    .textSelection(.enabled)
-                #endif
-                if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
-                    Spacer()
+                    #if !os(tvOS)
+                        .textSelection(.enabled)
+                    #endif
+                    if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
+                        Spacer()
+                    }
                 }
-            } else {
-                // 需要加这个，不然图片无法清空。感觉是 swiftUI的bug。
-                Text("")
             }
         }
     }

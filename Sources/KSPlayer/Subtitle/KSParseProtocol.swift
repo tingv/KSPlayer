@@ -14,18 +14,24 @@ import UIKit
 public protocol KSParseProtocol {
     func canParse(scanner: Scanner) -> Bool
     func parsePart(scanner: Scanner) -> SubtitlePart?
+    func parse(scanner: Scanner) -> KSSubtitleProtocol
 }
 
 public extension KSOptions {
-    static var subtitleParses: [KSParseProtocol] = [AssParse(), VTTParse(), SrtParse()]
+    static var subtitleParses: [KSParseProtocol] = {
+        if KSOptions.isASSUseImageRender {
+            [AssImageParse(), AssParse(), VTTParse(), SrtParse()]
+        } else {
+            [AssParse(), VTTParse(), SrtParse()]
+        }
+    }()
 }
 
 public extension String {}
 
 public extension KSParseProtocol {
-    func parse(scanner: Scanner) -> [SubtitlePart] {
+    func parse(scanner: Scanner) -> KSSubtitleProtocol {
         var groups = [SubtitlePart]()
-
         while !scanner.isAtEnd {
             if let group = parsePart(scanner: scanner) {
                 groups.append(group)
@@ -33,6 +39,20 @@ public extension KSParseProtocol {
         }
         groups = groups.mergeSortBottomUp { $0 < $1 }
         return groups
+    }
+}
+
+extension [SubtitlePart]: KSSubtitleProtocol {
+    public func search(for time: TimeInterval, size _: CGSize) -> [SubtitlePart] {
+        var result = [SubtitlePart]()
+        for part in self {
+            if part == time {
+                result.append(part)
+            } else if part.start > time {
+                break
+            }
+        }
+        return result
     }
 }
 
@@ -83,6 +103,10 @@ public class AssParse: KSParseProtocol {
     // ffmpeg 软解的字幕
     // 875,,Default,NTP,0000,0000,0000,!Effect,- 你们两个别冲这么快\\N- 我会取消所有行程尽快赶过去
     public func parsePart(scanner: Scanner) -> SubtitlePart? {
+        // 还无法处理ass的移动效果。所以先过滤掉
+        if scanner.string.contains("move(") {
+            return nil
+        }
         let isDialogue = scanner.scanString("Dialogue") != nil
         var dic = [String: String]()
         for i in 0 ..< eventKeys.count {
@@ -111,7 +135,7 @@ public class AssParse: KSParseProtocol {
         }
         var attributes: [NSAttributedString.Key: Any]?
         var textPosition: TextPosition
-        if let style = dic["Style"], let assStyle = styleMap[style] {
+        if let style = dic["Style"], let assStyle = styleMap.match(key: style) {
             attributes = assStyle.attrs
             textPosition = assStyle.textPosition
             if let marginL = dic["MarginL"].flatMap(Double.init), marginL != 0 {
@@ -134,6 +158,24 @@ public class AssParse: KSParseProtocol {
         let part = SubtitlePart(start, end, attributedString: text.build(textPosition: &textPosition, attributed: attributes))
         part.textPosition = textPosition
         return part
+    }
+}
+
+public extension Dictionary where Key == String {
+    func match(key: String) -> Value? {
+        if key.hasPrefix("*") {
+            let newKey = String(key.suffix(from: key.index(key.startIndex, offsetBy: 1)))
+            return first { element in
+                element.key.hasSuffix(newKey)
+            }?.1
+        } else if key.hasSuffix("*") {
+            let newKey = String(key.prefix(upTo: key.index(key.endIndex, offsetBy: -1)))
+            return first { element in
+                element.key.hasPrefix(newKey)
+            }?.1
+        } else {
+            return self[key]
+        }
     }
 }
 
@@ -174,7 +216,30 @@ extension String {
 
     func parseStyle(attributes: inout [NSAttributedString.Key: Any], style: String?, textPosition: inout TextPosition) -> NSAttributedString {
         guard let style else {
-            return NSAttributedString(string: self, attributes: attributes)
+            let attributedStr = NSMutableAttributedString()
+            for string in split(separator: "\n") {
+                if attributedStr.length != 0 {
+                    attributedStr.append(NSAttributedString(string: String("\n")))
+                }
+                if string.hasPrefix("<"), string.hasSuffix(">") {
+                    let scanner = Scanner(string: String(string))
+                    if scanner.scanString("<font ") != nil {
+                        if scanner.scanString("size=\"") != nil, let fontSize = scanner.scanFloat(), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
+                            var attributes = attributes
+                            attributes[.font] = UIFont.systemFont(ofSize: CGFloat(fontSize))
+                            attributedStr.append(NSAttributedString(string: text, attributes: attributes))
+                            continue
+                        } else if scanner.scanString("color=\"#") != nil, let hex = scanner.scanInt(representation: .hexadecimal), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
+                            var attributes = attributes
+                            attributes[.foregroundColor] = UIColor(rgb: hex)
+                            attributedStr.append(NSAttributedString(string: text, attributes: attributes))
+                            continue
+                        }
+                    }
+                }
+                attributedStr.append(NSAttributedString(string: String(string), attributes: attributes))
+            }
+            return attributedStr
         }
         var fontName: String?
         var fontSize: Float?
@@ -301,16 +366,15 @@ public extension [String: String] {
                 if let assColor = self["OutlineColour"] {
                     attributes[.strokeColor] = UIColor(assColor: assColor)
                 }
-            }
-            if let assColor = self["BackColour"],
-               let shadowOffset = self["Shadow"].flatMap(Double.init),
-               shadowOffset > 0
-            {
-                let shadow = NSShadow()
-                shadow.shadowOffset = CGSize(width: CGFloat(shadowOffset), height: CGFloat(shadowOffset))
-                shadow.shadowBlurRadius = shadowOffset
-                shadow.shadowColor = UIColor(assColor: assColor)
-                attributes[.shadow] = shadow
+                if let assColor = self["BackColour"] {
+                    let shadow = NSShadow()
+                    if let shadowOffset = self["Shadow"].flatMap(Double.init) {
+                        shadow.shadowOffset = CGSize(width: CGFloat(shadowOffset), height: CGFloat(shadowOffset))
+                    }
+                    shadow.shadowBlurRadius = strokeWidth
+                    shadow.shadowColor = UIColor(assColor: assColor)
+                    attributes[.shadow] = shadow
+                }
             }
         }
         var textPosition = TextPosition()

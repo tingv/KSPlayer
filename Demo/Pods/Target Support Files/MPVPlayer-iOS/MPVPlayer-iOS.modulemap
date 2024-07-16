@@ -1,0 +1,6 @@
+framework module MPVPlayer {
+  umbrella header "MPVPlayer-iOS-umbrella.h"
+
+  export *
+  module * { export * }
+}

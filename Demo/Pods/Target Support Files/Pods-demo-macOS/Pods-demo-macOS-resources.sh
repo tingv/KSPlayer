@@ -97,9 +97,11 @@ EOM
   esac
 }
 if [[ "$CONFIGURATION" == "Debug" ]]; then
+  install_resource "${PODS_CONFIGURATION_BUILD_DIR}/FFmpegKit-macOS/FFmpegKit_FFmpegKit.bundle"
   install_resource "${PODS_CONFIGURATION_BUILD_DIR}/KSPlayer-macOS/KSPlayer_KSPlayer.bundle"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
+  install_resource "${PODS_CONFIGURATION_BUILD_DIR}/FFmpegKit-macOS/FFmpegKit_FFmpegKit.bundle"
   install_resource "${PODS_CONFIGURATION_BUILD_DIR}/KSPlayer-macOS/KSPlayer_KSPlayer.bundle"
 fi
 

@@ -354,7 +354,7 @@ extension AVCodecID {
 
 extension AVRational {
     var size: CGSize {
-        num > 0 && den > 0 ? CGSize(width: Int(num), height: Int(den)) : CGSize(width: 1, height: 1)
+        num > 0 && den > 0 ? CGSize(width: Int(num), height: Int(den)) : .one
     }
 }
 

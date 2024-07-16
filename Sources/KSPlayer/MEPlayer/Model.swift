@@ -78,14 +78,6 @@ protocol MEFrame: ObjectQueueItem {
 
 // for MEPlayer
 public extension KSOptions {
-    /// 开启VR模式的陀飞轮
-    static var enableSensor = true
-    static var stackSize = 65536
-    static var isClearVideoWhereReplace = true
-    static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
-    static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
-    static var yadifMode = 1
-    static var deInterlaceAddIdet = false
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
@@ -261,7 +253,7 @@ public final class AudioFrame: MEFrame {
         }
     }
 
-    init(array: [AudioFrame]) {
+    public init(array: [AudioFrame]) {
         audioFormat = array[0].audioFormat
         timebase = array[0].timebase
         timestamp = array[0].timestamp
@@ -440,14 +432,11 @@ extension VideoVTBFrame {
     @available(iOS 16, *)
     var edrMetadata: CAEDRMetadata? {
         if var contentData = edrMetaData?.contentData, var displayData = edrMetaData?.displayData {
-            let data = Data(bytes: &displayData, count: MemoryLayout<MasteringDisplayMetadata>.stride)
-            let data2 = Data(bytes: &contentData, count: MemoryLayout<ContentLightMetadata>.stride)
-            return CAEDRMetadata.hdr10(displayInfo: data, contentInfo: data2, opticalOutputScale: 10000)
+            return CAEDRMetadata.hdr10(displayInfo: displayData.toData(), contentInfo: contentData.toData(), opticalOutputScale: 10000)
         }
         if var ambientViewingEnvironment = edrMetaData?.ambientViewingEnvironment {
-            let data = Data(bytes: &ambientViewingEnvironment, count: MemoryLayout<AmbientViewingEnvironment>.stride)
             if #available(macOS 14.0, iOS 17.0, *) {
-                return CAEDRMetadata.hlg(ambientViewingEnvironment: data)
+                return CAEDRMetadata.hlg(ambientViewingEnvironment: ambientViewingEnvironment.toData())
             } else {
                 return CAEDRMetadata.hlg
             }
@@ -479,11 +468,33 @@ public struct MasteringDisplayMetadata {
     let white_point_y: UInt16
     let minLuminance: UInt32
     let maxLuminance: UInt32
+    func toData() -> Data {
+        var array = [UInt8]()
+        array.append(display_primaries_r_x)
+        array.append(display_primaries_r_y)
+        array.append(display_primaries_g_x)
+        array.append(display_primaries_g_y)
+        array.append(display_primaries_b_x)
+        array.append(display_primaries_b_y)
+        array.append(white_point_x)
+        array.append(white_point_y)
+        array.append(minLuminance)
+        array.append(maxLuminance)
+        array = array.reversed()
+        return Data(bytes: &array, count: array.count)
+    }
 }
 
 public struct ContentLightMetadata {
     let MaxCLL: UInt16
     let MaxFALL: UInt16
+    func toData() -> Data {
+        var array = [UInt8]()
+        array.append(MaxCLL)
+        array.append(MaxFALL)
+        array = array.reversed()
+        return Data(bytes: &array, count: array.count)
+    }
 }
 
 // https://developer.apple.com/documentation/technotes/tn3145-hdr-video-metadata
@@ -491,4 +502,40 @@ public struct AmbientViewingEnvironment {
     let ambient_illuminance: UInt32
     let ambient_light_x: UInt16
     let ambient_light_y: UInt16
+    func toData() -> Data {
+        var array = [UInt8]()
+        array.append(ambient_illuminance)
+        array.append(ambient_light_x)
+        array.append(ambient_light_y)
+        array = array.reversed()
+        return Data(bytes: &array, count: array.count)
+    }
+}
+
+extension Data {
+    func convertToArray<T>() -> [T] {
+        let capacity = count / MemoryLayout<T>.size
+        let result = [T](unsafeUninitializedCapacity: capacity) {
+            pointer, copied_count in
+            let length_written = copyBytes(to: pointer)
+            copied_count = length_written / MemoryLayout<T>.size
+        }
+        return result
+    }
+}
+
+public extension [UInt8] {
+    @inlinable
+    mutating func append(_ newElement: UInt16) {
+        append(UInt8(newElement & 0xFF))
+        append(UInt8(newElement >> 8 & 0xFF))
+    }
+
+    @inlinable
+    mutating func append(_ newElement: UInt32) {
+        append(UInt8(newElement & 0xFF))
+        append(UInt8(newElement >> 8 & 0xFF))
+        append(UInt8(newElement >> 16 & 0xFF))
+        append(UInt8(newElement >> 24 & 0xFF))
+    }
 }

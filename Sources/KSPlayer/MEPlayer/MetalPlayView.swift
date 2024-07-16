@@ -202,6 +202,7 @@ extension MetalPlayView {
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
                 #if !os(tvOS)
+                // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
                 if #available(iOS 16, *) {
                     metalView.metalLayer.edrMetadata = frame.edrMetadata
                 }
@@ -233,18 +234,18 @@ extension MetalPlayView {
     }
 }
 
-class MetalView: UIView {
+public class MetalView: UIView {
     private let render = MetalRender()
     #if canImport(UIKit)
     override public class var layerClass: AnyClass { CAMetalLayer.self }
     #endif
-    var metalLayer: CAMetalLayer {
+    public var metalLayer: CAMetalLayer {
         // swiftlint:disable force_cast
         layer as! CAMetalLayer
         // swiftlint:enable force_cast
     }
 
-    init() {
+    public init() {
         super.init(frame: .zero)
         #if !canImport(UIKit)
         layer = CAMetalLayer()
@@ -260,6 +261,11 @@ class MetalView: UIView {
     }
 
     func clear() {
+        #if !os(tvOS)
+        if #available(iOS 16, *) {
+            metalLayer.edrMetadata = nil
+        }
+        #endif
         if let drawable = metalLayer.nextDrawable() {
             render.clear(drawable: drawable)
         }

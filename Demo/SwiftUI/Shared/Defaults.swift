@@ -90,72 +90,72 @@ public class Defaults: ObservableObject {
     }
 
     @AppStorage("textFontSize")
-    public var textFontSize = SubtitleModel.textFontSize {
+    public var textFontSize = KSOptions.textFontSize {
         didSet {
-            SubtitleModel.textFontSize = textFontSize
+            KSOptions.textFontSize = textFontSize
         }
     }
 
     @AppStorage("textBold")
-    public var textBold = SubtitleModel.textBold {
+    public var textBold = KSOptions.textBold {
         didSet {
-            SubtitleModel.textBold = textBold
+            KSOptions.textBold = textBold
         }
     }
 
     @AppStorage("textItalic")
-    public var textItalic = SubtitleModel.textItalic {
+    public var textItalic = KSOptions.textItalic {
         didSet {
-            SubtitleModel.textItalic = textItalic
+            KSOptions.textItalic = textItalic
         }
     }
 
     @AppStorage("textColor")
-    public var textColor = SubtitleModel.textColor {
+    public var textColor = KSOptions.textColor {
         didSet {
-            SubtitleModel.textColor = textColor
+            KSOptions.textColor = textColor
         }
     }
 
     @AppStorage("textBackgroundColor")
-    public var textBackgroundColor = SubtitleModel.textBackgroundColor {
+    public var textBackgroundColor = KSOptions.textBackgroundColor {
         didSet {
-            SubtitleModel.textBackgroundColor = textBackgroundColor
+            KSOptions.textBackgroundColor = textBackgroundColor
         }
     }
 
     @AppStorage("horizontalAlign")
-    public var horizontalAlign = SubtitleModel.textPosition.horizontalAlign {
+    public var horizontalAlign = KSOptions.textPosition.horizontalAlign {
         didSet {
-            SubtitleModel.textPosition.horizontalAlign = horizontalAlign
+            KSOptions.textPosition.horizontalAlign = horizontalAlign
         }
     }
 
     @AppStorage("verticalAlign")
-    public var verticalAlign = SubtitleModel.textPosition.verticalAlign {
+    public var verticalAlign = KSOptions.textPosition.verticalAlign {
         didSet {
-            SubtitleModel.textPosition.verticalAlign = verticalAlign
+            KSOptions.textPosition.verticalAlign = verticalAlign
         }
     }
 
     @AppStorage("leftMargin")
-    public var leftMargin = SubtitleModel.textPosition.leftMargin {
+    public var leftMargin = KSOptions.textPosition.leftMargin {
         didSet {
-            SubtitleModel.textPosition.leftMargin = leftMargin
+            KSOptions.textPosition.leftMargin = leftMargin
         }
     }
 
     @AppStorage("rightMargin")
-    public var rightMargin = SubtitleModel.textPosition.rightMargin {
+    public var rightMargin = KSOptions.textPosition.rightMargin {
         didSet {
-            SubtitleModel.textPosition.rightMargin = rightMargin
+            KSOptions.textPosition.rightMargin = rightMargin
         }
     }
 
     @AppStorage("verticalMargin")
-    public var verticalMargin = SubtitleModel.textPosition.verticalMargin {
+    public var verticalMargin = KSOptions.textPosition.verticalMargin {
         didSet {
-            SubtitleModel.textPosition.verticalMargin = verticalMargin
+            KSOptions.textPosition.verticalMargin = verticalMargin
         }
     }
 
@@ -177,16 +177,16 @@ public class Defaults: ObservableObject {
     private init() {
         KSOptions.hardwareDecode = hardwareDecode
         MEOptions.isUseDisplayLayer = isUseDisplayLayer
-        SubtitleModel.textFontSize = textFontSize
-        SubtitleModel.textBold = textBold
-        SubtitleModel.textItalic = textItalic
-        SubtitleModel.textColor = textColor
-        SubtitleModel.textBackgroundColor = textBackgroundColor
-        SubtitleModel.textPosition.horizontalAlign = horizontalAlign
-        SubtitleModel.textPosition.verticalAlign = verticalAlign
-        SubtitleModel.textPosition.leftMargin = leftMargin
-        SubtitleModel.textPosition.rightMargin = rightMargin
-        SubtitleModel.textPosition.verticalMargin = verticalMargin
+        KSOptions.textFontSize = textFontSize
+        KSOptions.textBold = textBold
+        KSOptions.textItalic = textItalic
+        KSOptions.textColor = textColor
+        KSOptions.textBackgroundColor = textBackgroundColor
+        KSOptions.textPosition.horizontalAlign = horizontalAlign
+        KSOptions.textPosition.verticalAlign = verticalAlign
+        KSOptions.textPosition.leftMargin = leftMargin
+        KSOptions.textPosition.rightMargin = rightMargin
+        KSOptions.textPosition.verticalMargin = verticalMargin
         KSOptions.preferredForwardBufferDuration = preferredForwardBufferDuration
         KSOptions.maxBufferDuration = maxBufferDuration
         KSOptions.isLoopPlay = isLoopPlay

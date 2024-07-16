@@ -124,7 +124,6 @@ extension KSVideoPlayer: UIViewRepresentable {
                 if #available(tvOS 14.0, *), oldValue?.player.pipController?.isPictureInPictureActive == true {
                     return
                 }
-                oldValue?.pause()
             }
         }
 
@@ -232,7 +231,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                     guard let self else { return }
                     self.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
                     if self.subtitleModel.selectedSubtitleInfo == nil, layer.options.autoSelectEmbedSubtitle {
-                        self.subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first { $0.isEnabled }
+                        self.subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
                     }
                 }
             }
@@ -259,13 +258,13 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         }
     }
 
-    public func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    public func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         onPlay?(currentTime, totalTime)
-        if currentTime >= Double(Int.max) || currentTime <= Double(Int.min) || totalTime >= Double(Int.max) || totalTime <= Double(Int.min) {
+        guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)) else {
             return
         }
-        let current = Int(max(0, currentTime))
-        let total = Int(max(0, totalTime))
+        current = max(0, current)
+        total = max(0, total)
         if timemodel.currentTime != current {
             timemodel.currentTime = current
         }
@@ -276,7 +275,8 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 timemodel.totalTime = total
             }
         }
-        _ = subtitleModel.subtitle(currentTime: currentTime)
+
+        subtitleModel.subtitle(currentTime: currentTime, size: layer.player.naturalSize.within(size: layer.player.view?.frame.size))
     }
 
     public func player(layer: KSPlayerLayer, finish error: Error?) {

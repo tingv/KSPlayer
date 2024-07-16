@@ -355,7 +355,7 @@
 				);
 				MARKETING_VERSION = 1.1.1;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
-				PRODUCT_BUNDLE_IDENTIFIER = kintan.player.demo.tvos;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kintan.player;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";

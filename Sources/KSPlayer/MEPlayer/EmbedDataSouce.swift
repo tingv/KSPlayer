@@ -15,10 +15,14 @@ extension FFmpegAssetTrack: SubtitleInfo {
 }
 
 extension FFmpegAssetTrack: KSSubtitleProtocol {
-    public func search(for time: TimeInterval) -> [SubtitlePart] {
-        subtitle?.outputRenderQueue.search { item -> Bool in
-            item.part == time
+    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
+        if let sutitleRender {
+            return await sutitleRender.search(for: time, size: size)
+        }
+        let array = subtitle?.outputRenderQueue.search { item -> Bool in
+            item.part.isEqual(time: time)
         }.map(\.part) ?? []
+        return array
     }
 }
 

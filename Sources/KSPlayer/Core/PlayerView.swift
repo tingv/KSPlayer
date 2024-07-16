@@ -174,6 +174,23 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
             totalTime = layer.player.duration
             toolBar.isSeekable = layer.player.seekable
             toolBar.playButton.isSelected = true
+            if #available(iOS 14.0, tvOS 15.0, *) {
+                buildMenusForButtons()
+            }
+            if let subtitleDataSouce = layer.player.subtitleDataSouce {
+                // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
+                    guard let self else { return }
+                    self.srtControl.addSubtitle(dataSouce: subtitleDataSouce)
+                    if self.srtControl.selectedSubtitleInfo == nil, layer.options.autoSelectEmbedSubtitle {
+                        self.srtControl.selectedSubtitleInfo = self.srtControl.subtitleInfos.first { $0.isEnabled }
+                    }
+                    self.toolBar.srtButton.isHidden = self.srtControl.subtitleInfos.isEmpty
+                    if #available(iOS 14.0, tvOS 15.0, *) {
+                        self.buildMenusForButtons()
+                    }
+                }
+            }
         } else if state == .playedToTheEnd || state == .paused || state == .error {
             toolBar.playButton.isSelected = false
         }
@@ -203,6 +220,56 @@ public extension PlayerView {
         set {
             toolBar.totalTime = newValue
         }
+    }
+
+    @available(iOS 14.0, tvOS 15.0, *)
+    func buildMenusForButtons() {
+        #if !os(tvOS)
+        let videoTracks = playerLayer?.player.tracks(mediaType: .video) ?? []
+        toolBar.videoSwitchButton.setMenu(title: NSLocalizedString("switch video", comment: ""), current: videoTracks.first(where: { $0.isEnabled }), list: videoTracks) { value in
+            value.name + " \(value.naturalSize.width)x\(value.naturalSize.height)"
+        } completition: { [weak self] value in
+            guard let self else { return }
+            if let value {
+                self.playerLayer?.player.select(track: value)
+            }
+        }
+        let audioTracks = playerLayer?.player.tracks(mediaType: .audio) ?? []
+        toolBar.audioSwitchButton.setMenu(title: NSLocalizedString("switch audio", comment: ""), current: audioTracks.first(where: { $0.isEnabled }), list: audioTracks) { value in
+            value.description
+        } completition: { [weak self] value in
+            guard let self else { return }
+            if let value {
+                self.playerLayer?.player.select(track: value)
+            }
+        }
+        toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed", comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
+            "\(value) x"
+        } completition: { [weak self] value in
+            guard let self else { return }
+            if let value {
+                self.playerLayer?.player.playbackRate = value
+            }
+        }
+        toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: srtControl.selectedSubtitleInfo, list: srtControl.subtitleInfos, addDisabled: true) { value in
+            value.name
+        } completition: { [weak self] value in
+            guard let self else { return }
+            self.srtControl.selectedSubtitleInfo = value
+        }
+        #if os(iOS)
+        toolBar.definitionButton.showsMenuAsPrimaryAction = true
+        toolBar.videoSwitchButton.showsMenuAsPrimaryAction = true
+        toolBar.audioSwitchButton.showsMenuAsPrimaryAction = true
+        toolBar.playbackRateButton.showsMenuAsPrimaryAction = true
+        toolBar.srtButton.showsMenuAsPrimaryAction = true
+        #endif
+        #endif
+    }
+
+    func set(subtitleTrack: any SubtitleInfo) {
+        // setup the subtitle track
+        srtControl.selectedSubtitleInfo = subtitleTrack
     }
 }
 

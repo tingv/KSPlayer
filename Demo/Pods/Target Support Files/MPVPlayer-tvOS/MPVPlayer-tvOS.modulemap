@@ -1,0 +1,6 @@
+framework module MPVPlayer {
+  umbrella header "MPVPlayer-tvOS-umbrella.h"
+
+  export *
+  module * { export * }
+}

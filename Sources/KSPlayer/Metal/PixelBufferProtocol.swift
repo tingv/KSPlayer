@@ -54,7 +54,7 @@ extension CVPixelBuffer: PixelBufferProtocol {
             {
                 return CGSize(width: horizontal, height: vertical)
             } else {
-                return CGSize(width: 1, height: 1)
+                return .one
             }
         }
         set {
@@ -229,11 +229,8 @@ class PixelBuffer: PixelBufferProtocol {
                 buffer = MetalRender.device.makeBuffer(length: heights[i] * lineSize[i])
                 let contents = buffer?.contents()
                 let source = bytes[i]!
-                var j = 0
-                // 性能 while > stride(from:to:by:) > for in
-                while j < height {
+                loop(iterations: height) { j in
                     contents?.advanced(by: j * size).copyMemory(from: source.advanced(by: j * byteCount), byteCount: byteCount)
-                    j += 1
                 }
             }
             buffers.append(buffer)

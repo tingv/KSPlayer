@@ -97,7 +97,6 @@ open class KSPlayerLayer: NSObject {
             runOnMainThread { [weak self] in
                 guard let self else { return }
                 if let oldView = oldValue.view, let superview = oldView.superview, let view = player.view {
-                    superview.addSubview(view)
                     #if canImport(UIKit)
                     superview.insertSubview(view, belowSubview: oldView)
                     #else
@@ -143,7 +142,7 @@ open class KSPlayerLayer: NSObject {
                         play()
                     }
                 } else {
-                    stop()
+                    state = .initialized
                     player.replace(url: url, options: options)
                     if isAutoPlay {
                         prepareToPlay()
@@ -161,6 +160,16 @@ open class KSPlayerLayer: NSObject {
     public private(set) var state = KSPlayerState.initialized {
         willSet {
             if state != newValue {
+                if newValue == .initialized {
+                    bufferedCount = 0
+                    shouldSeekTo = 0
+                    player.playbackRate = 1
+                    player.playbackVolume = 1
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+                    runOnMainThread {
+                        UIApplication.shared.isIdleTimerDisabled = false
+                    }
+                }
                 runOnMainThread { [weak self] in
                     guard let self else { return }
                     KSLog("playerStateDidChange - \(newValue)")
@@ -239,6 +248,7 @@ open class KSPlayerLayer: NSObject {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             player.pipController?.contentSource = nil
         }
+        player.shutdown()
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
@@ -317,14 +327,6 @@ open class KSPlayerLayer: NSObject {
         KSLog("stop Player")
         state = .initialized
         player.shutdown()
-        bufferedCount = 0
-        shouldSeekTo = 0
-        player.playbackRate = 1
-        player.playbackVolume = 1
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        runOnMainThread {
-            UIApplication.shared.isIdleTimerDisabled = false
-        }
     }
 
     open func seek(time: TimeInterval, autoPlay: Bool, completion: @escaping ((Bool) -> Void)) {
@@ -335,6 +337,7 @@ open class KSPlayerLayer: NSObject {
             player.seek(time: time) { [weak self] finished in
                 guard let self else { return }
                 if finished, autoPlay {
+                    state = .buffering
                     self.play()
                 }
                 completion(finished)

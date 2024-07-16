@@ -5,6 +5,7 @@ ${PODS_ROOT}/../../FFmpegKit/Sources/Libavformat.xcframework
 ${PODS_ROOT}/../../FFmpegKit/Sources/Libavutil.xcframework
 ${PODS_ROOT}/../../FFmpegKit/Sources/Libswresample.xcframework
 ${PODS_ROOT}/../../FFmpegKit/Sources/Libswscale.xcframework
+${PODS_ROOT}/../../FFmpegKit/Sources/Libavdevice.xcframework
 ${PODS_ROOT}/../../FFmpegKit/Sources/libshaderc_combined.xcframework
 ${PODS_ROOT}/../../FFmpegKit/Sources/MoltenVK.xcframework
 ${PODS_ROOT}/../../FFmpegKit/Sources/lcms2.xcframework

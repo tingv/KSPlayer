@@ -8,11 +8,12 @@
 
 import Cocoa
 import KSPlayer
+import MPVPlayer
 
 class MainWindow: NSWindow {
     let vc: ViewController
     override init(contentRect: NSRect, styleMask style: NSWindow.StyleMask, backing backingStoreType: NSWindow.BackingStoreType, defer flag: Bool) {
-        KSOptions.firstPlayerType = KSMEPlayer.self
+        KSOptions.firstPlayerType = KSMPVPlayer.self
         KSOptions.secondPlayerType = KSMEPlayer.self
         KSOptions.logLevel = .debug
         KSOptions.isAutoPlay = true

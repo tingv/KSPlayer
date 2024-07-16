@@ -8,6 +8,8 @@
 import AVFoundation
 import CoreMedia
 import CoreServices
+import OSLog
+
 #if canImport(UIKit)
 import UIKit
 
@@ -22,10 +24,13 @@ public extension KSOptions {
         let window = windowScene?.windows.first
         return window?.bounds.size ?? .zero
     }
+
+    static var scale: CGFloat {
+        UITraitCollection.current.displayScale
+    }
 }
 #else
 import AppKit
-import SwiftUI
 
 public typealias UIView = NSView
 public typealias UIPasteboard = NSPasteboard
@@ -33,9 +38,12 @@ public extension KSOptions {
     static var sceneSize: CGSize {
         NSScreen.main?.frame.size ?? .zero
     }
+
+    static var scale: CGFloat {
+        NSScreen.main?.backingScaleFactor ?? 2
+    }
 }
 #endif
-
 // extension MediaPlayerTrack {
 //    static func == (lhs: Self, rhs: Self) -> Bool {
 //        lhs.trackID == rhs.trackID
@@ -375,4 +383,145 @@ open class AbstractAVIOContext {
 
     open func close() {}
     deinit {}
+}
+
+public enum VideoInterlacingType: String {
+    case tff
+    case bff
+    case progressive
+    case undetermined
+}
+
+public enum LogLevel: Int32, CustomStringConvertible {
+    case panic = 0
+    case fatal = 8
+    case error = 16
+    case warning = 24
+    case info = 32
+    case verbose = 40
+    case debug = 48
+    case trace = 56
+
+    public var description: String {
+        switch self {
+        case .panic:
+            return "panic"
+        case .fatal:
+            return "fault"
+        case .error:
+            return "error"
+        case .warning:
+            return "warning"
+        case .info:
+            return "info"
+        case .verbose:
+            return "verbose"
+        case .debug:
+            return "debug"
+        case .trace:
+            return "trace"
+        }
+    }
+}
+
+public extension LogLevel {
+    var logType: OSLogType {
+        switch self {
+        case .panic, .fatal:
+            return .fault
+        case .error:
+            return .error
+        case .warning:
+            return .debug
+        case .info, .verbose, .debug:
+            return .info
+        case .trace:
+            return .default
+        }
+    }
+}
+
+public protocol LogHandler {
+    @inlinable
+    func log(level: LogLevel, message: CustomStringConvertible, file: String, function: String, line: UInt)
+}
+
+public class OSLog: LogHandler {
+    public let label: String
+    public init(lable: String) {
+        label = lable
+    }
+
+    @inlinable
+    public func log(level: LogLevel, message: CustomStringConvertible, file: String, function: String, line: UInt) {
+        os_log(level.logType, "%@ %@: %@:%d %@ | %@", level.description, label, file, line, function, message.description)
+    }
+}
+
+public class FileLog: LogHandler {
+    public let fileHandle: FileHandle
+    public let formatter = DateFormatter()
+    public init(fileHandle: FileHandle) {
+        self.fileHandle = fileHandle
+        formatter.dateFormat = "MM-dd HH:mm:ss.SSSSSS"
+    }
+
+    @inlinable
+    public func log(level: LogLevel, message: CustomStringConvertible, file: String, function: String, line: UInt) {
+        let string = String(format: "%@ %@ %@:%d %@ | %@\n", formatter.string(from: Date()), level.description, file, line, function, message.description)
+        if let data = string.data(using: .utf8) {
+            fileHandle.write(data)
+        }
+    }
+}
+
+@inlinable
+public func KSLog(_ error: @autoclosure () -> Error, file: String = #file, function: String = #function, line: UInt = #line) {
+    KSLog(level: .error, error().localizedDescription, file: file, function: function, line: line)
+}
+
+@inlinable
+public func KSLog(level: LogLevel = .warning, _ message: @autoclosure () -> CustomStringConvertible, file: String = #file, function: String = #function, line: UInt = #line) {
+    if level.rawValue <= KSOptions.logLevel.rawValue {
+        let fileName = (file as NSString).lastPathComponent
+        KSOptions.logger.log(level: level, message: message(), file: fileName, function: function, line: line)
+    }
+}
+
+// @inlinable
+// public func KSLog(level: LogLevel = .warning, dso: UnsafeRawPointer = #dsohandle, _ message: StaticString, _ args: CVarArg...) {
+//    if level.rawValue <= KSOptions.logLevel.rawValue {
+//        os_log(level.logType, dso: dso, message, args)
+//    }
+// }
+
+public extension Array {
+    func toDictionary<Key: Hashable>(with selectKey: (Element) -> Key) -> [Key: Element] {
+        var dict = [Key: Element]()
+        forEach { element in
+            dict[selectKey(element)] = element
+        }
+        return dict
+    }
+}
+
+public struct KSClock {
+    public private(set) var lastMediaTime = CACurrentMediaTime()
+    public internal(set) var position = Int64(0)
+    public var rate = 1.0
+    public internal(set) var time = CMTime.zero {
+        didSet {
+            lastMediaTime = CACurrentMediaTime()
+        }
+    }
+
+    func getTime() -> TimeInterval {
+        time.seconds + (CACurrentMediaTime() - lastMediaTime) * rate
+    }
+}
+
+public enum DecodeType: String {
+    case soft
+    case videotoolbox
+    case vulka
 }

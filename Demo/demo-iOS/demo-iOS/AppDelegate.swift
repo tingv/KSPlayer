@@ -69,7 +69,7 @@ class CustomVideoPlayerView: VideoPlayerView {
     override open func player(layer: KSPlayerLayer, state: KSPlayerState) {
         super.player(layer: layer, state: state)
         if state == .readyToPlay {
-            KSLog(layer.player.naturalSize)
+            KSLog(layer.player.naturalSize.debugDescription)
             // list the all subtitles
             let subtitleInfos = srtControl.subtitleInfos
             for subtitleInfo in subtitleInfos {

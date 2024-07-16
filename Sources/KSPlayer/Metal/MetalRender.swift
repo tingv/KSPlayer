@@ -11,8 +11,18 @@ import Metal
 import QuartzCore
 import simd
 
-class MetalRender {
-    static let device = MTLCreateSystemDefaultDevice()!
+public class MetalRender {
+    public static let device = MTLCreateSystemDefaultDevice()!
+    public static var mtlTextureCache: CVMetalTextureCache? = {
+        var mtlTextureCache: CVMetalTextureCache?
+        CVMetalTextureCacheCreate(kCFAllocatorDefault,
+                                  nil,
+                                  device,
+                                  nil,
+                                  &mtlTextureCache)
+        return mtlTextureCache
+    }()
+
     static let library: MTLLibrary = {
         var library: MTLLibrary!
         library = device.makeDefaultLibrary()
@@ -156,15 +166,39 @@ class MetalRender {
     }
 
     static func texture(pixelBuffer: CVPixelBuffer) -> [MTLTexture] {
-        guard let iosurface = CVPixelBufferGetIOSurface(pixelBuffer)?.takeUnretainedValue() else {
+//        guard let iosurface = CVPixelBufferGetIOSurface(pixelBuffer)?.takeUnretainedValue() else {
+//            return []
+//        }
+//        let formats = KSOptions.pixelFormat(planeCount: pixelBuffer.planeCount, bitDepth: pixelBuffer.bitDepth)
+//        return (0 ..< formats.count).compactMap { index in
+//            let width = pixelBuffer.widthOfPlane(at: index)
+//            let height = pixelBuffer.heightOfPlane(at: index)
+//            let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: formats[index], width: width, height: height, mipmapped: false)
+//            return device.makeTexture(descriptor: descriptor, iosurface: iosurface, plane: index)
+//        }
+        // 苹果推荐用textureCache
+        guard let mtlTextureCache else {
             return []
         }
         let formats = KSOptions.pixelFormat(planeCount: pixelBuffer.planeCount, bitDepth: pixelBuffer.bitDepth)
-        return (0 ..< pixelBuffer.planeCount).compactMap { index in
+        return (0 ..< formats.count).compactMap { index in
             let width = pixelBuffer.widthOfPlane(at: index)
             let height = pixelBuffer.heightOfPlane(at: index)
             let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: formats[index], width: width, height: height, mipmapped: false)
-            return device.makeTexture(descriptor: descriptor, iosurface: iosurface, plane: index)
+            var cvTexture: CVMetalTexture?
+            CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                      mtlTextureCache,
+                                                      pixelBuffer,
+                                                      nil,
+                                                      formats[index],
+                                                      width,
+                                                      height,
+                                                      index,
+                                                      &cvTexture)
+            if let cvTexture {
+                return CVMetalTextureGetTexture(cvTexture)
+            }
+            return nil
         }
     }
 

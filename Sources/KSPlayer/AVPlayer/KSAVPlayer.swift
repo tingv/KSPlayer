@@ -452,15 +452,6 @@ extension KSAVPlayer: MediaPlayerProtocol {
         self.options = options
     }
 
-    public var contentMode: UIViewContentMode {
-        get {
-            playerView.contentMode
-        }
-        set {
-            playerView.contentMode = newValue
-        }
-    }
-
     public func enterBackground() {
         playerView.playerLayer.player = nil
     }

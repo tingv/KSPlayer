@@ -39,12 +39,6 @@ public extension UIFontDescriptor.SymbolicTraits {
     static var traitBold = bold
 }
 
-extension NSScreen {
-    var scale: CGFloat {
-        backingScaleFactor
-    }
-}
-
 public extension NSClickGestureRecognizer {
     var numberOfTapsRequired: Int {
         get {

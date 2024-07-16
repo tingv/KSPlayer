@@ -20,7 +20,7 @@ English | [简体中文](./README_CN.md)
 - [x] hardware accelerator.
 - [x] 4k/HDR/HDR10/HDR10+/Dolby Vision
 - [x] show local and online subtitles(shooter/assrt/opensubtitles).
-- [x] text subtitle(srt/vtt/ass)/Closed Captions/image subtitle(dvbsub/dvdsub/pgssub)
+- [x] text subtitle(srt/vtt/ass)/Closed Captions/image subtitle(dvbsub/dvdsub/pgssub/ass)
 - [x] Picture in Picture
 - [x] Record video
 - [x] De-interlace auto detect

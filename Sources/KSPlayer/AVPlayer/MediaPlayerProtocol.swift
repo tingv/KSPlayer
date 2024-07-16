@@ -19,6 +19,7 @@ public protocol MediaPlayback: AnyObject {
     var naturalSize: CGSize { get }
     var chapters: [Chapter] { get }
     var currentPlaybackTime: TimeInterval { get }
+    var playbackRate: Float { get set }
     func prepareToPlay()
     func shutdown()
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
@@ -79,7 +80,6 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var allowsExternalPlayback: Bool { get set }
     var usesExternalPlaybackWhileExternalScreenIsActive: Bool { get set }
     var isExternalPlaybackActive: Bool { get }
-    var playbackRate: Float { get set }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
     var subtitleDataSouce: SubtitleDataSouce? { get }
@@ -100,8 +100,79 @@ public protocol MediaPlayerProtocol: MediaPlayback {
 }
 
 public extension MediaPlayerProtocol {
+    @MainActor
+    var contentMode: UIViewContentMode {
+        get {
+            view?.contentMode ?? .center
+        }
+        set {
+            view?.contentMode = newValue
+        }
+    }
+
+    var isExternalPlaybackActive: Bool { false }
+    var isPlaying: Bool { playbackState == .playing }
     var nominalFrameRate: Float {
+        // return the frameRate of the video (xxFPS)
         tracks(mediaType: .video).first { $0.isEnabled }?.nominalFrameRate ?? 0
+    }
+
+    var frameRate: Float {
+        // return the frameRate of the video (xxFPS)
+        nominalFrameRate
+    }
+
+    var subtitlesTracks: [any SubtitleInfo] {
+        // Return the availables subtitles
+        tracks(mediaType: .subtitle).compactMap { $0 as? (any SubtitleInfo) }
+    }
+
+    var audioTracks: [MediaPlayerTrack] {
+        // Return the availables subtitles
+        tracks(mediaType: .audio) ?? []
+    }
+
+    var dynamicRange: DynamicRange? {
+        // return the dynamic range of the video
+        tracks(mediaType: .video).first { $0.isEnabled }?.dynamicRange
+    }
+
+    var audioFormat: String? {
+        // return the audioFormat of the video (HDR, SDR, ...)
+        (tracks(mediaType: .audio).first { $0.isEnabled } as? FFmpegAssetTrack)?.codecName
+    }
+
+    var videoFormat: String? {
+        // return the videoFormat of the video (SD, HD, Full HD, 4K, ...)
+        tracks(mediaType: .video).first { $0.isEnabled }?.dynamicRange?.description
+    }
+
+    var progress: CGFloat {
+        // return the current Progress of the video
+        let total = totalTime
+        return total == 0 ? 0 : currentTime / total
+    }
+
+    var currentTime: TimeInterval {
+        currentPlaybackTime
+    }
+
+    var totalTime: TimeInterval {
+        duration ?? 1
+    }
+
+    var remainingTime: TimeInterval {
+        totalTime - currentTime
+    }
+
+    func set(audioTrack: some MediaPlayerTrack) {
+        // setup the audio track
+        select(track: audioTrack)
+    }
+
+    func updateProgress(to: CGFloat) {
+        seek(time: to * totalTime) { _ in
+        }
     }
 }
 
@@ -118,7 +189,6 @@ public protocol MediaPlayerDelegate: AnyObject {
 public protocol MediaPlayerTrack: AnyObject, CustomStringConvertible {
     var trackID: Int32 { get }
     var name: String { get }
-    var languageCode: String? { get }
     var mediaType: AVFoundation.AVMediaType { get }
     var nominalFrameRate: Float { get set }
     var bitRate: Int64 { get }
@@ -126,8 +196,9 @@ public protocol MediaPlayerTrack: AnyObject, CustomStringConvertible {
     var isEnabled: Bool { get set }
     var isImageSubtitle: Bool { get }
     var rotation: Int16 { get }
-    var dovi: DOVIDecoderConfigurationRecord? { get }
     var fieldOrder: FFmpegFieldOrder { get }
+    var languageCode: String? { get }
+    var dovi: DOVIDecoderConfigurationRecord? { get }
     var formatDescription: CMFormatDescription? { get }
 }
 
@@ -289,6 +360,18 @@ public extension CMFormatDescription {
         return CGSize(width: Int(dimensions.width), height: Int(CGFloat(dimensions.height) * aspectRatio.height / aspectRatio.width))
     }
 
+    var displaySize: CGSize? {
+        if let dictionary = CMFormatDescriptionGetExtensions(self) as NSDictionary? {
+            if let width = (dictionary[kCVImageBufferDisplayWidthKey] as? NSNumber)?.intValue,
+               let height = (dictionary[kCVImageBufferDisplayHeightKey] as? NSNumber)?.intValue,
+               width > 0, height > 0
+            {
+                return CGSize(width: width, height: height)
+            }
+        }
+        return nil
+    }
+
     var aspectRatio: CGSize {
         if let dictionary = CMFormatDescriptionGetExtensions(self) as NSDictionary? {
             if let ratio = dictionary[kCVImageBufferPixelAspectRatioKey] as? NSDictionary,
@@ -299,7 +382,7 @@ public extension CMFormatDescription {
                 return CGSize(width: horizontal, height: vertical)
             }
         }
-        return CGSize(width: 1, height: 1)
+        return CGSize.one
     }
 
     var depth: Int32 {

@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import CoreText
 import FFmpegKit
 import Libavcodec
 import Libavfilter
@@ -42,6 +43,16 @@ public final class MEPlayerItem: Sendable {
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
     public private(set) var chapters: [Chapter] = []
+    public var playbackRate: Float {
+        get {
+            Float(videoClock.rate)
+        }
+        set {
+            audioClock.rate = Double(newValue)
+            videoClock.rate = Double(newValue)
+        }
+    }
+
     public var currentPlaybackTime: TimeInterval {
         state == .seeking ? seekTime : (mainClock().time - startTime).seconds
     }
@@ -50,7 +61,7 @@ public final class MEPlayerItem: Sendable {
     private var startTime = CMTime.zero
     public private(set) var duration: TimeInterval = 0
     public private(set) var fileSize: Double = 0
-    public private(set) var naturalSize = CGSize.zero
+    public private(set) var naturalSize = CGSize.one
     private var error: NSError? {
         didSet {
             if error != nil {
@@ -93,6 +104,9 @@ public final class MEPlayerItem: Sendable {
     }
 
     private static var onceInitial: Void = {
+        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
+            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
+        }
         var result = avformat_network_init()
         av_log_set_callback { ptr, level, format, args in
             guard let format else {
@@ -110,6 +124,7 @@ public final class MEPlayerItem: Sendable {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
                     if let opaque = context.interrupt_callback.opaque {
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
+                        // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
                         playerItem.options.urlIO(log: String(log))
                         if log.starts(with: "Will reconnect at") {
                             let seconds = playerItem.mainClock().time.seconds
@@ -175,6 +190,8 @@ public final class MEPlayerItem: Sendable {
 
 extension MEPlayerItem {
     private func openThread() {
+        formatCtx?.pointee.interrupt_callback.opaque = nil
+        formatCtx?.pointee.interrupt_callback.callback = nil
         avformat_close_input(&self.formatCtx)
         formatCtx = avformat_alloc_context()
         guard let formatCtx else {
@@ -201,7 +218,6 @@ extension MEPlayerItem {
 //            0
 //        }
         setHttpProxy()
-        var avOptions = options.formatContextOptions.avOptions
         if let pb = options.process(url: url) {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = pb.getContext()
@@ -212,6 +228,7 @@ extension MEPlayerItem {
         } else {
             urlString = url.absoluteString
         }
+        var avOptions = options.formatContextOptions.avOptions
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
         av_dict_free(&avOptions)
         if result == AVError.eof.code {
@@ -221,6 +238,9 @@ extension MEPlayerItem {
         }
         guard result == 0 else {
             error = .init(errorCode: .formatOpenInput, avErrorCode: result)
+            // opaque设置为空的话，可能会crash。但是我本地无法复现，暂时先注释掉吧。
+//            formatCtx.pointee.interrupt_callback.opaque = nil
+//            formatCtx.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             return
         }
@@ -238,6 +258,8 @@ extension MEPlayerItem {
         result = avformat_find_stream_info(formatCtx, nil)
         guard result == 0 else {
             error = .init(errorCode: .formatFindStreamInfo, avErrorCode: result)
+            formatCtx.pointee.interrupt_callback.opaque = nil
+            formatCtx.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             return
         }
@@ -357,6 +379,19 @@ extension MEPlayerItem {
                     }
                     assetTrack.seekByBytes = seekByBytes
                     return assetTrack
+                } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT {
+                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF {
+                        let metadata = toDictionary(coreStream.pointee.metadata)
+                        if let filename = metadata["filename"], let extradata = coreStream.pointee.codecpar.pointee.extradata {
+                            let extradataSize = coreStream.pointee.codecpar.pointee.extradata_size
+                            let data = Data(bytes: extradata, count: Int(extradataSize))
+                            var fontsDir = KSOptions.fontsDir
+                            try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
+                            fontsDir.appendPathComponent(filename)
+                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
+                            try? data.write(to: fontsDir)
+                        }
+                    }
                 }
             }
             return nil
@@ -490,6 +525,18 @@ extension MEPlayerItem {
                 }
                 let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
                 let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
+                let seekSuccess = seekUsePacketCache(seconds: seekToTime)
+                if seekSuccess {
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        self.seekingCompletionHandler?(true)
+                        self.seekingCompletionHandler = nil
+                    }
+                    state = .reading
+                    KSLog("seek use packet cache \(seekToTime)")
+                    continue
+                }
+//                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
                 // can not seek to key frame
                 let seekStartTime = CACurrentMediaTime()
                 var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
@@ -512,13 +559,14 @@ extension MEPlayerItem {
                 }
                 isSeek = true
                 allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
+                codecDidChangeCapacity()
+                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
+                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.seekingCompletionHandler?(result >= 0)
                     self.seekingCompletionHandler = nil
                 }
-                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
-                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 state = .reading
             } else if state == .reading {
                 autoreleasepool {
@@ -526,6 +574,36 @@ extension MEPlayerItem {
                 }
             }
         }
+    }
+
+    private func seekUsePacketCache(seconds: Double) -> Bool {
+        if options.seekUsePacketCache {
+            var array = [(PlayerItemTrackProtocol, UInt)]()
+            if let track = videoTrack {
+                if let index = track.seekCache(time: seconds, needKeyFrame: true) {
+                    array.append((track, index))
+                } else {
+                    return false
+                }
+            }
+            if let track = audioTrack {
+                if let index = track.seekCache(time: seconds, needKeyFrame: false) {
+                    array.append((track, index))
+                } else {
+                    return false
+                }
+            }
+            for (track, index) in array {
+                track.updateCache(headIndex: index)
+            }
+            for track in assetTracks {
+                if let index = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {
+                    track.subtitle?.outputRenderQueue.update(headIndex: index)
+                }
+            }
+            return true
+        }
+        return false
     }
 
     private func reading() -> Int32 {
@@ -571,7 +649,7 @@ extension MEPlayerItem {
                         options.readAudioTime = CACurrentMediaTime()
                     }
                     audioTrack?.putPacket(packet: packet)
-                } else {
+                } else if first.mediaType == .subtitle {
                     first.subtitle?.putPacket(packet: packet)
                 }
             }
@@ -615,7 +693,7 @@ extension MEPlayerItem: MediaPlayback {
         }
         var seekable = true
         if let ioContext = formatCtx.pointee.pb {
-            seekable = ioContext.pointee.seekable > 0
+            seekable = ioContext.pointee.seekable > 0 || duration != 0
         }
         return seekable
     }
@@ -694,7 +772,6 @@ extension MEPlayerItem: MediaPlayback {
             state = .seeking
             seekingCompletionHandler = completion
             condition.broadcast()
-            allPlayerItemTracks.forEach { $0.seek(time: time) }
         } else if state == .finished {
             seekTime = time
             state = .seeking
@@ -866,7 +943,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 
     public func getAudioOutputRender() -> AudioFrame? {
         if let frame = audioTrack?.getOutputRender(where: nil) {
-            SubtitleModel.audioRecognizes.first {
+            KSOptions.audioRecognizes.first {
                 $0.isEnabled
             }?.append(frame: frame)
             return frame

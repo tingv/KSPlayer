@@ -74,16 +74,6 @@ public extension Image {
 }
 #endif
 
-public extension UIImage {
-    func fitRect(_ fitSize: CGSize) -> CGRect {
-        let hZoom = fitSize.width / size.width
-        let vZoom = fitSize.height / size.height
-        let zoom = min(min(hZoom, vZoom), 1)
-        let newSize = size * zoom
-        return CGRect(origin: CGPoint(x: (fitSize.width - newSize.width) / 2, y: fitSize.height - newSize.height), size: newSize)
-    }
-}
-
 class LiveTextImageView: UIImageView {
     override var intrinsicContentSize: CGSize {
         .zero

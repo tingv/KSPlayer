@@ -17,6 +17,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
     private var tailIndex = UInt(0)
     private let expanding: Bool
     private let sorted: Bool
+    private let isClearItem: Bool
     private var destroyed = false
     @inline(__always)
     private var _count: Int { Int(tailIndex &- headIndex) }
@@ -30,9 +31,10 @@ public class CircularBuffer<Item: ObjectQueueItem> {
     public internal(set) var fps: Float = 24
     public private(set) var maxCount: Int
     private var mask: UInt
-    public init(initialCapacity: Int = 256, sorted: Bool = false, expanding: Bool = true) {
+    public init(initialCapacity: Int = 256, sorted: Bool = false, expanding: Bool = true, isClearItem: Bool = true) {
         self.expanding = expanding
         self.sorted = sorted
+        self.isClearItem = isClearItem
         let capacity = initialCapacity.nextPowerOf2()
         _buffer = ContiguousArray<Item?>(repeating: nil, count: Int(capacity))
         maxCount = Int(capacity)
@@ -47,7 +49,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
             return
         }
         if _buffer[Int(tailIndex & mask)] != nil {
-            assertionFailure("value is not nil of headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
+//            assertionFailure("value is not nil of headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
         }
         _buffer[Int(tailIndex & mask)] = value
         if sorted {
@@ -55,7 +57,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
             var index = tailIndex
             while index > headIndex {
                 guard let item = _buffer[Int((index - 1) & mask)] else {
-                    assertionFailure("value is nil of index: \((index - 1) & mask) headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count),  mask: \(mask)")
+//                    assertionFailure("value is nil of index: \((index - 1) & mask) headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count),  mask: \(mask)")
                     break
                 }
                 if item.timestamp <= _buffer[Int(index & mask)]!.timestamp {
@@ -99,14 +101,16 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         }
         let index = Int(headIndex & mask)
         guard let item = _buffer[index] else {
-            assertionFailure("value is nil of index: \(index) headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
+//            assertionFailure("value is nil of index: \(index) headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
             return nil
         }
         if let predicate, !predicate(item, _count) {
             return nil
         } else {
             headIndex &+= 1
-            _buffer[index] = nil
+            if isClearItem {
+                _buffer[index] = nil
+            }
             if _count == maxCount >> 1 {
                 condition.signal()
             }
@@ -123,16 +127,71 @@ public class CircularBuffer<Item: ObjectQueueItem> {
             if let item = _buffer[Int(i & mask)] {
                 if predicate(item) {
                     result.append(item)
-                    _buffer[Int(i & mask)] = nil
+                    if isClearItem {
+                        _buffer[Int(i & mask)] = nil
+                    }
                     headIndex = i + 1
                 }
             } else {
-                assertionFailure("value is nil of index: \(i) headIndex: \(headIndex), tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
+//                assertionFailure("value is nil of index: \(i) headIndex: \(headIndex), tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
                 return result
             }
             i += 1
         }
         return result
+    }
+
+    public func seek(seconds: Double, needKeyFrame: Bool = false) -> UInt? {
+        condition.lock()
+        defer { condition.unlock() }
+        var i = headIndex
+        if let item = _buffer[Int(i & mask)] {
+            let isForward = seconds > item.seconds
+            if isForward {
+                i += 1
+                while i <= tailIndex, let item = _buffer[Int(i & mask)] {
+                    if item.seconds >= seconds {
+                        if needKeyFrame {
+                            if let packet = item as? Packet, packet.isKeyFrame {
+                                return i
+                            } else {
+                                i -= 1
+                                while i > headIndex {
+                                    if let packet = _buffer[Int(i & mask)] as? Packet, packet.isKeyFrame {
+                                        return i
+                                    }
+                                    i -= 1
+                                }
+                                return nil
+                            }
+                        } else {
+                            return i
+                        }
+                    }
+                    i += 1
+                }
+            } else {
+                while i > 0, let item = _buffer[Int(i & mask)] {
+                    if item.seconds <= seconds {
+                        if needKeyFrame {
+                            if let packet = item as? Packet, packet.isKeyFrame {
+                                return i
+                            }
+                        } else {
+                            return i
+                        }
+                    }
+                    i -= 1
+                }
+            }
+        }
+        return nil
+    }
+
+    func update(headIndex: UInt) {
+        condition.lock()
+        defer { condition.unlock() }
+        self.headIndex = headIndex
     }
 
     public func flush() {

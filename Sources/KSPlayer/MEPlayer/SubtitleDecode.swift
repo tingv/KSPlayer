@@ -18,14 +18,28 @@ class SubtitleDecode: DecodeProtocol {
     private let scale = VideoSwresample(dstFormat: AV_PIX_FMT_ARGB, isDovi: false)
     private var subtitle = AVSubtitle()
     private var startTime = TimeInterval(0)
-    private let assParse = AssParse()
+    private var assParse: AssParse? = nil
+    private var assImageRenderer: AssImageRenderer? = nil
+    private let displaySize: CGSize
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
+        displaySize = assetTrack.formatDescription?.displaySize ?? .one
         do {
             codecContext = try assetTrack.createContext(options: options)
-            if let pointer = codecContext?.pointee.subtitle_header {
+            if let codecContext, let pointer = codecContext.pointee.subtitle_header {
                 let subtitleHeader = String(cString: pointer)
-                _ = assParse.canParse(scanner: Scanner(string: subtitleHeader))
+                if KSOptions.isASSUseImageRender {
+                    assImageRenderer = AssImageRenderer()
+                    assetTrack.sutitleRender = assImageRenderer
+                    Task(priority: .high) {
+                        await assImageRenderer?.subtitle(header: subtitleHeader)
+                    }
+                } else {
+                    let assParse = AssParse()
+                    if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
+                        self.assParse = assParse
+                    }
+                }
             }
         } catch {
             KSLog(error as CustomStringConvertible)
@@ -55,19 +69,19 @@ class SubtitleDecode: DecodeProtocol {
         if duration == 0, packet.duration != 0 {
             duration = packet.assetTrack.timebase.cmtime(for: packet.duration).seconds
         }
-        var parts = text(subtitle: subtitle)
+        let end: TimeInterval
+        if duration == 0 {
+            end = .infinity
+        } else {
+            end = start + duration
+        }
+        var parts = text(subtitle: subtitle, start: start, end: end)
         /// 不用preSubtitleFrame来进行更新end。而是插入一个空的字幕来更新字幕。
         /// 因为字幕有可能不按顺序解码。这样就会导致end比start小，然后这个字幕就不会被清空了。
-        if parts.isEmpty {
-            parts.append(SubtitlePart(0, 0, attributedString: nil))
+        if assImageRenderer == nil, parts.isEmpty {
+            parts.append(SubtitlePart(start, end, ""))
         }
         for part in parts {
-            part.start = start
-            if duration == 0 {
-                part.end = .infinity
-            } else {
-                part.end = start + duration
-            }
             let frame = SubtitleFrame(part: part, timebase: packet.assetTrack.timebase)
             frame.timestamp = timestamp
             completionHandler(.success(frame))
@@ -86,7 +100,7 @@ class SubtitleDecode: DecodeProtocol {
         }
     }
 
-    private func text(subtitle: AVSubtitle) -> [SubtitlePart] {
+    private func text(subtitle: AVSubtitle, start: TimeInterval, end: TimeInterval) -> [SubtitlePart] {
         var parts = [SubtitlePart]()
         var images = [(CGRect, CGImage)]()
         var origin: CGPoint = .zero
@@ -104,9 +118,18 @@ class SubtitleDecode: DecodeProtocol {
                 }
                 attributedString?.append(NSAttributedString(string: String(cString: text)))
             } else if let ass = rect.ass {
-                let scanner = Scanner(string: String(cString: ass))
-                if let group = assParse.parsePart(scanner: scanner) {
-                    parts.append(group)
+                let subtitle = String(cString: ass)
+                if let assImageRenderer {
+                    Task(priority: .high) {
+                        await assImageRenderer.add(subtitle: subtitle, start: Int64(start * 1000), duration: end == .infinity ? 0 : Int64((end - start) * 1000))
+                    }
+                } else if let assParse {
+                    let scanner = Scanner(string: subtitle)
+                    if let group = assParse.parsePart(scanner: scanner) {
+                        group.start = start
+                        group.end = end
+                        parts.append(group)
+                    }
                 }
             } else if rect.type == SUBTITLE_BITMAP {
                 if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage() {
@@ -114,22 +137,14 @@ class SubtitleDecode: DecodeProtocol {
                 }
             }
         }
-        if images.count > 0 {
-            let part = SubtitlePart(0, 0, attributedString: nil)
-            if images.count > 1 {
-                origin = .zero
-            }
-            var image: UIImage?
+        if let (rect, cgimage) = CGImage.combine(images: images), let image = cgimage.image() {
             // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
-            if let data = CGImage.combine(images: images)?.data(type: .png, quality: 0.2) {
-                image = UIImage(data: data)
-            }
-            part.image = image
-            part.origin = origin
+            let info = SubtitleImageInfo(rect: rect, image: image, displaySize: displaySize)
+            let part = SubtitlePart(start, end, image: info)
             parts.append(part)
         }
         if let attributedString {
-            parts.append(SubtitlePart(0, 0, attributedString: attributedString))
+            parts.append(SubtitlePart(start, end, attributedString: attributedString))
         }
         return parts
     }
