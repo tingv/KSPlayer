@@ -106,13 +106,13 @@ public class ThumbnailController {
                     }
                     let ret = avcodec_receive_frame(codecContext, frame)
                     if ret < 0 {
-                        if ret == -EAGAIN {
+                        if ret == AVError.tryAgain.code {
                             continue
                         } else {
                             break
                         }
                     }
-                    let image = reScale.transfer(frame: frame.pointee)?.cgImage().map {
+                    let image = try reScale.transfer(frame: frame.pointee).cgImage().map {
                         UIImage(cgImage: $0)
                     }
                     let currentTimeStamp = frame.pointee.best_effort_timestamp

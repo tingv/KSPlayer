@@ -248,7 +248,6 @@ public protocol PlayerControllerDelegate: class {
     public var isSeekImageSubtitle = false
     // video
     public var videoDelay = 0.0 // s
-    public var autoDeInterlace = false
     public var autoRotate = true
     public var destinationDynamicRange: DynamicRange?
     public var videoAdaptable = true

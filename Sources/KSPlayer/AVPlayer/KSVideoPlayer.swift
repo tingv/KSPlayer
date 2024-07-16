@@ -13,6 +13,7 @@ import UIKit
 #else
 import AppKit
 
+public typealias UIHostingController = NSHostingController
 public typealias UIViewRepresentable = NSViewRepresentable
 #endif
 
@@ -27,6 +28,34 @@ public struct KSVideoPlayer {
         self.options = options
     }
 }
+
+#if !os(tvOS)
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+@MainActor
+public struct PlayBackCommands: Commands {
+    @FocusedObject
+    private var config: KSVideoPlayer.Coordinator?
+    public init() {}
+
+    public var body: some Commands {
+        CommandMenu("PlayBack") {
+            if let config {
+                Button(config.state.isPlaying ? "Pause" : "Resume") {
+                    if config.state.isPlaying {
+                        config.playerLayer?.pause()
+                    } else {
+                        config.playerLayer?.play()
+                    }
+                }
+                .keyboardShortcut(.space, modifiers: .none)
+                Button(config.isMuted ? "Mute" : "Unmute") {
+                    config.isMuted.toggle()
+                }
+            }
+        }
+    }
+}
+#endif
 
 extension KSVideoPlayer: UIViewRepresentable {
     public func makeCoordinator() -> Coordinator {
@@ -99,6 +128,26 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         @Published
+        public var isRecord = false {
+            didSet {
+                if isRecord != oldValue {
+                    if isRecord {
+                        if let url = KSOptions.recordDir {
+                            if !FileManager.default.fileExists(atPath: url.path) {
+                                try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+                            }
+                            if FileManager.default.fileExists(atPath: url.path) {
+                                playerLayer?.player.startRecord(url: url.appendingPathComponent("\(Date().description).mov"))
+                            }
+                        }
+                    } else {
+                        playerLayer?.player.stopRecord()
+                    }
+                }
+            }
+        }
+
+        @Published
         public var playbackRate: Float = 1.0 {
             didSet {
                 playerLayer?.player.playbackRate = playbackRate
@@ -115,10 +164,9 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
         }
 
-        public var subtitleModel = SubtitleModel()
         public var timemodel = ControllerTimeModel()
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
-        public var playerLayer: KSPlayerLayer? {
+        public var playerLayer: KSComplexPlayerLayer? {
             didSet {
                 oldValue?.delegate = nil
                 if #available(tvOS 14.0, *), oldValue?.player.pipController?.isPictureInPictureActive == true {
@@ -142,11 +190,6 @@ extension KSVideoPlayer: UIViewRepresentable {
         public init() {}
 
         public func makeView(url: URL, options: KSOptions) -> UIView {
-            defer {
-                DispatchQueue.main.async { [weak self] in
-                    self?.subtitleModel.url = url
-                }
-            }
             if let playerLayer {
                 if playerLayer.url == url {
                     return playerLayer.player.view ?? UIView()
@@ -156,7 +199,7 @@ extension KSVideoPlayer: UIViewRepresentable {
                 playerLayer.delegate = self
                 return playerLayer.player.view ?? UIView()
             } else {
-                let playerLayer = KSPlayerLayer(url: url, options: options, delegate: self)
+                let playerLayer = KSComplexPlayerLayer(url: url, options: options, delegate: self)
                 self.playerLayer = playerLayer
                 return playerLayer.player.view ?? UIView()
             }
@@ -173,7 +216,6 @@ extension KSVideoPlayer: UIViewRepresentable {
             playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
-            subtitleModel.selectedSubtitleInfo?.isEnabled = false
         }
 
         public func skip(interval: Int) {
@@ -192,8 +234,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             if show {
                 delayHide?.cancel()
                 // 播放的时候才自动隐藏
-                guard state == .bufferFinished else { return }
-                if autoHide {
+                if state == .bufferFinished, autoHide {
                     delayHide = DispatchWorkItem { [weak self] in
                         guard let self else { return }
                         if self.state == .bufferFinished {
@@ -206,14 +247,20 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
             #if os(macOS)
             show ? NSCursor.unhide() : NSCursor.setHiddenUntilMouseMoves(true)
-            if let window = playerLayer?.player.view?.window {
-                if !window.styleMask.contains(.fullScreen) {
-                    window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = !show
-                    //                    window.standardWindowButton(.zoomButton)?.isHidden = !show
-                    //                    window.standardWindowButton(.closeButton)?.isHidden = !show
-                    //                    window.standardWindowButton(.miniaturizeButton)?.isHidden = !show
-                    //                    window.titleVisibility = show ? .visible : .hidden
+            if let view = playerLayer?.player.view, let window = view.window, !window.styleMask.contains(.fullScreen) {
+                if show {
+                    window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = false
+                } else {
+                    // 因为光标处于状态栏的时候，onHover就会返回false了，所以要自己计算
+                    let point = window.convertPoint(fromScreen: NSEvent.mouseLocation)
+                    if !view.frame.contains(point) {
+                        window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = true
+                    }
                 }
+                //                    window.standardWindowButton(.zoomButton)?.isHidden = !show
+                //                    window.standardWindowButton(.closeButton)?.isHidden = !show
+                //                    window.standardWindowButton(.miniaturizeButton)?.isHidden = !show
+                //                    window.titleVisibility = show ? .visible : .hidden
             }
             #endif
         }
@@ -225,16 +272,6 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         onStateChanged?(layer, state)
         if state == .readyToPlay {
             playbackRate = layer.player.playbackRate
-            if let subtitleDataSouce = layer.player.subtitleDataSouce {
-                // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
-                    guard let self else { return }
-                    self.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
-                    if self.subtitleModel.selectedSubtitleInfo == nil, layer.options.autoSelectEmbedSubtitle {
-                        self.subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
-                    }
-                }
-            }
         } else if state == .bufferFinished {
             isMaskShow = false
         } else {
@@ -258,7 +295,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         }
     }
 
-    public func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    public func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         onPlay?(currentTime, totalTime)
         guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)) else {
             return
@@ -275,8 +312,6 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
                 timemodel.totalTime = total
             }
         }
-
-        subtitleModel.subtitle(currentTime: currentTime, size: layer.player.naturalSize.within(size: layer.player.view?.frame.size))
     }
 
     public func player(layer: KSPlayerLayer, finish error: Error?) {

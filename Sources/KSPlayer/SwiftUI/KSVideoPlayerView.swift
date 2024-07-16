@@ -12,31 +12,19 @@ import SwiftUI
 @MainActor
 public struct KSVideoPlayerView: View {
     private let subtitleDataSouce: SubtitleDataSouce?
+    public let options: KSOptions
     @State
     private var title: String
     @StateObject
-    private var playerCoordinator: KSVideoPlayer.Coordinator
+    private var config: KSVideoPlayer.Coordinator
+    @State
+    public var url: URL
     @Environment(\.dismiss)
     private var dismiss
     @FocusState
-    private var focusableField: FocusableField? {
-        willSet {
-            isDropdownShow = newValue == .info
-        }
-    }
-
-    public let options: KSOptions
+    private var focusableView: FocusableView?
     @State
     private var isDropdownShow = false
-    @State
-    public var url: URL {
-        didSet {
-            #if os(macOS)
-            NSDocumentController.shared.noteNewRecentDocumentURL(url)
-            #endif
-        }
-    }
-
     public init(url: URL, options: KSOptions, title: String? = nil) {
         self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSouce: nil)
     }
@@ -48,7 +36,7 @@ public struct KSVideoPlayerView: View {
 
     public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
         _url = url
-        _playerCoordinator = .init(wrappedValue: coordinator)
+        _config = .init(wrappedValue: coordinator)
         _title = title
         #if os(macOS)
         NSDocumentController.shared.noteNewRecentDocumentURL(url.wrappedValue)
@@ -58,69 +46,137 @@ public struct KSVideoPlayerView: View {
     }
 
     public var body: some View {
-        playView
-            .overlay {
-                VideoSubtitleView(model: playerCoordinator.subtitleModel)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+        KSCorePlayerView(config: config, url: _url, options: options, title: _title, subtitleDataSouce: subtitleDataSouce)
+            .onAppear {
+                focusableView = .play
+                // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
+                //                    #if os(macOS)
+                //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
+                //                        isMaskShow = overView
+                //                        return $0
+                //                    }
+                //                    #endif
             }
             .overlay {
-                VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, playerWidth: playerCoordinator.playerLayer?.player.view?.frame.width ?? 0, focusableField: $focusableField)
-                    .focused($focusableField, equals: .controller)
-                    .opacity(playerCoordinator.isMaskShow ? 1 : 0)
-                #if os(tvOS)
-                    .ignoresSafeArea()
-                #endif
+                controllerView
             }
             .preferredColorScheme(.dark)
             .tint(.white)
             .persistentSystemOverlays(.hidden)
             .toolbar(.hidden, for: .automatic)
+            .focusedObject(config)
+            .onChange(of: config.isMaskShow) { newValue in
+                if newValue {
+                    focusableView = .controller
+                } else {
+                    focusableView = .play
+                }
+            }
+            .onChange(of: isDropdownShow) { newValue in
+                if newValue {
+                    focusableView = .info
+                } else {
+                    focusableView = .play
+                }
+            }
+        #if !os(iOS)
+            .focused($focusableView, equals: .play)
+        #endif
         #if os(tvOS)
+        // 要放在最上层才不会有焦点丢失问题
             .onPlayPauseCommand {
-                if playerCoordinator.state.isPlaying {
-                    playerCoordinator.playerLayer?.pause()
-                } else {
-                    playerCoordinator.playerLayer?.play()
+            if config.state.isPlaying {
+                config.playerLayer?.pause()
+            } else {
+                config.playerLayer?.play()
+            }
+        }
+        .onExitCommand {
+            if config.isMaskShow {
+                config.isMaskShow = false
+            } else {
+                switch focusableView {
+                case .play:
+                    dismiss()
+                default:
+                    focusableView = .play
                 }
             }
-            .onExitCommand {
-                if playerCoordinator.isMaskShow {
-                    playerCoordinator.isMaskShow = false
-                } else {
-                    switch focusableField {
-                    case .play:
-                        dismiss()
-                    default:
-                        focusableField = .play
-                    }
-                }
-            }
-            .onMoveCommand { direction in
+        }
+        .onMoveCommand { direction in
+            if !config.isMaskShow {
                 switch direction {
                 case .left:
-                    playerCoordinator.skip(interval: -15)
+                    config.skip(interval: -15)
                 case .right:
-                    playerCoordinator.skip(interval: 15)
+                    config.skip(interval: 15)
                 case .up:
-                    playerCoordinator.mask(show: true, autoHide: false)
+                    config.mask(show: true, autoHide: false)
                 case .down:
-                    focusableField = .info
+                    isDropdownShow = true
                 @unknown default:
                     break
                 }
             }
-            .sheet(isPresented: $isDropdownShow) {
-                VideoSettingView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, subtitleTitle: title)
-                    .focused($focusableField, equals: .info)
-            }
+        }
+        .sheet(isPresented: $isDropdownShow) {
+            VideoSettingView(config: config, subtitleTitle: title)
+        }
+        #endif
+        #if !os(tvOS)
+        // 要放在最上面的view。这样才不会被controllerView盖住
+            .onHover { new in
+            config.isMaskShow = new
+        }
         #endif
     }
 
-    private var playView: some View {
-        KSVideoPlayer(coordinator: playerCoordinator, url: url, options: options)
+    private var controllerView: some View {
+        VideoControllerView(config: config, title: $title, playerWidth: config.playerLayer?.player.view?.frame.width ?? 0, focusableView: $focusableView)
+            .focused($focusableView, equals: .controller)
+            .opacity(config.isMaskShow ? 1 : 0)
+        #if os(tvOS)
+            .ignoresSafeArea()
+        #endif
+    }
+
+    fileprivate enum FocusableView {
+        case play, controller, info
+    }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+public struct KSCorePlayerView: View {
+    @StateObject
+    private var config: KSVideoPlayer.Coordinator
+    @State
+    public var url: URL {
+        didSet {
+            #if os(macOS)
+            NSDocumentController.shared.noteNewRecentDocumentURL(url)
+            #endif
+        }
+    }
+
+    public let options: KSOptions
+    @State
+    private var title: String
+    private let subtitleDataSouce: SubtitleDataSouce?
+    public init(config: KSVideoPlayer.Coordinator, url: State<URL>, options: KSOptions, title: State<String>, subtitleDataSouce: SubtitleDataSouce?) {
+        _config = .init(wrappedValue: config)
+        _url = url
+        self.options = options
+        _title = title
+        self.subtitleDataSouce = subtitleDataSouce
+    }
+
+    public var body: some View {
+        KSVideoPlayer(coordinator: config, url: url, options: options)
             .onStateChanged { playerLayer, state in
                 if state == .readyToPlay {
+                    if let subtitleDataSouce {
+                        config.playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+                    }
                     if let movieTitle = playerLayer.player.dynamicInfo?.metadata["title"] {
                         title = movieTitle
                     }
@@ -131,50 +187,36 @@ public struct KSVideoPlayerView: View {
             }
         #if canImport(UIKit)
             .onSwipe { _ in
-                playerCoordinator.isMaskShow = true
+                config.isMaskShow = true
             }
         #endif
             .ignoresSafeArea()
-            .onAppear {
-                focusableField = .play
-                if let subtitleDataSouce {
-                    playerCoordinator.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
-                }
-                // 不要加这个，不然playerCoordinator无法释放，也可以在onDisappear调用removeMonitor释放
-                //                    #if os(macOS)
-                //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
-                //                        isMaskShow = overView
-                //                        return $0
-                //                    }
-                //                    #endif
-            }
 
         #if os(iOS) || os(xrOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
         #if !os(iOS)
-            .focusable(!playerCoordinator.isMaskShow)
-        .focused($focusableField, equals: .play)
+        .focusable(!config.isMaskShow)
         #endif
         #if !os(xrOS)
-            .onKeyPressLeftArrow {
-            playerCoordinator.skip(interval: -15)
+        .onKeyPressLeftArrow {
+            config.skip(interval: -15)
         }
         .onKeyPressRightArrow {
-            playerCoordinator.skip(interval: 15)
+            config.skip(interval: 15)
         }
         .onKeyPressSapce {
-            if playerCoordinator.state.isPlaying {
-                playerCoordinator.playerLayer?.pause()
+            if config.state.isPlaying {
+                config.playerLayer?.pause()
             } else {
-                playerCoordinator.playerLayer?.play()
+                config.playerLayer?.play()
             }
         }
         #endif
         #if os(macOS)
-            .navigationTitle(title)
+        .navigationTitle(title)
         .onTapGesture(count: 2) {
-            guard let view = playerCoordinator.playerLayer?.player.view else {
+            guard let view = config.playerLayer?.player.view else {
                 return
             }
             view.window?.toggleFullScreen(nil)
@@ -182,30 +224,27 @@ public struct KSVideoPlayerView: View {
             view.layoutSubtreeIfNeeded()
         }
         .onExitCommand {
-            playerCoordinator.playerLayer?.player.view?.exitFullScreenMode()
+            config.playerLayer?.player.view?.exitFullScreenMode()
         }
         .onMoveCommand { direction in
             switch direction {
             case .left:
-                playerCoordinator.skip(interval: -15)
+                config.skip(interval: -15)
             case .right:
-                playerCoordinator.skip(interval: 15)
+                config.skip(interval: 15)
             case .up:
-                playerCoordinator.playerLayer?.player.playbackVolume += 0.2
+                config.playerLayer?.player.playbackVolume += 0.2
             case .down:
-                playerCoordinator.playerLayer?.player.playbackVolume -= 0.2
+                config.playerLayer?.player.playbackVolume -= 0.2
             @unknown default:
                 break
             }
         }
         #endif
         .onTapGesture {
-            playerCoordinator.isMaskShow.toggle()
+            config.isMaskShow.toggle()
         }
         #if !os(tvOS)
-        .onHover { _ in
-            playerCoordinator.isMaskShow = true
-        }
         .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
                 if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
@@ -217,10 +256,6 @@ public struct KSVideoPlayerView: View {
         #endif
     }
 
-    fileprivate enum FocusableField {
-        case play, controller, info
-    }
-
     public func openURL(_ url: URL) {
         runOnMainThread {
             if url.isAudio || url.isMovie {
@@ -228,43 +263,8 @@ public struct KSVideoPlayerView: View {
                 title = url.lastPathComponent
             } else {
                 let info = URLSubtitleInfo(url: url)
-                playerCoordinator.subtitleModel.selectedSubtitleInfo = info
+                config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
             }
-        }
-    }
-}
-
-extension View {
-    func onKeyPressLeftArrow(action: @escaping () -> Void) -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return onKeyPress(.leftArrow) {
-                action()
-                return .handled
-            }
-        } else {
-            return self
-        }
-    }
-
-    func onKeyPressRightArrow(action: @escaping () -> Void) -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return onKeyPress(.rightArrow) {
-                action()
-                return .handled
-            }
-        } else {
-            return self
-        }
-    }
-
-    func onKeyPressSapce(action: @escaping () -> Void) -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return onKeyPress(.space) {
-                action()
-                return .handled
-            }
-        } else {
-            return self
         }
     }
 }
@@ -273,13 +273,11 @@ extension View {
 struct VideoControllerView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
-    @ObservedObject
-    fileprivate var subtitleModel: SubtitleModel
     @Binding
     fileprivate var title: String
     fileprivate let playerWidth: CGFloat
     @FocusState.Binding
-    fileprivate var focusableField: KSVideoPlayerView.FocusableField?
+    fileprivate var focusableView: KSVideoPlayerView.FocusableView?
     @State
     private var showVideoSetting = false
     @Environment(\.dismiss)
@@ -288,39 +286,29 @@ struct VideoControllerView: View {
         VStack {
             #if os(tvOS)
             Spacer()
-            HStack {
+            HStack(spacing: 10) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
                     .lineLimit(2)
-                    .layoutPriority(3)
+                    .layoutPriority(100)
+                KSVideoPlayerViewBuilder.muteButton(config: config)
+                if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
+                    audioButton(audioTracks: audioTracks)
+                }
                 Spacer()
                     .layoutPriority(2)
-                HStack {
+                HStack(spacing: 10) {
                     KSVideoPlayerViewBuilder.playButton(config: config)
-                        .frame(width: 56)
-                    if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                        audioButton(audioTracks: audioTracks)
-                    }
-                    KSVideoPlayerViewBuilder.muteButton(config: config)
-                        .frame(width: 56)
                     contentModeButton
-                        .frame(width: 56)
-                    subtitleButton
                     playbackRateButton
+                    KSVideoPlayerViewBuilder.recordButton(config: config)
                     pipButton
-                        .frame(width: 56)
+                    subtitleButton
                     infoButton
-                        .frame(width: 56)
                 }
                 .font(.caption)
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                    .onAppear {
-                        focusableField = .controller
-                    }
-                    .onDisappear {
-                        focusableField = .play
-                    }
             }
             #elseif os(macOS)
             Spacer()
@@ -328,7 +316,7 @@ struct VideoControllerView: View {
                 HStack {
                     KSVideoPlayerViewBuilder.muteButton(config: config)
                     volumeSlider
-                        .frame(width: 100)
+                        .frame(maxWidth: 100)
                     if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                         audioButton(audioTracks: audioTracks)
                     }
@@ -340,20 +328,15 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.forwardButton(config: config)
                         .font(.largeTitle)
                     Spacer()
-                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
-                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
-                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
-                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
+                    contentModeButton
+                    playbackRateButton
+                    KSVideoPlayerViewBuilder.recordButton(config: config)
+                    subtitleButton
+                    infoButton
                 }
                 // 设置opacity为0，还是会去更新View。所以只能这样了
                 if config.isMaskShow {
                     VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                        .onAppear {
-                            focusableField = .controller
-                        }
-                        .onDisappear {
-                            focusableField = .play
-                        }
                 }
             }
             .padding()
@@ -371,12 +354,14 @@ struct VideoControllerView: View {
                 #if os(xrOS)
                 .glassBackgroundEffect()
                 #endif
-                #if !os(tvOS) && !os(xrOS)
-                if config.playerLayer?.player.allowsExternalPlayback == true {
-                    AirPlayView().fixedSize()
-                }
+                KSVideoPlayerViewBuilder.muteButton(config: config)
+                volumeSlider
+                    .frame(maxWidth: 100)
+                    .tint(.white.opacity(0.8))
+                    .padding(.leading, 16)
+                #if os(xrOS)
+                    .glassBackgroundEffect()
                 #endif
-                Spacer()
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                     audioButton(audioTracks: audioTracks)
                     #if os(xrOS)
@@ -384,17 +369,14 @@ struct VideoControllerView: View {
                         .glassBackgroundEffect()
                     #endif
                 }
-                KSVideoPlayerViewBuilder.muteButton(config: config)
-                volumeSlider
-                    .frame(width: 100)
-                    .tint(.white.opacity(0.8))
-                    .padding(.leading, 16)
-                #if os(xrOS)
-                    .glassBackgroundEffect()
+                Spacer()
+                #if !os(tvOS) && !os(xrOS)
+                if config.playerLayer?.player.allowsExternalPlayback == true {
+                    AirPlayView().fixedSize()
+                }
                 #endif
                 #if !os(xrOS)
                 contentModeButton
-                subtitleButton
                 #endif
             }
             Spacer()
@@ -414,25 +396,18 @@ struct VideoControllerView: View {
                 Spacer()
                 playbackRateButton
                 pipButton
+                KSVideoPlayerViewBuilder.recordButton(config: config)
+                subtitleButton
                 infoButton
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
-                    .onAppear {
-                        focusableField = .controller
-                    }
-                    .onDisappear {
-                        focusableField = .play
-                    }
             }
             #endif
             #endif
         }
         .sheet(isPresented: $showVideoSetting) {
-            NavigationStack {
-                VideoSettingView(config: config, subtitleModel: config.subtitleModel, subtitleTitle: title)
-            }
-            .buttonStyle(.plain)
+            VideoSettingView(config: config, subtitleTitle: title)
         }
         #if os(xrOS)
         .ornament(visibility: config.isMaskShow ? .visible : .hidden, attachmentAnchor: .scene(.bottom)) {
@@ -445,10 +420,10 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.playButton(config: config)
                     KSVideoPlayerViewBuilder.forwardButton(config: config)
                     VideoTimeShowView(config: config, model: config.timemodel, timeFont: .title3)
-                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
-                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
-                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
-                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
+                    contentModeButton
+                    subtitleButton
+                    playbackRateButton
+                    infoButton
                 }
             }
             .frame(minWidth: playerWidth / 1.5)
@@ -461,12 +436,6 @@ struct VideoControllerView: View {
         #if os(tvOS)
         .padding(.horizontal, 80)
         .padding(.bottom, 80)
-        #else
-        .font(.title)
-        .buttonStyle(.borderless)
-        .padding()
-        #endif
-        #if os(tvOS)
         .background(LinearGradient(
             stops: [
                 Gradient.Stop(color: .black.opacity(0), location: 0.22),
@@ -475,6 +444,10 @@ struct VideoControllerView: View {
             startPoint: .top,
             endPoint: .bottom
         ))
+        #else
+            .font(.title)
+            .buttonStyle(.borderless)
+            .padding()
         #endif
     }
 
@@ -606,16 +579,22 @@ extension EventModifiers {
     static let none = Self()
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
-struct VideoSubtitleView: View {
+public struct VideoSubtitleView: View {
     @ObservedObject
     fileprivate var model: SubtitleModel
-    var body: some View {
+    public init(model: SubtitleModel) {
+        self.model = model
+    }
+
+    public var body: some View {
         ZStack {
             ForEach(model.parts) { part in
-                part.subtitleView
+                part.view(isHDR: model.isHDR)
             }
         }
+        // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+        .allowsHitTesting(false)
+        .ksIgnoresSafeArea()
     }
 
     fileprivate static func imageView(_ image: UIImage) -> some View {
@@ -634,9 +613,8 @@ struct VideoSubtitleView: View {
 }
 
 private extension SubtitlePart {
-    @available(iOS 16, tvOS 16, macOS 13, *)
     @MainActor
-    var subtitleView: some View {
+    func view(isHDR: Bool) -> some View {
         Group {
             switch self.render {
             case let .left(info):
@@ -644,6 +622,9 @@ private extension SubtitlePart {
                     // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
                     let rect = info.displaySize.convert(rect: info.rect, toSize: geometry.size)
                     VideoSubtitleView.imageView(info.image)
+                        .if(isHDR) {
+                            $0.allowedDynamicRange()
+                        }
                         .offset(CGSize(width: rect.origin.x, height: rect.origin.y))
                         .frame(width: rect.width, height: rect.height)
                 }
@@ -653,25 +634,19 @@ private extension SubtitlePart {
                     if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
                         Spacer()
                     }
-                    Group {
-                        if KSOptions.stripSutitleStyle {
-                            Text(text.string)
-                                .italic(KSOptions.textItalic)
-                        } else {
-                            Text(AttributedString(text))
+                    text.view
+                        .italic(value: KSOptions.textItalic)
+                        .font(Font(KSOptions.textFont))
+                        .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
+                        .foregroundColor(KSOptions.textColor)
+                        .background(KSOptions.textBackgroundColor)
+                        .multilineTextAlignment(.center)
+                        .alignmentGuide(textPosition.horizontalAlign) {
+                            $0[.leading]
                         }
-                    }
-                    .font(Font(KSOptions.textFont))
-                    .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
-                    .foregroundColor(KSOptions.textColor)
-                    .background(KSOptions.textBackgroundColor)
-                    .multilineTextAlignment(.center)
-                    .alignmentGuide(textPosition.horizontalAlign) {
-                        $0[.leading]
-                    }
-                    .padding(textPosition.edgeInsets)
+                        .padding(textPosition.edgeInsets)
                     #if !os(tvOS)
-                        .textSelection(.enabled)
+                        .textSelection()
                     #endif
                     if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
                         Spacer()
@@ -682,12 +657,20 @@ private extension SubtitlePart {
     }
 }
 
+extension NSAttributedString {
+    var view: some View {
+        if #available(macOS 12, iOS 15, tvOS 15, *), !KSOptions.stripSutitleStyle {
+            Text(AttributedString(self))
+        } else {
+            Text(string)
+        }
+    }
+}
+
 @available(iOS 16, tvOS 16, macOS 13, *)
 struct VideoSettingView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
-    @ObservedObject
-    fileprivate var subtitleModel: SubtitleModel
     @State
     fileprivate var subtitleTitle: String
     @Environment(\.dismiss)
@@ -695,34 +678,67 @@ struct VideoSettingView: View {
 
     var body: some View {
         PlatformView {
-            let videoTracks = config.playerLayer?.player.tracks(mediaType: .video)
-            if let videoTracks, !videoTracks.isEmpty {
-                Picker(selection: Binding {
-                    videoTracks.first { $0.isEnabled }?.trackID
-                } set: { value in
-                    if let track = videoTracks.first(where: { $0.trackID == value }) {
-                        config.playerLayer?.player.select(track: track)
+            if let playerLayer = config.playerLayer {
+                let videoTracks = playerLayer.player.tracks(mediaType: .video)
+                if !videoTracks.isEmpty {
+                    Picker(selection: Binding {
+                        videoTracks.first { $0.isEnabled }?.trackID
+                    } set: { value in
+                        if let track = videoTracks.first(where: { $0.trackID == value }) {
+                            playerLayer.player.select(track: track)
+                        }
+                    }) {
+                        ForEach(videoTracks, id: \.trackID) { track in
+                            Text(track.description).tag(track.trackID as Int32?)
+                        }
+                    } label: {
+                        Label("Video Track", systemImage: "video.fill")
                     }
-                }) {
-                    ForEach(videoTracks, id: \.trackID) { track in
-                        Text(track.description).tag(track.trackID as Int32?)
+
+                    Picker("Video Display Type", selection: Binding {
+                        if playerLayer.options.display === KSOptions.displayEnumVR {
+                            return "VR"
+                        } else if playerLayer.options.display === KSOptions.displayEnumVRBox {
+                            return "VRBox"
+                        } else {
+                            return "Plane"
+                        }
+                    } set: { value in
+                        if value == "VR" {
+                            playerLayer.options.display = KSOptions.displayEnumVR
+                        } else if value == "VRBox" {
+                            playerLayer.options.display = KSOptions.displayEnumVRBox
+                        } else {
+                            playerLayer.options.display = KSOptions.displayEnumPlane
+                        }
+                    }) {
+                        Text("Plane").tag("Plane")
+                        Text("VR").tag("VR")
+                        Text("VRBox").tag("VRBox")
                     }
-                } label: {
-                    Label("Video Track", systemImage: "video.fill")
+                    LabeledContent("Video Type", value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
+                    LabeledContent("Stream Type", value: (videoTracks.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
                 }
-                LabeledContent("Video Type", value: (videoTracks.first { $0.isEnabled }?.dynamicRange ?? .sdr).description)
-            }
-            TextField("Sutitle delay", value: $subtitleModel.subtitleDelay, format: .number)
-            TextField("Title", text: $subtitleTitle)
-            Button("Search Sutitle") {
-                subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
-            }
-            LabeledContent("Stream Type", value: (videoTracks?.first { $0.isEnabled }?.fieldOrder ?? .progressive).description)
-            if let dynamicInfo = config.playerLayer?.player.dynamicInfo {
-                DynamicInfoView(dynamicInfo: dynamicInfo)
-            }
-            if let fileSize = config.playerLayer?.player.fileSize, fileSize > 0 {
-                LabeledContent("File Size", value: fileSize.kmFormatted + "B")
+                TextField("Sutitle delay", value: Binding {
+                    playerLayer.subtitleModel.subtitleDelay
+                } set: { value in
+                    playerLayer.subtitleModel.subtitleDelay = value
+                }, format: .number)
+                TextField("Title", text: $subtitleTitle)
+                Button("Search Sutitle") {
+                    playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: ["zh-cn"])
+                }
+                .buttonStyle(.bordered)
+
+                if let dynamicInfo = playerLayer.player.dynamicInfo {
+                    DynamicInfoView(dynamicInfo: dynamicInfo)
+                }
+                let fileSize = playerLayer.player.fileSize
+                if fileSize > 0 {
+                    LabeledContent("File Size", value: fileSize.kmFormatted + "B")
+                }
+            } else {
+                Text("Loading...")
             }
         }
         #if os(macOS) || targetEnvironment(macCatalyst) || os(xrOS)
@@ -750,23 +766,24 @@ public struct DynamicInfoView: View {
     }
 }
 
-@available(iOS 15, tvOS 16, macOS 12, *)
+@available(iOS 16, tvOS 16, macOS 13, *)
 public struct PlatformView<Content: View>: View {
     private let content: () -> Content
     public var body: some View {
         #if os(tvOS)
-        ScrollView {
-            content()
-                .padding()
+        // tvos需要加NavigationStack，不然无法出现下拉框。iOS不能加NavigationStack，不然会丢帧。
+        NavigationStack {
+            ScrollView {
+                content()
+                    .padding()
+            }
         }
         .pickerStyle(.navigationLink)
         #else
         Form {
             content()
         }
-        #if os(macOS)
-        .padding()
-        #endif
+        .formStyle(.grouped)
         #endif
     }
 

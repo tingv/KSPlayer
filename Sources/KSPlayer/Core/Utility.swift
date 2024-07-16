@@ -212,6 +212,8 @@ extension AVAsset {
         return compositionM
     }
 
+    // todo 先注释掉。等到xcode16出正式版本了，在处理，不然老版本会找不到符号。
+    #if !os(xrOS)
     func ceateExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
         let compositionM = try await ceateComposition(beginTime: beginTime, endTime: endTime)
         guard let exportSession = AVAssetExportSession(asset: compositionM, presetName: "") else {
@@ -255,6 +257,7 @@ extension AVAsset {
         exportURL = exportURL.appendingPathExtension("Export.mp4")
         try exportMp4(beginTime: beginTime, endTime: endTime, outputURL: exportURL, progress: progress, completion: completion)
     }
+    #endif
 }
 
 extension UIImageView {
@@ -346,7 +349,7 @@ public extension CGSize {
     }
 
     func convert(rect: CGRect, toSize: CGSize) -> CGRect {
-        guard height != 0, width != 0 else {
+        guard height != 0, width != 0, toSize.width != 0, toSize.height != 0 else {
             return rect
         }
         let hZoom = toSize.width / width
@@ -819,7 +822,7 @@ extension CGImage {
         // RGBA(的bytes) * bitsPerComponent *width
         let bytesPerRow = 4 * 8 * bitsPerComponent * Int(boundingRect.width)
         let image: CGImage? = autoreleasepool {
-            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             guard let context else {
                 return nil
             }
@@ -860,7 +863,7 @@ extension CGImage {
     }
 
     static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isAlpha: Bool = false) -> CGImage? {
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let colorSpace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB()
         let bitmapInfo: CGBitmapInfo = isAlpha ? CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue) : CGBitmapInfo.byteOrderMask
         guard let data = CFDataCreate(kCFAllocatorDefault, rgbData, linesize * height), let provider = CGDataProvider(data: data) else {
             return nil
@@ -923,12 +926,20 @@ final class Box<T> {
 }
 
 extension Array {
-    init(tuple: (Element, Element, Element, Element, Element, Element, Element, Element)) {
-        self.init([tuple.0, tuple.1, tuple.2, tuple.3, tuple.4, tuple.5, tuple.6, tuple.7])
+    init(tuple: (Element, Element, Element)) {
+        self.init([tuple.0, tuple.1, tuple.2])
     }
 
     init(tuple: (Element, Element, Element, Element)) {
         self.init([tuple.0, tuple.1, tuple.2, tuple.3])
+    }
+
+    init(tuple: (Element, Element, Element, Element, Element, Element, Element, Element)) {
+        self.init([tuple.0, tuple.1, tuple.2, tuple.3, tuple.4, tuple.5, tuple.6, tuple.7])
+    }
+
+    init(tuple: (Element, Element, Element, Element, Element, Element, Element, Element, Element)) {
+        self.init([tuple.0, tuple.1, tuple.2, tuple.3, tuple.4, tuple.5, tuple.6, tuple.7, tuple.8])
     }
 
     var tuple8: (Element, Element, Element, Element, Element, Element, Element, Element) {

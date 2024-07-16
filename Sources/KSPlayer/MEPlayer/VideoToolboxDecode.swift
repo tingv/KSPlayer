@@ -14,6 +14,8 @@ class VideoToolboxDecode: DecodeProtocol {
     private var session: DecompressionSession {
         didSet {
             VTDecompressionSessionInvalidate(oldValue.decompressionSession)
+            lastPosition = 0
+            startTime = 0
         }
     }
 
@@ -31,39 +33,45 @@ class VideoToolboxDecode: DecodeProtocol {
         if needReconfig {
             // 解决从后台切换到前台，解码失败的问题
             session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
-            doFlushCodec()
             needReconfig = false
         }
         guard let corePacket = packet.corePacket?.pointee, let data = corePacket.data else {
             return
         }
         do {
-            let sampleBuffer = try session.formatDescription.getSampleBuffer(isConvertNALSize: session.assetTrack.isConvertNALSize, data: data, size: Int(corePacket.size))
+            var tuple = (data, Int(corePacket.size))
+            if let bitStreamFilter = session.assetTrack.bitStreamFilter {
+                tuple = try bitStreamFilter.filter(tuple)
+            }
+            let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
             let flags: VTDecodeFrameFlags = [
-                ._EnableAsynchronousDecompression,
+                //                ._EnableAsynchronousDecompression,
             ]
-            var flagOut = VTDecodeInfoFlags.frameDropped
+            var flagOut = VTDecodeInfoFlags(rawValue: 0)
             let timestamp = packet.timestamp
             let packetFlags = corePacket.flags
             let duration = corePacket.duration
             let size = corePacket.size
-            let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
+            _ = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
                 guard let self, !infoFlags.contains(.frameDropped) else {
                     return
                 }
                 guard status == noErr else {
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
+                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住。
                         if packet.isKeyFrame {
                             completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
                         } else {
-                            // 解决从后台切换到前台，解码失败的问题
+                            // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
                             self.needReconfig = true
                         }
                     }
                     return
                 }
-                let frame = VideoVTBFrame(fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
-                frame.corePixelBuffer = imageBuffer
+                guard let imageBuffer else {
+                    return
+                }
+                let frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
                 frame.timebase = session.assetTrack.timebase
                 if packet.isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.lastPosition > 0 {
                     self.startTime = self.lastPosition - timestamp
@@ -76,18 +84,6 @@ class VideoToolboxDecode: DecodeProtocol {
                 self.lastPosition += frame.duration
                 completionHandler(.success(frame))
             }
-            if status == noErr {
-                if !flags.contains(._EnableAsynchronousDecompression) {
-                    VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
-                }
-            } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                if packet.isKeyFrame {
-                    throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
-                } else {
-                    // 解决从后台切换到前台，解码失败的问题
-                    needReconfig = true
-                }
-            }
         } catch {
             completionHandler(.failure(error))
         }
@@ -96,6 +92,7 @@ class VideoToolboxDecode: DecodeProtocol {
     func doFlushCodec() {
         lastPosition = 0
         startTime = 0
+        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
     }
 
     func shutdown() {
@@ -144,9 +141,11 @@ class DecompressionSession {
                                  value: kCFBooleanTrue)
         }
         if let destinationDynamicRange = options.availableDynamicRange(nil) {
-            let pixelTransferProperties = [kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
-                                           kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,
-                                           kVTPixelTransferPropertyKey_DestinationYCbCrMatrix: destinationDynamicRange.yCbCrMatrix]
+            let pixelTransferProperties = [
+                kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
+                kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,
+                kVTPixelTransferPropertyKey_DestinationYCbCrMatrix: destinationDynamicRange.yCbCrMatrix,
+            ]
             VTSessionSetProperty(decompressionSession,
                                  key: kVTDecompressionPropertyKey_PixelTransferProperties,
                                  value: pixelTransferProperties as CFDictionary)
@@ -156,34 +155,96 @@ class DecompressionSession {
 }
 #endif
 
-extension CMFormatDescription {
-    fileprivate func getSampleBuffer(isConvertNALSize: Bool, data: UnsafeMutablePointer<UInt8>, size: Int) throws -> CMSampleBuffer {
-        if isConvertNALSize {
-            var ioContext: UnsafeMutablePointer<AVIOContext>?
-            let status = avio_open_dyn_buf(&ioContext)
-            if status == 0 {
-                var nalSize: UInt32 = 0
-                let end = data + size
-                var nalStart = data
-                while nalStart < end {
-                    nalSize = UInt32(nalStart[0]) << 16 | UInt32(nalStart[1]) << 8 | UInt32(nalStart[2])
-                    avio_wb32(ioContext, nalSize)
-                    nalStart += 3
-                    avio_write(ioContext, nalStart, Int32(nalSize))
-                    nalStart += Int(nalSize)
-                }
-                var demuxBuffer: UnsafeMutablePointer<UInt8>?
-                let demuxSze = avio_close_dyn_buf(ioContext, &demuxBuffer)
-                return try createSampleBuffer(data: demuxBuffer, size: Int(demuxSze))
+protocol BitStreamFilter {
+    static func filter(_ tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> (UnsafeMutablePointer<UInt8>, Int)
+}
+
+enum Nal3ToNal4BitStreamFilter: BitStreamFilter {
+    static func filter(_ tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> (UnsafeMutablePointer<UInt8>, Int) {
+        let (data, size) = tuple
+        var ioContext: UnsafeMutablePointer<AVIOContext>?
+        let status = avio_open_dyn_buf(&ioContext)
+        if status == 0 {
+            var nalSize: UInt32 = 0
+            let end = data + size
+            var nalStart = data
+            while nalStart < end {
+                nalSize = UInt32(nalStart[0]) << 16 | UInt32(nalStart[1]) << 8 | UInt32(nalStart[2])
+                avio_wb32(ioContext, nalSize)
+                nalStart += 3
+                avio_write(ioContext, nalStart, Int32(nalSize))
+                nalStart += Int(nalSize)
+            }
+            var demuxBuffer: UnsafeMutablePointer<UInt8>?
+            let demuxSze = avio_close_dyn_buf(ioContext, &demuxBuffer)
+            if let demuxBuffer {
+                return (demuxBuffer, Int(demuxSze))
             } else {
                 throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
             }
         } else {
-            return try createSampleBuffer(data: data, size: size)
+            throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
         }
     }
+}
 
-    private func createSampleBuffer(data: UnsafeMutablePointer<UInt8>?, size: Int) throws -> CMSampleBuffer {
+enum AnnexbToCCBitStreamFilter: BitStreamFilter {
+    static func filter(_ tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> (UnsafeMutablePointer<UInt8>, Int) {
+        let (data, size) = tuple
+        var ioContext: UnsafeMutablePointer<AVIOContext>?
+        let status = avio_open_dyn_buf(&ioContext)
+        if status == 0 {
+            var nalStart = data
+            var i = 0
+            var start = 0
+            while i < size {
+                if i + 2 < size, data[i] == 0x00, data[i + 1] == 0x00, data[i + 2] == 0x01 {
+                    if start == 0 {
+                        start = 3
+                        nalStart += 3
+                    } else {
+                        let len = i - start
+                        avio_wb32(ioContext, UInt32(len))
+                        avio_write(ioContext, nalStart, Int32(len))
+                        start = i + 3
+                        nalStart += len + 3
+                    }
+                    i += 3
+                } else if i + 3 < size, data[i] == 0x00, data[i + 1] == 0x00, data[i + 2] == 0x00, data[i + 3] == 0x01 {
+                    if start == 0 {
+                        start = 4
+                        nalStart += 4
+                    } else {
+                        let len = i - start
+                        avio_wb32(ioContext, UInt32(len))
+                        avio_write(ioContext, nalStart, Int32(len))
+                        start = i + 4
+                        nalStart += len + 4
+                    }
+                    i += 4
+                } else {
+                    i += 1
+                }
+            }
+            let len = size - start
+            avio_wb32(ioContext, UInt32(len))
+            avio_write(ioContext, nalStart, Int32(len))
+            var demuxBuffer: UnsafeMutablePointer<UInt8>?
+            let demuxSze = avio_close_dyn_buf(ioContext, &demuxBuffer)
+            if let demuxBuffer {
+                return (demuxBuffer, Int(demuxSze))
+            } else {
+                throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+            }
+        } else {
+            throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+        }
+    }
+}
+
+private extension CMFormatDescription {
+    func createSampleBuffer(tuple: (UnsafeMutablePointer<UInt8>, Int)) throws -> CMSampleBuffer {
+        let (data, size) = tuple
         var blockBuffer: CMBlockBuffer?
         var sampleBuffer: CMSampleBuffer?
         // swiftlint:disable line_length
@@ -210,6 +271,8 @@ extension CMVideoCodecType {
             return "hvcC"
         case kCMVideoCodecType_VP9:
             return "vpcC"
+        case kCMVideoCodecType_AV1:
+            return "av1C"
         default: return "avcC"
         }
     }

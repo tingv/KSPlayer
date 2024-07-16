@@ -45,9 +45,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
 
     override open func customizeUIComponents() {
         super.customizeUIComponents()
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            subtitleLabel.font = .systemFont(ofSize: 14)
-        }
         insertSubview(maskImageView, at: 0)
         maskImageView.contentMode = .scaleAspectFit
         toolBar.addArrangedSubview(landscapeButton)
@@ -188,11 +185,11 @@ open class IOSVideoPlayerView: VideoPlayerView {
             topMaskView.isHidden = KSOptions.topBarShowInCase != .always
         }
         toolBar.playbackRateButton.isHidden = false
-        toolBar.srtButton.isHidden = srtControl.subtitleInfos.isEmpty
+        toolBar.srtButton.isHidden = playerLayer?.subtitleModel.subtitleInfos.isEmpty ?? true
         if UIDevice.current.userInterfaceIdiom == .phone {
             if isLandscape {
                 landscapeButton.isHidden = true
-                toolBar.srtButton.isHidden = srtControl.subtitleInfos.isEmpty
+                toolBar.srtButton.isHidden = playerLayer?.subtitleModel.subtitleInfos.isEmpty ?? true
             } else {
                 toolBar.srtButton.isHidden = true
                 if let image = maskImageView.image {
@@ -393,7 +390,7 @@ extension IOSVideoPlayerView: UIDocumentPickerDelegate {
             if url.isMovie || url.isAudio {
                 set(url: url, options: KSOptions())
             } else {
-                srtControl.selectedSubtitleInfo = URLSubtitleInfo(url: url)
+                playerLayer?.subtitleModel.selectedSubtitleInfo = URLSubtitleInfo(url: url)
             }
         }
     }

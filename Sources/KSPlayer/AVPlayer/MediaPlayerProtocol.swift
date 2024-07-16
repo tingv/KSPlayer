@@ -6,7 +6,11 @@
 //
 
 import AVFoundation
+import AVKit
 import Foundation
+#if canImport(RealityKit)
+import RealityKit
+#endif
 #if canImport(UIKit)
 import UIKit
 #else
@@ -21,8 +25,10 @@ public protocol MediaPlayback: AnyObject {
     var currentPlaybackTime: TimeInterval { get }
     var playbackRate: Float { get set }
     func prepareToPlay()
-    func shutdown()
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
+    func startRecord(url: URL)
+    func stopRecord()
+    func shutdown()
 }
 
 public class DynamicInfo: ObservableObject {
@@ -82,11 +88,15 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var isExternalPlaybackActive: Bool { get }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
-    var subtitleDataSouce: SubtitleDataSouce? { get }
+    var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { get }
+//    #if canImport(RealityKit)
+//    @available(visionOS 1.0, macOS 15.0, iOS 18.0, *)
+//    var videoPlayerComponent: VideoPlayerComponent { get }
+//    #endif
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     var playbackCoordinator: AVPlaybackCoordinator { get }
     @available(tvOS 14.0, *)
-    var pipController: KSPictureInPictureController? { get }
+    var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? { get }
     var dynamicInfo: DynamicInfo? { get }
     init(url: URL, options: KSOptions)
     func replace(url: URL, options: KSOptions)

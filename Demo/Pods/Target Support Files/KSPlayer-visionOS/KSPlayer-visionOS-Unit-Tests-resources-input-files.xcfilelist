@@ -1,0 +1,3 @@
+${PODS_ROOT}/Target Support Files/KSPlayer-visionOS/KSPlayer-visionOS-Unit-Tests-resources.sh
+${PODS_CONFIGURATION_BUILD_DIR}/KSPlayer-visionOS/KSPlayer_KSPlayer.bundle
+${PODS_CONFIGURATION_BUILD_DIR}/FFmpegKit-visionOS/FFmpegKit_FFmpegKit.bundle

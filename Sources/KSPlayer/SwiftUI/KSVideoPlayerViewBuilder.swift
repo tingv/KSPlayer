@@ -21,17 +21,17 @@ public enum KSVideoPlayerViewBuilder {
     @MainActor
     static func subtitleButton(config: KSVideoPlayer.Coordinator) -> some View {
         MenuView(selection: Binding {
-            config.subtitleModel.selectedSubtitleInfo?.subtitleID
+            config.playerLayer?.subtitleModel.selectedSubtitleInfo?.subtitleID
         } set: { value in
-            let info = config.subtitleModel.subtitleInfos.first { $0.subtitleID == value }
-            config.subtitleModel.selectedSubtitleInfo = info
+            let info = config.playerLayer?.subtitleModel.subtitleInfos.first { $0.subtitleID == value }
+            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
             if let info = info as? MediaPlayerTrack {
                 // 因为图片字幕想要实时的显示，那就需要seek。所以需要走select track
                 config.playerLayer?.player.select(track: info)
             }
         }) {
             Text("Off").tag(nil as String?)
-            ForEach(config.subtitleModel.subtitleInfos, id: \.subtitleID) { track in
+            ForEach(config.playerLayer?.subtitleModel.subtitleInfos ?? [], id: \.subtitleID) { track in
                 Text(track.name).tag(track.subtitleID as String?)
             }
         } label: {
@@ -81,6 +81,16 @@ public enum KSVideoPlayerViewBuilder {
         #if !os(tvOS)
         .keyboardShortcut("i", modifiers: [.command])
         #endif
+    }
+
+    @MainActor
+    static func recordButton(config: KSVideoPlayer.Coordinator) -> some View {
+        Button {
+            config.isRecord.toggle()
+        } label: {
+            Image(systemName: "video.circle")
+                .foregroundColor(config.isRecord ? .red : .white)
+        }
     }
 }
 
@@ -165,5 +175,74 @@ public extension KSVideoPlayerViewBuilder {
         #if !os(tvOS)
         .keyboardShortcut(.space, modifiers: .none)
         #endif
+    }
+}
+
+extension View {
+    func onKeyPressLeftArrow(action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return onKeyPress(.leftArrow) {
+                action()
+                return .handled
+            }
+        } else {
+            return self
+        }
+    }
+
+    func onKeyPressRightArrow(action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return onKeyPress(.rightArrow) {
+                action()
+                return .handled
+            }
+        } else {
+            return self
+        }
+    }
+
+    func onKeyPressSapce(action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return onKeyPress(.space) {
+                action()
+                return .handled
+            }
+        } else {
+            return self
+        }
+    }
+
+    func allowedDynamicRange() -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return self.allowedDynamicRange(KSOptions.sutitleDynamicRange)
+        } else {
+            return self
+        }
+    }
+
+    #if !os(tvOS)
+    func textSelection() -> some View {
+        if #available(iOS 15.0, macOS 12.0, *) {
+            return self.textSelection(.enabled)
+        } else {
+            return self
+        }
+    }
+    #endif
+
+    func italic(value: Bool) -> some View {
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
+            return self.italic(value)
+        } else {
+            return self
+        }
+    }
+
+    func ksIgnoresSafeArea() -> some View {
+        if #available(iOS 14.0, macOS 11.0, tvOS 14.0, *) {
+            return self.ignoresSafeArea()
+        } else {
+            return self
+        }
     }
 }

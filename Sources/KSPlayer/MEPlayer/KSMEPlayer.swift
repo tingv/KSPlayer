@@ -37,20 +37,29 @@ public class KSMEPlayer: NSObject {
         }
     }
 
-    private lazy var _pipController: Any? = {
+    #if os(tvOS)
+    // 在visionOS，这样的代码会crash，所以只能区分下系统
+    @available(tvOS 14.0, *)
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+      if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *), let videoOutput {
+          let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
+          let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
+          return pip
+      } else {
+          return nil
+      }
+    }
+    #else
+    public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *), let videoOutput {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
-            let pip = KSPictureInPictureController(contentSource: contentSource)
+            let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
             return pip
         } else {
             return nil
         }
     }()
-
-    @available(tvOS 14.0, *)
-    public var pipController: KSPictureInPictureController? {
-        _pipController as? KSPictureInPictureController
-    }
+    #endif
 
     private lazy var _playbackCoordinator: Any? = {
         if #available(macOS 12.0, iOS 15.0, tvOS 15.0, *) {
@@ -292,7 +301,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         playerItem.chapters
     }
 
-    public var subtitleDataSouce: SubtitleDataSouce? { self }
+    public var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { self }
     public var playbackVolume: Float {
         get {
             audioOutput.volume
@@ -304,7 +313,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     @MainActor
     public var naturalSize: CGSize {
-        options.display == .plane ? playerItem.naturalSize : KSOptions.sceneSize
+        options.display.isSphere ? KSOptions.sceneSize : playerItem.naturalSize
     }
 
     public var view: UIView? { videoOutput }
@@ -458,6 +467,14 @@ extension KSMEPlayer: MediaPlayerProtocol {
             audioOutput.flush()
         }
     }
+
+    public func startRecord(url: URL) {
+        playerItem.startRecord(url: url)
+    }
+
+    public func stopRecord() {
+        playerItem.stopRecord()
+    }
 }
 
 @available(tvOS 14.0, *)
@@ -552,15 +569,5 @@ extension KSMEPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
                 completionHandler()
             }
         }
-    }
-}
-
-public extension KSMEPlayer {
-    func startRecord(url: URL) {
-        playerItem.startRecord(url: url)
-    }
-
-    func stoptRecord() {
-        playerItem.stopRecord()
     }
 }

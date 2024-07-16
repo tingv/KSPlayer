@@ -70,12 +70,6 @@ class CustomVideoPlayerView: VideoPlayerView {
         super.player(layer: layer, state: state)
         if state == .readyToPlay {
             KSLog(layer.player.naturalSize.debugDescription)
-            // list the all subtitles
-            let subtitleInfos = srtControl.subtitleInfos
-            for subtitleInfo in subtitleInfos {
-                KSLog(subtitleInfo.name)
-            }
-            srtControl.selectedSubtitleInfo = subtitleInfos.first
             for track in layer.player.tracks(mediaType: .audio) {
                 KSLog("audio name: \(track.name) language: \(track.language ?? "")")
             }
@@ -120,7 +114,7 @@ var testObjects: [KSPlayerResource] = {
                 options.outputURL = moviesDirectory?.appendingPathComponent("recording.mov")
                 #endif
             } else if url.lastPathComponent == "vr.mp4" {
-                options.display = .vr
+                options.display = KSOptions.displayEnumVR
             } else if url.lastPathComponent == "mjpeg.flac" {
                 options.videoDisable = true
                 options.syncDecodeAudio = true

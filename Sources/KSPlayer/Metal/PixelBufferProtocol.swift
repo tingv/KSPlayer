@@ -7,6 +7,7 @@
 
 import AVFoundation
 import CoreVideo
+import FFmpegKit
 import Foundation
 import Libavutil
 import simd
@@ -38,6 +39,9 @@ public protocol PixelBufferProtocol: AnyObject {
 
 extension PixelBufferProtocol {
     var size: CGSize { CGSize(width: width, height: height) }
+    func updateColorspace() {
+        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction)
+    }
 }
 
 extension CVPixelBuffer: PixelBufferProtocol {
@@ -80,10 +84,6 @@ extension CVPixelBuffer: PixelBufferProtocol {
         CVBufferGetAttachment(self, kCMFormatDescriptionExtension_FullRangeVideo, nil)?.takeUnretainedValue() as? Bool ?? false
     }
 
-    public var attachmentsDic: CFDictionary? {
-        CVBufferGetAttachments(self, .shouldPropagate)
-    }
-
     public var yCbCrMatrix: CFString? {
         get {
             CVBufferGetAttachment(self, kCVImageBufferYCbCrMatrixKey, nil)?.takeUnretainedValue() as? NSString
@@ -119,11 +119,10 @@ extension CVPixelBuffer: PixelBufferProtocol {
 
     public var colorspace: CGColorSpace? {
         get {
-            #if os(macOS)
-            return CVImageBufferGetColorSpace(self)?.takeUnretainedValue() ?? attachmentsDic.flatMap { CVImageBufferCreateColorSpaceFromAttachments($0)?.takeUnretainedValue() }
-            #else
-            return attachmentsDic.flatMap { CVImageBufferCreateColorSpaceFromAttachments($0)?.takeUnretainedValue() }
-            #endif
+            if let value = CVBufferGetAttachment(self, kCVImageBufferCGColorSpaceKey, nil)?.takeUnretainedValue() {
+                return value as! CGColorSpace
+            }
+            return nil
         }
         set {
             if let newValue {
@@ -161,6 +160,9 @@ extension CVPixelBuffer: PixelBufferProtocol {
     public func matche(formatDescription: CMVideoFormatDescription) -> Bool {
         CMVideoFormatDescriptionMatchesImageBuffer(formatDescription, imageBuffer: self)
     }
+    //    public var attachmentsDic: CFDictionary? {
+    //        CVBufferGetAttachments(self, .shouldPropagate)
+    //    }
 }
 
 class PixelBuffer: PixelBufferProtocol {
@@ -188,7 +190,6 @@ class PixelBuffer: PixelBufferProtocol {
         yCbCrMatrix = frame.colorspace.ycbcrMatrix
         colorPrimaries = frame.color_primaries.colorPrimaries
         transferFunction = frame.color_trc.transferFunction
-        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction)
         width = Int(frame.width)
         height = Int(frame.height)
         isFullRangeVideo = frame.color_range == AVCOL_RANGE_JPEG

@@ -29,7 +29,7 @@ variant_for_slice()
   "Libavcodec.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libavcodec.xcframework/tvos-arm64_arm64e")
+  "Libavcodec.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libavcodec.xcframework/tvos-arm64_x86_64-simulator")
@@ -53,7 +53,7 @@ variant_for_slice()
   "Libavfilter.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libavfilter.xcframework/tvos-arm64_arm64e")
+  "Libavfilter.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libavfilter.xcframework/tvos-arm64_x86_64-simulator")
@@ -77,7 +77,7 @@ variant_for_slice()
   "Libavformat.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libavformat.xcframework/tvos-arm64_arm64e")
+  "Libavformat.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libavformat.xcframework/tvos-arm64_x86_64-simulator")
@@ -101,7 +101,7 @@ variant_for_slice()
   "Libavutil.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libavutil.xcframework/tvos-arm64_arm64e")
+  "Libavutil.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libavutil.xcframework/tvos-arm64_x86_64-simulator")
@@ -125,7 +125,7 @@ variant_for_slice()
   "Libswresample.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libswresample.xcframework/tvos-arm64_arm64e")
+  "Libswresample.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libswresample.xcframework/tvos-arm64_x86_64-simulator")
@@ -149,7 +149,7 @@ variant_for_slice()
   "Libswscale.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libswscale.xcframework/tvos-arm64_arm64e")
+  "Libswscale.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libswscale.xcframework/tvos-arm64_x86_64-simulator")
@@ -173,7 +173,7 @@ variant_for_slice()
   "Libavdevice.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "Libavdevice.xcframework/tvos-arm64_arm64e")
+  "Libavdevice.xcframework/tvos-arm64")
     echo ""
     ;;
   "Libavdevice.xcframework/tvos-arm64_x86_64-simulator")
@@ -269,7 +269,7 @@ variant_for_slice()
   "libdav1d.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libdav1d.xcframework/tvos-arm64_arm64e")
+  "libdav1d.xcframework/tvos-arm64")
     echo ""
     ;;
   "libdav1d.xcframework/tvos-arm64_x86_64-simulator")
@@ -488,8 +488,8 @@ archs_for_slice()
   "Libavcodec.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libavcodec.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libavcodec.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libavcodec.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -512,8 +512,8 @@ archs_for_slice()
   "Libavfilter.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libavfilter.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libavfilter.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libavfilter.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -536,8 +536,8 @@ archs_for_slice()
   "Libavformat.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libavformat.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libavformat.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libavformat.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -560,8 +560,8 @@ archs_for_slice()
   "Libavutil.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libavutil.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libavutil.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libavutil.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -584,8 +584,8 @@ archs_for_slice()
   "Libswresample.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libswresample.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libswresample.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libswresample.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -608,8 +608,8 @@ archs_for_slice()
   "Libswscale.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libswscale.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libswscale.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libswscale.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -632,8 +632,8 @@ archs_for_slice()
   "Libavdevice.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "Libavdevice.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "Libavdevice.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "Libavdevice.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -728,8 +728,8 @@ archs_for_slice()
   "libdav1d.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libdav1d.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libdav1d.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libdav1d.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"

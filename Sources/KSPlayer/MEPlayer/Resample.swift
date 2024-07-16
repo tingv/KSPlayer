@@ -84,15 +84,13 @@ class VideoSwresample: FrameChange {
     }
 
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame {
-        let frame = VideoVTBFrame(fps: fps, isDovi: isDovi)
+        let pixelBuffer: PixelBufferProtocol
         if avframe.pointee.format == AV_PIX_FMT_VIDEOTOOLBOX.rawValue {
-            let pbuf = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self)
-            // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解是对的，所以不用在设置了。
-            pbuf.colorspace = KSOptions.colorSpace(ycbcrMatrix: pbuf.yCbCrMatrix, transferFunction: pbuf.transferFunction)
-            frame.corePixelBuffer = pbuf
+            pixelBuffer = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self)
         } else {
-            frame.corePixelBuffer = transfer(frame: avframe.pointee)
+            pixelBuffer = try transfer(frame: avframe.pointee)
         }
+        let frame = VideoVTBFrame(pixelBuffer: pixelBuffer, fps: fps, isDovi: isDovi)
         return frame
     }
 
@@ -120,7 +118,7 @@ class VideoSwresample: FrameChange {
         pool = CVPixelBufferPool.ceate(width: dstWidth, height: dstHeight, bytesPerRowAlignment: linesize, pixelFormatType: pixelFormatType)
     }
 
-    func transfer(frame: AVFrame) -> PixelBufferProtocol? {
+    func transfer(frame: AVFrame) throws -> PixelBufferProtocol {
         let format = AVPixelFormat(rawValue: frame.format)
         let width = frame.width
         let height = frame.height
@@ -141,9 +139,10 @@ class VideoSwresample: FrameChange {
             if let chroma = frame.chroma_location.chroma {
                 CVBufferSetAttachment(pbuf, kCVImageBufferChromaLocationTopFieldKey, chroma, .shouldPropagate)
             }
-            pbuf.colorspace = KSOptions.colorSpace(ycbcrMatrix: pbuf.yCbCrMatrix, transferFunction: pbuf.transferFunction)
+            return pbuf
+        } else {
+            throw NSError(errorCode: .pixelBufferPoolCreate, userInfo: ["format": format, "width": width, "height": height])
         }
-        return pbuf
     }
 
     func transfer(format: AVPixelFormat, width: Int32, height: Int32, data: [UnsafeMutablePointer<UInt8>?], linesize: [Int32]) -> CVPixelBuffer? {

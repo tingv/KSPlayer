@@ -8,6 +8,7 @@
 import AVFoundation
 import AVKit
 import MediaPlayer
+import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #else
@@ -64,32 +65,14 @@ public protocol KSPlayerLayerDelegate: AnyObject {
     func player(layer: KSPlayerLayer, bufferedCount: Int, consumeTime: TimeInterval)
 }
 
-open class KSPlayerLayer: NSObject {
+open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public weak var delegate: KSPlayerLayerDelegate?
     @Published
     public var bufferingProgress: Int = 0
     @Published
     public var loopCount: Int = 0
-    @Published
-    @MainActor
-    public var isPipActive = false {
-        didSet {
-            if #available(tvOS 14.0, *) {
-                guard let pipController = player.pipController else {
-                    return
-                }
-                pipController.delegate = self
-                if isPipActive {
-                    pipController.start(layer: self)
-                } else {
-                    pipController.stop(restoreUserInterface: true)
-                }
-            }
-        }
-    }
-
     public private(set) var options: KSOptions
-
+    public let subtitleVC: UIHostingController<VideoSubtitleView>
     public var player: MediaPlayerProtocol {
         didSet {
             KSLog("player is \(player)")
@@ -102,6 +85,7 @@ open class KSPlayerLayer: NSObject {
                     #else
                     superview.addSubview(view, positioned: .below, relativeTo: oldView)
                     #endif
+                    view.frame = oldView.frame
                     view.translatesAutoresizingMaskIntoConstraints = false
                     NSLayoutConstraint.activate([
                         view.topAnchor.constraint(equalTo: superview.topAnchor),
@@ -122,20 +106,10 @@ open class KSPlayerLayer: NSObject {
         }
     }
 
-    public private(set) var url: URL {
+    public internal(set) var url: URL {
         didSet {
-            let firstPlayerType: MediaPlayerProtocol.Type
-            if isWirelessRouteActive {
-                // airplay的话，默认使用KSAVPlayer
-                firstPlayerType = KSAVPlayer.self
-            } else if options.display != .plane {
-                // AR模式只能用KSMEPlayer
-                // swiftlint:disable force_cast
-                firstPlayerType = NSClassFromString("KSPlayer.KSMEPlayer") as! MediaPlayerProtocol.Type
-                // swiftlint:enable force_cast
-            } else {
-                firstPlayerType = KSOptions.firstPlayerType
-            }
+            subtitleModel.url = url
+            let firstPlayerType = KSOptions.firstPlayerType
             if type(of: player) == firstPlayerType {
                 if url == oldValue {
                     if isAutoPlay {
@@ -160,109 +134,57 @@ open class KSPlayerLayer: NSObject {
     public private(set) var state = KSPlayerState.initialized {
         willSet {
             if state != newValue {
-                if newValue == .initialized {
-                    bufferedCount = 0
-                    shouldSeekTo = 0
-                    player.playbackRate = 1
-                    player.playbackVolume = 1
-                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-                    runOnMainThread {
-                        UIApplication.shared.isIdleTimerDisabled = false
-                    }
-                }
-                runOnMainThread { [weak self] in
-                    guard let self else { return }
-                    KSLog("playerStateDidChange - \(newValue)")
-                    self.delegate?.player(layer: self, state: newValue)
-                }
+                change(state: newValue)
             }
         }
     }
 
-    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: options.subtitleTimeInterval, repeats: true) { [weak self] _ in
         guard let self, self.player.isReadyToPlay else {
             return
         }
-        self.delegate?.player(layer: self, currentTime: self.player.currentPlaybackTime, totalTime: self.player.duration)
-        if self.player.playbackState == .playing, self.player.loadState == .playable, self.state == .buffering {
-            // 一个兜底保护，正常不能走到这里
-            self.state = .bufferFinished
-        }
-        if self.player.isPlaying {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.player.currentPlaybackTime
-        }
+        self.play(currentTime: self.player.currentPlaybackTime)
     }
 
-    private var urls = [URL]()
-    private var isAutoPlay: Bool
+    var isAutoPlay: Bool
     private var isWirelessRouteActive = false
     private var bufferedCount = 0
     private var shouldSeekTo: TimeInterval = 0
     private var startTime: TimeInterval = 0
+    public let subtitleModel: SubtitleModel
     public init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
         self.url = url
         self.options = options
         self.delegate = delegate
         let firstPlayerType: MediaPlayerProtocol.Type
-        if options.display != .plane {
-            // AR模式只能用KSMEPlayer
-            // swiftlint:disable force_cast
-            firstPlayerType = NSClassFromString("KSPlayer.KSMEPlayer") as! MediaPlayerProtocol.Type
-            // swiftlint:enable force_cast
-        } else {
-            firstPlayerType = KSOptions.firstPlayerType
-        }
-        player = firstPlayerType.init(url: url, options: options)
+        player = KSOptions.firstPlayerType.init(url: url, options: options)
         self.isAutoPlay = isAutoPlay
+        subtitleModel = SubtitleModel(url: url)
+        subtitleVC = UIHostingController(rootView: VideoSubtitleView(model: subtitleModel))
+        subtitleVC.loadView()
+        subtitleVC.view.backgroundColor = .clear
+        subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
         super.init()
         player.playbackRate = options.startPlayRate
-        if options.registerRemoteControll {
-            registerRemoteControllEvent()
-        }
         player.delegate = self
         player.contentMode = .scaleAspectFit
         if isAutoPlay {
             prepareToPlay()
         }
-        #if canImport(UIKit)
-        runOnMainThread { [weak self] in
-            guard let self else { return }
-            NotificationCenter.default.addObserver(self, selector: #selector(enterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(enterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
-        }
-        #if !os(xrOS)
+        #if canImport(UIKit) && !os(xrOS)
         NotificationCenter.default.addObserver(self, selector: #selector(wirelessRouteActiveDidChange(notification:)), name: .MPVolumeViewWirelessRouteActiveDidChange, object: nil)
-        #endif
         #endif
         #if !os(macOS)
         NotificationCenter.default.addObserver(self, selector: #selector(audioInterrupted), name: AVAudioSession.interruptionNotification, object: nil)
         #endif
     }
 
-    @available(*, unavailable)
-    public required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
     deinit {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             player.pipController?.contentSource = nil
         }
+        subtitleVC.view.removeFromSuperview()
         player.shutdown()
-        NotificationCenter.default.removeObserver(self)
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().pauseCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().togglePlayPauseCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().stopCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().nextTrackCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().previousTrackCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changeRepeatModeCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changePlaybackRateCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().skipForwardCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().skipBackwardCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().enableLanguageOptionCommand.removeTarget(nil)
         options.playerLayerDeinit()
     }
 
@@ -273,14 +195,29 @@ open class KSPlayerLayer: NSObject {
         }
     }
 
-    public func set(urls: [URL], options: KSOptions) {
-        self.options = options
-        self.urls.removeAll()
-        self.urls.append(contentsOf: urls)
-        if let first = urls.first {
+    func change(state: KSPlayerState) {
+        if state == .initialized {
+            bufferedCount = 0
+            shouldSeekTo = 0
+            player.playbackRate = 1
+            player.playbackVolume = 1
             runOnMainThread {
-                self.url = first
+                UIApplication.shared.isIdleTimerDisabled = false
             }
+        }
+        runOnMainThread { [weak self] in
+            guard let self else { return }
+            KSLog("playerStateDidChange - \(state)")
+            self.delegate?.player(layer: self, state: state)
+        }
+    }
+
+    func play(currentTime: TimeInterval) {
+        subtitleModel.subtitle(currentTime: currentTime, size: player.naturalSize.within(size: player.view?.frame.size))
+        delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
+        if player.playbackState == .playing, player.loadState == .playable, state == .buffering {
+            // 一个兜底保护，正常不能走到这里
+            state = .bufferFinished
         }
     }
 
@@ -306,10 +243,6 @@ open class KSPlayerLayer: NSObject {
             timer.fireDate = Date.distantPast
         }
         state = player.loadState == .playable ? .bufferFinished : .buffering
-        MPNowPlayingInfoCenter.default().playbackState = .playing
-        if #available(tvOS 14.0, *) {
-            KSPictureInPictureController.mute()
-        }
     }
 
     open func pause() {
@@ -317,7 +250,6 @@ open class KSPlayerLayer: NSObject {
         player.pause()
         timer.fireDate = Date.distantFuture
         state = .paused
-        MPNowPlayingInfoCenter.default().playbackState = .paused
         runOnMainThread {
             UIApplication.shared.isIdleTimerDisabled = false
         }
@@ -349,19 +281,37 @@ open class KSPlayerLayer: NSObject {
         }
     }
 
+    func seek(time: TimeInterval) {
+        seek(time: time, autoPlay: options.isSeekedAutoPlay) { _ in
+        }
+    }
+
     open func prepareToPlay() {
         state = .preparing
         startTime = CACurrentMediaTime()
         bufferedCount = 0
         player.prepareToPlay()
     }
-}
 
-// MARK: - MediaPlayerDelegate
-
-extension KSPlayerLayer: MediaPlayerDelegate {
     public func readyToPlay(player: some MediaPlayerProtocol) {
         state = .readyToPlay
+        subtitleModel.isHDR = player.dynamicRange?.isHDR ?? false
+        if let view = player.view {
+            addSubtitle(to: view)
+        }
+        if let subtitleDataSouce = player.subtitleDataSouce {
+            subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+            if subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
+                subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
+            }
+            // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。有些视频1s可能不够，所以改成2s
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) { [weak self] in
+                guard let self else { return }
+                if self.subtitleModel.selectedSubtitleInfo == nil, options.autoSelectEmbedSubtitle {
+                    self.subtitleModel.selectedSubtitleInfo = subtitleDataSouce.infos.first
+                }
+            }
+        }
         #if os(macOS)
         runOnMainThread { [weak self] in
             guard let self else { return }
@@ -379,14 +329,6 @@ extension KSPlayerLayer: MediaPlayerDelegate {
             }
         }
         #endif
-        #if !os(macOS) && !os(tvOS)
-        if #available(iOS 14.2, *) {
-            if options.canStartPictureInPictureAutomaticallyFromInline {
-                player.pipController?.canStartPictureInPictureAutomaticallyFromInline = true
-            }
-        }
-        #endif
-        updateNowPlayingInfo()
         if isAutoPlay {
             if shouldSeekTo > 0 {
                 seek(time: shouldSeekTo, autoPlay: true) { [weak self] _ in
@@ -451,36 +393,208 @@ extension KSPlayerLayer: MediaPlayerDelegate {
 
     public func finish(player: some MediaPlayerProtocol, error: Error?) {
         if let error {
-            if type(of: player) != KSOptions.secondPlayerType, let secondPlayerType = KSOptions.secondPlayerType {
-                self.player = secondPlayerType.init(url: url, options: options)
-                return
-            }
             state = .error
             KSLog(error as CustomStringConvertible)
         } else {
-            let duration = player.duration
-            runOnMainThread { [weak self] in
-                guard let self else { return }
-                delegate?.player(layer: self, currentTime: duration, totalTime: duration)
-            }
             state = .playedToTheEnd
         }
         timer.fireDate = Date.distantFuture
         bufferedCount = 1
+        let duration = player.duration
         runOnMainThread { [weak self] in
             guard let self else { return }
+            if error == nil {
+                delegate?.player(layer: self, currentTime: duration, totalTime: duration)
+            }
             delegate?.player(layer: self, finish: error)
         }
+    }
+
+    #if canImport(UIKit) && !os(xrOS)
+    @MainActor
+    @objc private func wirelessRouteActiveDidChange(notification: Notification) {
+        guard let volumeView = notification.object as? MPVolumeView, isWirelessRouteActive != volumeView.isWirelessRouteActive else { return }
+        if volumeView.isWirelessRouteActive {
+            if !player.allowsExternalPlayback {
+                isWirelessRouteActive = true
+            }
+            player.usesExternalPlaybackWhileExternalScreenIsActive = true
+        }
+        isWirelessRouteActive = volumeView.isWirelessRouteActive
+    }
+    #endif
+    #if !os(macOS)
+    @objc private func audioInterrupted(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue)
+        else {
+            return
+        }
+        switch type {
+        case .began:
+            pause()
+
+        case .ended:
+            // An interruption ended. Resume playback, if appropriate.
+
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                play()
+            }
+
+        default:
+            break
+        }
+    }
+    #endif
+    fileprivate func addSubtitle(to view: UIView) {
+        if subtitleVC.view.superview != view {
+            view.addSubview(subtitleVC.view)
+            let constraints = [
+                subtitleVC.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                subtitleVC.view.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+                subtitleVC.view.widthAnchor.constraint(equalTo: view.widthAnchor),
+                subtitleVC.view.heightAnchor.constraint(equalTo: view.heightAnchor),
+            ]
+            #if os(macOS)
+            if #available(macOS 13.0, *) {
+                subtitleVC.sizingOptions = .maxSize
+            }
+            for constraint in constraints {
+                constraint.priority = .defaultLow
+            }
+            #endif
+
+            NSLayoutConstraint.activate(constraints)
+        }
+    }
+}
+
+open class KSComplexPlayerLayer: KSPlayerLayer {
+    private var urls = [URL]()
+    @Published
+    @MainActor
+    public var isPipActive = false {
+        didSet {
+            if #available(tvOS 14.0, *) {
+                guard let pipController = player.pipController else {
+                    return
+                }
+                pipController.delegate = self
+                if isPipActive {
+                    pipController.start(layer: self)
+                } else {
+                    pipController.stop(restoreUserInterface: true)
+                }
+            }
+        }
+    }
+
+    override public init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
+        super.init(url: url, isAutoPlay: isAutoPlay, options: options, delegate: delegate)
+        if options.registerRemoteControll {
+            registerRemoteControllEvent()
+        }
+        #if canImport(UIKit)
+        runOnMainThread { [weak self] in
+            guard let self else { return }
+            NotificationCenter.default.addObserver(self, selector: #selector(enterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(enterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+        }
+        #endif
+    }
+
+    @available(*, unavailable)
+    public required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    public func set(urls: [URL]) {
+        self.urls.removeAll()
+        self.urls.append(contentsOf: urls)
+        if let first = urls.first {
+            runOnMainThread {
+                self.url = first
+            }
+        }
+    }
+
+    override func change(state: KSPlayerState) {
+        super.change(state: state)
+        if state == .initialized {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        }
+    }
+
+    override func play(currentTime: TimeInterval) {
+        super.play(currentTime: currentTime)
+        if player.isPlaying {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+        }
+    }
+
+    override open func play() {
+        super.play()
+        MPNowPlayingInfoCenter.default().playbackState = .playing
+        if #available(tvOS 14.0, *) {
+            KSOptions.pictureInPictureType.mute()
+        }
+    }
+
+    override open func pause() {
+        super.pause()
+        MPNowPlayingInfoCenter.default().playbackState = .paused
+    }
+
+    override public func readyToPlay(player: some MediaPlayerProtocol) {
+        super.readyToPlay(player: player)
+        #if !os(macOS) && !os(tvOS)
+        if #available(iOS 14.2, *) {
+            if options.canStartPictureInPictureAutomaticallyFromInline {
+                player.pipController?.canStartPictureInPictureAutomaticallyFromInline = true
+            }
+        }
+        #endif
+        updateNowPlayingInfo()
+    }
+
+    override public func finish(player: some MediaPlayerProtocol, error: (any Error)?) {
+        if let error {
+            if type(of: player) != KSOptions.secondPlayerType, let secondPlayerType = KSOptions.secondPlayerType {
+                self.player = secondPlayerType.init(url: url, options: options)
+                return
+            }
+        }
+        super.finish(player: player, error: error)
         if error == nil {
             nextPlayer()
         }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().pauseCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().togglePlayPauseCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().stopCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().nextTrackCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().previousTrackCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changeRepeatModeCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changePlaybackRateCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().skipForwardCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().skipBackwardCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().enableLanguageOptionCommand.removeTarget(nil)
     }
 }
 
 // MARK: - AVPictureInPictureControllerDelegate
 
 @available(tvOS 14.0, *)
-extension KSPlayerLayer: AVPictureInPictureControllerDelegate {
+extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
     @MainActor
     public func pictureInPictureControllerDidStartPictureInPicture(_: AVPictureInPictureController) {
         if !KSOptions.isPipPopViewController {
@@ -489,11 +603,15 @@ extension KSPlayerLayer: AVPictureInPictureControllerDelegate {
             UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
             #endif
         }
+        pipAddSubtitle()
     }
 
     @MainActor
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
         player.pipController?.stop(restoreUserInterface: false)
+        if let view = player.view {
+            addSubtitle(to: view)
+        }
     }
 
     @MainActor
@@ -504,7 +622,7 @@ extension KSPlayerLayer: AVPictureInPictureControllerDelegate {
 
 // MARK: - private functions
 
-extension KSPlayerLayer {
+extension KSComplexPlayerLayer {
     private func updateNowPlayingInfo() {
         if MPNowPlayingInfoCenter.default().nowPlayingInfo == nil {
             MPNowPlayingInfoCenter.default().nowPlayingInfo = [MPMediaItemPropertyPlaybackDuration: player.duration]
@@ -547,11 +665,6 @@ extension KSPlayerLayer {
         if urls.count > 1, let index = urls.firstIndex(of: url), index > 0 {
             isAutoPlay = true
             url = urls[index - 1]
-        }
-    }
-
-    func seek(time: TimeInterval) {
-        seek(time: time, autoPlay: options.isSeekedAutoPlay) { _ in
         }
     }
 
@@ -662,6 +775,7 @@ extension KSPlayerLayer {
             return
         }
         if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
+            pipAddSubtitle()
             return
         }
 
@@ -678,42 +792,10 @@ extension KSPlayerLayer {
         }
     }
 
-    #if canImport(UIKit) && !os(xrOS)
-    @MainActor
-    @objc private func wirelessRouteActiveDidChange(notification: Notification) {
-        guard let volumeView = notification.object as? MPVolumeView, isWirelessRouteActive != volumeView.isWirelessRouteActive else { return }
-        if volumeView.isWirelessRouteActive {
-            if !player.allowsExternalPlayback {
-                isWirelessRouteActive = true
-            }
-            player.usesExternalPlaybackWhileExternalScreenIsActive = true
-        }
-        isWirelessRouteActive = volumeView.isWirelessRouteActive
-    }
-    #endif
-    #if !os(macOS)
-    @objc private func audioInterrupted(notification: Notification) {
-        guard let userInfo = notification.userInfo,
-              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-              let type = AVAudioSession.InterruptionType(rawValue: typeValue)
-        else {
-            return
-        }
-        switch type {
-        case .began:
-            pause()
-        case .ended:
-            // An interruption ended. Resume playback, if appropriate.
-
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if options.contains(.shouldResume) {
-                play()
-            }
-
-        default:
-            break
+    @available(tvOS 14.0, *)
+    private func pipAddSubtitle() {
+        if let pipVC = player.pipController?.value(forKey: "pictureInPictureViewController") as? UIViewController {
+            addSubtitle(to: pipVC.view)
         }
     }
-    #endif
 }

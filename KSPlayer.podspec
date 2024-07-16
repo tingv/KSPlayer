@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
 
     s.ios.deployment_target = '13.0'
     s.osx.deployment_target = '10.15'
-    # s.watchos.deployment_target = '2.0'
+    s.visionos.deployment_target = '1.0'
     s.tvos.deployment_target = '13.0'
     s.static_framework = true
     s.subspec 'Subtitle' do |ss|
@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
     s.subspec 'Metal' do |ss|
         ss.source_files = 'Sources/KSPlayer/Metal/*.{swift,metal}'
         ss.resource_bundles = {
-            'KSPlayer_KSPlayer' => ['Sources/KSPlayer/Metal/*.metal']
+            'KSPlayer_KSPlayer' => ['Sources/KSPlayer/Metal/Resources/*.metal']
         } 
         ss.weak_framework = 'MetalKit'
     end
@@ -34,6 +34,7 @@ Pod::Spec.new do |s|
         ss.frameworks = 'AVFoundation'
         ss.ios.frameworks  = 'UIKit'
         ss.tvos.frameworks  = 'UIKit'
+        ss.visionos.frameworks  = 'UIKit'
         ss.osx.frameworks  = 'AppKit'
         ss.dependency 'DisplayCriteria'
     end

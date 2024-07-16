@@ -109,9 +109,6 @@ class MEFilter {
         if isAudio {
             filters = options.audioFilters.joined(separator: ",")
         } else {
-            if options.autoDeInterlace, !options.videoFilters.contains("idet") {
-                options.videoFilters.append("idet")
-            }
             filters = options.videoFilters.joined(separator: ",")
         }
         guard !filters.isEmpty else {

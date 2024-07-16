@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import FFmpegKit
 import Foundation
 import Libavcodec
 
@@ -36,6 +37,14 @@ class FFmpegDecode: DecodeProtocol {
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
+            /**
+              有些视频(.m2ts)seek完之后, 就会一直报错，重新createContext，也是会报错一段时间。只能转为软解。
+              发现在seek的时候不要调用avcodec_flush_buffers就能解决这个问题。
+             **/
+            if options.hardwareDecode {
+                options.hardwareDecode = false
+                self.codecContext = try? packet.assetTrack.createContext(options: options)
+            }
             return
         }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
@@ -61,6 +70,7 @@ class FFmpegDecode: DecodeProtocol {
                 var displayData: MasteringDisplayMetadata?
                 var contentData: ContentLightMetadata?
                 var ambientViewingEnvironment: AmbientViewingEnvironment?
+                var doviData: dovi_metadata? = nil
                 // filter之后，side_data信息会丢失，所以放在这里
                 if inputFrame.pointee.nb_side_data > 0 {
                     for i in 0 ..< inputFrame.pointee.nb_side_data {
@@ -91,14 +101,6 @@ class FFmpegDecode: DecodeProtocol {
                                     let str = String(cString: sideData.data.advanced(by: Int(AV_UUID_LEN)))
                                     options.sei(string: str)
                                 }
-                            } else if sideData.type == AV_FRAME_DATA_DOVI_RPU_BUFFER {
-                                let data = sideData.data.withMemoryRebound(to: [UInt8].self, capacity: 1) { $0 }
-                            } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA { // AVDOVIMetadata
-                                let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
-                                let header = av_dovi_get_header(data)
-                                let mapping = av_dovi_get_mapping(data)
-                                let color = av_dovi_get_color(data)
-//                                frame.corePixelBuffer?.transferFunction = kCVImageBufferTransferFunction_ITU_R_2020
                             } else if sideData.type == AV_FRAME_DATA_DYNAMIC_HDR_PLUS { // AVDynamicHDRPlus
                                 let data = sideData.data.withMemoryRebound(to: AVDynamicHDRPlus.self, capacity: 1) { $0 }.pointee
                             } else if sideData.type == AV_FRAME_DATA_DYNAMIC_HDR_VIVID { // AVDynamicHDRVivid
@@ -130,6 +132,11 @@ class FFmpegDecode: DecodeProtocol {
                                     ambient_light_x: UInt16(truncatingIfNeeded: data.ambient_light_x.num),
                                     ambient_light_y: UInt16(truncatingIfNeeded: data.ambient_light_y.num)
                                 )
+                            } else if sideData.type == AV_FRAME_DATA_DOVI_RPU_BUFFER {
+                                let data = sideData.data.withMemoryRebound(to: [UInt8].self, capacity: 1) { $0 }
+                            } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA {
+                                let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
+                                doviData = map_dovi_metadata(data).pointee
                             }
                         }
                     }
@@ -137,12 +144,13 @@ class FFmpegDecode: DecodeProtocol {
                 filter.filter(options: options, inputFrame: inputFrame) { avframe in
                     do {
                         var frame = try frameChange.change(avframe: avframe)
-                        if let videoFrame = frame as? VideoVTBFrame, let pixelBuffer = videoFrame.corePixelBuffer {
-                            if let pixelBuffer = pixelBuffer as? PixelBuffer {
-                                pixelBuffer.formatDescription = packet.assetTrack.formatDescription
-                            }
+                        if let videoFrame = frame as? VideoVTBFrame {
                             if displayData != nil || contentData != nil || ambientViewingEnvironment != nil {
                                 videoFrame.edrMetaData = EDRMetaData(displayData: displayData, contentData: contentData, ambientViewingEnvironment: ambientViewingEnvironment)
+                            }
+                            videoFrame.doviData = doviData
+                            if let pixelBuffer = videoFrame.pixelBuffer as? PixelBuffer {
+                                pixelBuffer.formatDescription = packet.assetTrack.formatDescription
                             }
                         }
                         frame.timebase = filter.timebase
@@ -187,7 +195,7 @@ class FFmpegDecode: DecodeProtocol {
 
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
-        // seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。
+        // seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。并且ts格式会导致画面花屏一小会儿。
         if codecContext != nil {
             avcodec_flush_buffers(codecContext)
         }

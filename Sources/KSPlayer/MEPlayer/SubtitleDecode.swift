@@ -20,10 +20,10 @@ class SubtitleDecode: DecodeProtocol {
     private var startTime = TimeInterval(0)
     private var assParse: AssParse? = nil
     private var assImageRenderer: AssImageRenderer? = nil
-    private let displaySize: CGSize
+    private let displaySize: CGSize?
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
-        displaySize = assetTrack.formatDescription?.displaySize ?? .one
+        displaySize = assetTrack.formatDescription?.displaySize
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext, let pointer = codecContext.pointee.subtitle_header {
@@ -132,16 +132,16 @@ class SubtitleDecode: DecodeProtocol {
                     }
                 }
             } else if rect.type == SUBTITLE_BITMAP {
-                if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage() {
-                    images.append((CGRect(x: Int(rect.x), y: Int(rect.y), width: Int(rect.w), height: Int(rect.h)), image))
+                // 不合并图片，有返回每个图片的rect，可以自己控制显示位置。
+                // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
+                if let image = scale.transfer(format: AV_PIX_FMT_PAL8, width: rect.w, height: rect.h, data: Array(tuple: rect.data), linesize: Array(tuple: rect.linesize))?.cgImage()?.image() {
+                    let imageRect = CGRect(x: Int(rect.x), y: Int(rect.y), width: Int(rect.w), height: Int(rect.h))
+                    // 有些图片字幕不会带屏幕宽高，所以就取字幕自身的宽高。
+                    let info = SubtitleImageInfo(rect: imageRect, image: image, displaySize: displaySize ?? CGSize(width: imageRect.maxX + imageRect.minX, height: imageRect.maxY))
+                    let part = SubtitlePart(start, end, image: info)
+                    parts.append(part)
                 }
             }
-        }
-        if let (rect, cgimage) = CGImage.combine(images: images), let image = cgimage.image() {
-            // 因为字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
-            let info = SubtitleImageInfo(rect: rect, image: image, displaySize: displaySize)
-            let part = SubtitlePart(start, end, image: info)
-            parts.append(part)
         }
         if let attributedString {
             parts.append(SubtitlePart(start, end, attributedString: attributedString))

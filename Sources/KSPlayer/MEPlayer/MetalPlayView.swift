@@ -8,12 +8,14 @@
 import AVFoundation
 import Combine
 import CoreMedia
+import FFmpegKit
 #if canImport(MetalKit)
 import MetalKit
 #endif
 
 public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
+//    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。
     var displayLayer: AVSampleBufferDisplayLayer { get }
     var pixelBuffer: PixelBufferProtocol? { get }
     init(options: KSOptions)
@@ -64,8 +66,8 @@ public final class MetalPlayView: UIView, VideoOutput {
     public init(options: KSOptions) {
         self.options = options
         super.init(frame: .zero)
-        addSubview(displayView)
-        addSubview(metalView)
+        addSub(view: displayView)
+        addSub(view: metalView)
         metalView.isHidden = true
         //        displayLink = CADisplayLink(block: renderFrame)
         displayLink = CADisplayLink(target: self, selector: #selector(renderFrame))
@@ -87,17 +89,6 @@ public final class MetalPlayView: UIView, VideoOutput {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override public func didAddSubview(_ subview: UIView) {
-        super.didAddSubview(subview)
-        subview.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            subview.leftAnchor.constraint(equalTo: leftAnchor),
-            subview.topAnchor.constraint(equalTo: topAnchor),
-            subview.bottomAnchor.constraint(equalTo: bottomAnchor),
-            subview.rightAnchor.constraint(equalTo: rightAnchor),
-        ])
-    }
-
     override public var contentMode: UIViewContentMode {
         didSet {
             metalView.contentMode = contentMode
@@ -116,18 +107,18 @@ public final class MetalPlayView: UIView, VideoOutput {
 
     #if canImport(UIKit)
     override public func touchesMoved(_ touches: Set<UITouch>, with: UIEvent?) {
-        if options.display == .plane {
-            super.touchesMoved(touches, with: with)
-        } else {
+        if options.display.isSphere {
             options.display.touchesMoved(touch: touches.first!)
+        } else {
+            super.touchesMoved(touches, with: with)
         }
     }
     #else
     override public func touchesMoved(with event: NSEvent) {
-        if options.display == .plane {
-            super.touchesMoved(with: event)
-        } else {
+        if options.display.isSphere {
             options.display.touchesMoved(touch: event.allTouches().first!)
+        } else {
+            super.touchesMoved(with: event)
         }
     }
     #endif
@@ -149,8 +140,19 @@ public final class MetalPlayView: UIView, VideoOutput {
         draw(force: true)
     }
 
+    private func addSub(view: UIView) {
+        addSubview(view)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.leftAnchor.constraint(equalTo: leftAnchor),
+            view.topAnchor.constraint(equalTo: topAnchor),
+            view.bottomAnchor.constraint(equalTo: bottomAnchor),
+            view.rightAnchor.constraint(equalTo: rightAnchor),
+        ])
+    }
+
 //    deinit {
-//        KSLog()
+//        print()
 //    }
 }
 
@@ -164,7 +166,7 @@ extension MetalPlayView {
             guard let frame = renderSource?.getVideoOutputRender(force: force) else {
                 return
             }
-            pixelBuffer = frame.corePixelBuffer
+            pixelBuffer = frame.pixelBuffer
             guard let pixelBuffer else {
                 return
             }
@@ -191,14 +193,14 @@ extension MetalPlayView {
                     displayView.displayLayer.flushAndRemoveImage()
                 }
                 let size: CGSize
-                if options.display == .plane {
+                if options.display.isSphere {
+                    size = KSOptions.sceneSize
+                } else {
                     if let dar = options.customizeDar(sar: sar, par: par) {
                         size = CGSize(width: par.width, height: par.width * dar.height / dar.width)
                     } else {
                         size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
                     }
-                } else {
-                    size = KSOptions.sceneSize
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
                 #if !os(tvOS)
@@ -207,7 +209,7 @@ extension MetalPlayView {
                     metalView.metalLayer.edrMetadata = frame.edrMetadata
                 }
                 #endif
-                metalView.draw(pixelBuffer: pixelBuffer, display: options.display, size: size)
+                metalView.draw(frame: frame, display: options.display, size: size)
             }
             renderSource?.setVideo(time: cmtime, position: frame.position)
         }
@@ -235,7 +237,6 @@ extension MetalPlayView {
 }
 
 public class MetalView: UIView {
-    private let render = MetalRender()
     #if canImport(UIKit)
     override public class var layerClass: AnyClass { CAMetalLayer.self }
     #endif
@@ -267,14 +268,14 @@ public class MetalView: UIView {
         }
         #endif
         if let drawable = metalLayer.nextDrawable() {
-            render.clear(drawable: drawable)
+            MetalRender.clear(drawable: drawable)
         }
     }
 
-    func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum, size: CGSize) {
+    func draw(frame: VideoVTBFrame, display: DisplayEnum, size: CGSize) {
         metalLayer.drawableSize = size
-        metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: pixelBuffer.bitDepth)
-        let colorspace = pixelBuffer.colorspace
+        metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth)
+        let colorspace = frame.pixelBuffer.colorspace
         if colorspace != nil, metalLayer.colorspace != colorspace {
             metalLayer.colorspace = colorspace
             KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
@@ -297,7 +298,7 @@ public class MetalView: UIView {
             KSLog("[video] CAMetalLayer not readyForMoreMediaData")
             return
         }
-        render.draw(pixelBuffer: pixelBuffer, display: display, drawable: drawable)
+        MetalRender.draw(frame: frame, display: display, drawable: drawable)
     }
 }
 

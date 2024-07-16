@@ -10,6 +10,7 @@ import SwiftUI
 #if os(tvOS) || os(xrOS)
 import DisplayCriteria
 #endif
+import AVKit
 import OSLog
 
 open class KSOptions {
@@ -73,7 +74,9 @@ open class KSOptions {
     public var startPlayTime: TimeInterval = 0
     public var startPlayRate: Float = 1.0
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
+    nonisolated(unsafe)
     public static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
+    nonisolated(unsafe)
     public static var secondPlayerType: MediaPlayerProtocol.Type? = KSMEPlayer.self
     /// 是否开启秒开
     public static var isSecondOpen = false
@@ -82,6 +85,7 @@ open class KSOptions {
     /// Applies to short videos only
     public static var isLoopPlay = false
     /// 是否自动播放，默认true
+    nonisolated(unsafe)
     public static var isAutoPlay = true
     /// seek完是否自动播放
     public static var isSeekedAutoPlay = true
@@ -186,6 +190,7 @@ open class KSOptions {
     // MARK: network options
 
     public static var useSystemHTTPProxy = true
+    // 没事不要设置probesize，不然会导致fps判断不准确。除非是很为了秒开或是其他原因才进行设置。
     public var probesize: Int64?
     public var maxAnalyzeDuration: Int64?
     public var referer: String? {
@@ -237,7 +242,6 @@ open class KSOptions {
     public static var preferredForwardBufferDuration = 3.0
     /// 最大缓存视频时间
     public static var maxBufferDuration = 30.0
-    public var cache = false
     public var seekUsePacketCache = false
     /// 最低缓存视频时间
     @Published
@@ -305,8 +309,6 @@ open class KSOptions {
     // MARK: sutile options
 
     static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
-    public var autoSelectEmbedSubtitle = true
-    public var isSeekImageSubtitle = false
     public static var isASSUseImageRender = false
     // 丢弃掉字幕自带的样式，用自定义的样式
     public static var stripSutitleStyle = true
@@ -321,6 +323,11 @@ open class KSOptions {
     public static var textItalic = false
     public static var textPosition = TextPosition()
     public static var audioRecognizes = [any AudioRecognize]()
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+    public static var sutitleDynamicRange = Image.DynamicRange.high
+    public var autoSelectEmbedSubtitle = true
+    public var isSeekImageSubtitle = false
+    public var subtitleTimeInterval = 0.1
 
     // MARK: video options
 
@@ -331,14 +338,29 @@ open class KSOptions {
     public static var yadifMode = 1
     public static var deInterlaceAddIdet = false
     public static var hardwareDecode = true
-    // 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
+    /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
+    /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
     public static var asynchronousDecompression = false
     public static var isPipPopViewController = false
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     public static var preferredFrame = true
-    public var display = DisplayEnum.plane
+    #if os(tvOS)
+    // tvos 只能在tmp上创建文件
+    public static var recordDir: URL? = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("record")
+    #else
+    public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
+    #endif
+    public static var doviMatrix = simd_float3x3(1)
+    public static let displayEnumPlane = PlaneDisplayModel()
+    public static let displayEnumDovi = DoviDisplayModel()
+    @MainActor
+    public static let displayEnumVR = VRDisplayModel()
+    @MainActor
+    public static let displayEnumVRBox = VRBoxDisplayModel()
+    @available(tvOS 14.0, *)
+    public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
+    public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
-    public var autoDeInterlace = false
     public var autoRotate = true
     public var destinationDynamicRange: DynamicRange?
     public var videoAdaptable = true
@@ -349,8 +371,6 @@ open class KSOptions {
     public var videoDisable = false
     public var canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
     public var automaticWindowResize = true
-    @Published
-    public var videoInterlacingType: VideoInterlacingType?
     ///  wanted video stream index, or nil for automatic selection
     /// - Parameter : video track
     /// - Returns: The index of the track
@@ -358,8 +378,12 @@ open class KSOptions {
         nil
     }
 
-    open func videoFrameMaxCount(fps _: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
-        isLive ? 4 : 16
+    open func videoFrameMaxCount(fps: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
+        if isLive {
+            return fps > 50 ? 8 : 4
+        } else {
+            return 16
+        }
     }
 
     /// customize dar
@@ -373,7 +397,7 @@ open class KSOptions {
 
     // 虽然只有iOS才支持PIP。但是因为AVSampleBufferDisplayLayer能够支持HDR10+。所以默认还是推荐用AVSampleBufferDisplayLayer
     open func isUseDisplayLayer() -> Bool {
-        display == .plane
+        display === KSOptions.displayEnumPlane
     }
 
     open func availableDynamicRange(_ cotentRange: DynamicRange?) -> DynamicRange? {
@@ -475,38 +499,7 @@ open class KSOptions {
         }
     }
 
-    private var idetTypeMap = [VideoInterlacingType: UInt]()
-    open func filter(log: String) {
-        if log.starts(with: "Repeated Field:"), autoDeInterlace {
-            for str in log.split(separator: ",") {
-                let map = str.split(separator: ":")
-                if map.count >= 2 {
-                    if String(map[0].trimmingCharacters(in: .whitespaces)) == "Multi frame" {
-                        if let type = VideoInterlacingType(rawValue: map[1].trimmingCharacters(in: .whitespacesAndNewlines)) {
-                            idetTypeMap[type] = (idetTypeMap[type] ?? 0) + 1
-                            let tff = idetTypeMap[.tff] ?? 0
-                            let bff = idetTypeMap[.bff] ?? 0
-                            let progressive = idetTypeMap[.progressive] ?? 0
-                            let undetermined = idetTypeMap[.undetermined] ?? 0
-                            if progressive - tff - bff > 100 {
-                                videoInterlacingType = .progressive
-                                autoDeInterlace = false
-                            } else if bff - progressive > 100 {
-                                videoInterlacingType = .bff
-                                autoDeInterlace = false
-                            } else if tff - progressive > 100 {
-                                videoInterlacingType = .tff
-                                autoDeInterlace = false
-                            } else if undetermined - progressive - tff - bff > 100 {
-                                videoInterlacingType = .undetermined
-                                autoDeInterlace = false
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    open func filter(log _: String) {}
 
     open func sei(string: String) {
         KSLog("sei \(string)")

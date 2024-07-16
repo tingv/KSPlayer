@@ -98,9 +98,11 @@ public class KSAVPlayer {
         }
     }
 
+    #if os(tvOS)
+    // 在visionOS，这样的代码会crash，所以只能区分下系统
     private lazy var _pipController: Any? = {
         if #available(tvOS 14.0, *) {
-            let pip = KSPictureInPictureController(playerLayer: playerView.playerLayer)
+            let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
             return pip
         } else {
             return nil
@@ -108,9 +110,15 @@ public class KSAVPlayer {
     }()
 
     @available(tvOS 14.0, *)
-    public var pipController: KSPictureInPictureController? {
-        _pipController as? KSPictureInPictureController
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+        _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
     }
+    #else
+    public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
+        let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
+        return pip
+    }()
+    #endif
 
     public var naturalSize: CGSize = .zero
     public let dynamicInfo: DynamicInfo? = nil
@@ -360,7 +368,11 @@ extension KSAVPlayer {
 }
 
 extension KSAVPlayer: MediaPlayerProtocol {
-    public var subtitleDataSouce: SubtitleDataSouce? { nil }
+    public func startRecord(url _: URL) {}
+
+    public func stopRecord() {}
+
+    public var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { nil }
     public var isPlaying: Bool { player.rate > 0 ? true : playbackState == .playing }
     public var view: UIView? { playerView }
     public var currentPlaybackTime: TimeInterval {

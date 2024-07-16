@@ -15,6 +15,7 @@
   "platforms": {
     "ios": "13.0",
     "osx": "10.15",
+    "visionos": "1.0",
     "tvos": "13.0"
   },
   "static_framework": true,
@@ -37,7 +38,7 @@
       "source_files": "Sources/KSPlayer/Metal/*.{swift,metal}",
       "resource_bundles": {
         "KSPlayer_KSPlayer": [
-          "Sources/KSPlayer/Metal/*.metal"
+          "Sources/KSPlayer/Metal/Resources/*.metal"
         ]
       },
       "weak_frameworks": "MetalKit"
@@ -50,6 +51,9 @@
         "frameworks": "UIKit"
       },
       "tvos": {
+        "frameworks": "UIKit"
+      },
+      "visionos": {
         "frameworks": "UIKit"
       },
       "osx": {

@@ -8,8 +8,8 @@
 import AVFoundation
 import CoreMedia
 import CoreServices
+import FFmpegKit
 import OSLog
-
 #if canImport(UIKit)
 import UIKit
 
@@ -96,6 +96,10 @@ public enum DynamicRange: Int32 {
         }
         #endif
     }
+
+    var isHDR: Bool {
+        rawValue > 0
+    }
 }
 
 extension DynamicRange: CustomStringConvertible {
@@ -144,13 +148,10 @@ extension DynamicRange {
     }
 }
 
-@MainActor
-public enum DisplayEnum {
-    case plane
-    // swiftlint:disable identifier_name
-    case vr
-    // swiftlint:enable identifier_name
-    case vrBox
+public protocol DisplayEnum: AnyObject {
+    var isSphere: Bool { get }
+    func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder)
+    func touchesMoved(touch: UITouch)
 }
 
 public struct VideoAdaptationState {
@@ -224,6 +225,7 @@ public enum KSPlayerErrorCode: Int {
     case codecVideoReceiveFrame
     case codecAudioReceiveFrame
     case auidoSwrInit
+    case pixelBufferPoolCreate
     case codecSubtitleSendPacket
     case videoTracksUnplayable
     case subtitleUnEncoding
@@ -269,6 +271,8 @@ extension KSPlayerErrorCode: CustomStringConvertible {
             return "Subtitle Params is empty"
         case .auidoSwrInit:
             return "swr_init swrContext fail"
+        case .pixelBufferPoolCreate:
+            return "pixelBufferPool Create fail"
         default:
             return "unknown"
         }
@@ -353,8 +357,8 @@ public extension FixedWidthInteger {
 }
 
 open class AbstractAVIOContext {
-    let bufferSize: Int32
-    let writable: Bool
+    public let bufferSize: Int32
+    public let writable: Bool
     public init(bufferSize: Int32 = 32 * 1024, writable: Bool = false) {
         self.bufferSize = bufferSize
         self.writable = writable
@@ -385,11 +389,9 @@ open class AbstractAVIOContext {
     deinit {}
 }
 
-public enum VideoInterlacingType: String {
-    case tff
-    case bff
-    case progressive
-    case undetermined
+public protocol PreLoadProtocol {
+    var loadedSize: Int64 { get }
+    func more() -> Int32
 }
 
 public enum LogLevel: Int32, CustomStringConvertible {

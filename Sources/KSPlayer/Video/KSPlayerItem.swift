@@ -31,9 +31,9 @@ public class KSPlayerResource: Equatable, Hashable {
      */
     public convenience init(url: URL, options: KSOptions = KSOptions(), name: String = "", cover: URL? = nil, subtitleURLs: [URL]? = nil, extinf: [String: String]? = nil) {
         let definition = KSPlayerResourceDefinition(url: url, definition: "", options: options)
-        let subtitleDataSouce: URLSubtitleDataSouce?
+        let subtitleDataSouce: SubtitleDataSouce?
         if let subtitleURLs {
-            subtitleDataSouce = URLSubtitleDataSouce(urls: subtitleURLs)
+            subtitleDataSouce = ConstantURLSubtitleDataSouce(url: url, subtitleURLs: subtitleURLs)
         } else {
             subtitleDataSouce = nil
         }

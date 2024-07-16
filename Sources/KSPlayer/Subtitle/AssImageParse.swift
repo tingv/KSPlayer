@@ -46,7 +46,9 @@ public final actor AssImageRenderer {
         } else {
             currentTrack = ass_new_track(library)
         }
-        setFrame(size: CGSize(width: 1024, height: 540))
+//        ass_set_selective_style_override_enabled(library, Int32(ASS_OVERRIDE_BIT_SELECTIVE_FONT_SCALE.rawValue))
+//        var style = ASS_Style()
+//        ass_set_selective_style_override(library, &style)
     }
 
     public func subtitle(header: String) {
@@ -62,7 +64,10 @@ public final actor AssImageRenderer {
     }
 
     public func setFrame(size: CGSize) {
-        ass_set_frame_size(renderer, Int32(size.width * KSOptions.scale), Int32(size.height * KSOptions.scale))
+        let width = Int32(size.width * KSOptions.scale)
+        let height = Int32(size.height * KSOptions.scale)
+        ass_set_frame_size(renderer, width, height)
+        ass_set_storage_size(renderer, width, height)
     }
 
     deinit {
@@ -84,9 +89,9 @@ extension AssImageRenderer: KSSubtitleProtocol {
         }
         let images = frame.pointee.linkedImages()
         let boundingRect = images.map(\.imageRect).boundingRect()
-        var imagePipeline: ImagePipelineType.Type
+        let imagePipeline: ImagePipelineType.Type
 //         图片少的话，用Accelerate性能会更好，耗时是0.005左右,而BlendImagePipeline就要0.04左右了
-        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 220 {
+        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *), images.count <= 10 {
             imagePipeline = AccelerateImagePipeline.self
         } else {
             imagePipeline = BlendImagePipeline.self

@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import AVKit
 import CoreGraphics
 import Dispatch
 import Foundation
@@ -99,6 +100,10 @@ public class KSMPVPlayer: MPVHandle {
 }
 
 extension KSMPVPlayer: MediaPlayerProtocol {
+    public func startRecord(url _: URL) {}
+
+    public func stopRecord() {}
+
     public var view: UIView? {
         metalView
     }
@@ -134,7 +139,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         }
     }
 
-    public var subtitleDataSouce: (any KSPlayer.SubtitleDataSouce)? {
+    public var subtitleDataSouce: (any KSPlayer.EmbedSubtitleDataSouce)? {
         nil
     }
 
@@ -146,7 +151,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
     }
 
     @available(tvOS 14.0, *)
-    public var pipController: KSPlayer.KSPictureInPictureController? {
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
         nil
     }
 

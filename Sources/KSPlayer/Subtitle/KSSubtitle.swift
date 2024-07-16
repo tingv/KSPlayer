@@ -281,26 +281,24 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    private var subtitleDataSouces: [SubtitleDataSouce] = KSOptions.subtitleDataSouces
+    private var subtitleDataSouces = [SubtitleDataSouce]()
     @Published
     public private(set) var subtitleInfos = [any SubtitleInfo]()
     @Published
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
-    public var url: URL? {
+    public var isHDR = false
+    public var url: URL {
         didSet {
-            subtitleInfos.removeAll()
-            searchSubtitle(query: nil, languages: [])
-            if url != nil {
-                subtitleInfos.append(contentsOf: KSOptions.audioRecognizes)
-            }
-            for datasouce in subtitleDataSouces {
+            subtitleDataSouces.removeAll()
+            for datasouce in KSOptions.subtitleDataSouces {
                 addSubtitle(dataSouce: datasouce)
             }
-            // 要用async，不能在更新UI的时候，修改Publishe变量
-            DispatchQueue.main.async { [weak self] in
-                self?.parts = []
-                self?.selectedSubtitleInfo = nil
+            Task { @MainActor in
+                subtitleInfos.removeAll()
+                subtitleInfos.append(contentsOf: KSOptions.audioRecognizes)
+                parts = []
+                selectedSubtitleInfo = nil
             }
         }
     }
@@ -309,14 +307,22 @@ open class SubtitleModel: ObservableObject {
     public var selectedSubtitleInfo: (any SubtitleInfo)? {
         didSet {
             oldValue?.isEnabled = false
-            selectedSubtitleInfo?.isEnabled = true
-            if let url, let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSouces.first(where: { $0 is CacheSubtitleDataSouce }) as? CacheSubtitleDataSouce {
-                cache.addCache(fileURL: url, downloadURL: info.downloadURL)
+            if let selectedSubtitleInfo {
+                selectedSubtitleInfo.isEnabled = true
+                addSubtitle(info: selectedSubtitleInfo)
+                if let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSouces.first(where: { $0 is CacheSubtitleDataSouce }) as? CacheSubtitleDataSouce {
+                    cache.addCache(fileURL: url, downloadURL: info.downloadURL)
+                }
             }
         }
     }
 
-    public init() {}
+    public init(url: URL) {
+        self.url = url
+        for datasouce in KSOptions.subtitleDataSouces {
+            addSubtitle(dataSouce: datasouce)
+        }
+    }
 
     public func addSubtitle(info: any SubtitleInfo) {
         if subtitleInfos.first(where: { $0.subtitleID == info.subtitleID }) == nil {
@@ -343,7 +349,7 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func searchSubtitle(query: String?, languages: [String]) {
+    public func searchSubtitle(query: String, languages: [String]) {
         for dataSouce in subtitleDataSouces {
             if let dataSouce = dataSouce as? SearchSubtitleDataSouce {
                 subtitleInfos.removeAll { info in
@@ -352,20 +358,27 @@ open class SubtitleModel: ObservableObject {
                     }
                 }
                 Task { @MainActor in
-                    try? await dataSouce.searchSubtitle(query: query, languages: languages)
-                    subtitleInfos.append(contentsOf: dataSouce.infos)
+                    do {
+                        try await subtitleInfos.append(contentsOf: dataSouce.searchSubtitle(query: query, languages: languages))
+                    } catch {
+                        KSLog(error)
+                    }
                 }
             }
         }
     }
 
     public func addSubtitle(dataSouce: SubtitleDataSouce) {
-        if let dataSouce = dataSouce as? FileURLSubtitleDataSouce {
+        subtitleDataSouces.append(dataSouce)
+        if let dataSouce = dataSouce as? URLSubtitleDataSouce {
             Task { @MainActor in
-                try? await dataSouce.searchSubtitle(fileURL: url)
-                subtitleInfos.append(contentsOf: dataSouce.infos)
+                do {
+                    try await subtitleInfos.append(contentsOf: dataSouce.searchSubtitle(fileURL: url))
+                } catch {
+                    KSLog(error)
+                }
             }
-        } else {
+        } else if let dataSouce = dataSouce as? (any EmbedSubtitleDataSouce) {
             subtitleInfos.append(contentsOf: dataSouce.infos)
         }
     }

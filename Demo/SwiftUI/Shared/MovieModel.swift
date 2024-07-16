@@ -18,17 +18,6 @@ class MEOptions: KSOptions {
     #else
     static var isUseDisplayLayer = false
     #endif
-    override init() {
-        super.init()
-    }
-
-    override func process(assetTrack: some MediaPlayerTrack) {
-        super.process(assetTrack: assetTrack)
-    }
-
-    override func isUseDisplayLayer() -> Bool {
-        MEOptions.isUseDisplayLayer && display == .plane
-    }
 }
 
 @objc(MovieModel)
@@ -274,7 +263,7 @@ extension KSVideoPlayerView {
 //            options.hardwareDecode = false
             options.startPlayTime = 13
         } else if url.lastPathComponent == "vr.mp4" {
-            options.display = .vr
+            options.display = KSOptions.displayEnumVR
         } else if url.lastPathComponent == "mjpeg.flac" {
 //            options.videoDisable = true
             options.syncDecodeAudio = true

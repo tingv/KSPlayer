@@ -78,7 +78,6 @@ public class MPVHandle: NSObject {
                 let propertyName = String(cString: property.name)
                 change(property: property, name: propertyName)
             }
-
         case MPV_EVENT_LOG_MESSAGE:
             if let msg = UnsafeMutablePointer<mpv_event_log_message>(OpaquePointer(event.data)) {
                 KSLog("[\(String(cString: (msg.pointee.prefix)!))] \(String(cString: (msg.pointee.level)!)): \(String(cString: (msg.pointee.text)!))")

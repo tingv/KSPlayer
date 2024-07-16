@@ -17,7 +17,7 @@ protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
     func decode()
     func seek(time: TimeInterval)
     func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt?
-    func updateCache(headIndex: UInt)
+    func updateCache(headIndex: UInt, time: TimeInterval)
     func putPacket(packet: Packet)
 //    func getOutputRender<Frame: ObjectQueueItem>(where predicate: ((Frame) -> Bool)?) -> Frame?
     func shutdown()
@@ -107,7 +107,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         nil
     }
 
-    func updateCache(headIndex _: UInt) {}
+    func updateCache(headIndex _: UInt, time _: TimeInterval) {}
 
     func shutdown() {
         if state == .idle {
@@ -121,6 +121,9 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
     private var lastPacketSeconds = Double(-1)
     var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
+        guard let corePacket = packet.corePacket else {
+            return
+        }
         if packet.isKeyFrame, packet.assetTrack.mediaType != .subtitle {
             let seconds = packet.seconds
             let diff = seconds - lastPacketSeconds
@@ -136,8 +139,14 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         lastPacketBytes += packet.size
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
-//        var startTime = CACurrentMediaTime()
-        decoder.decodeFrame(from: packet) { [weak self] result in
+        if corePacket.pointee.side_data_elems > 0 {
+            for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
+                let sideData = corePacket.pointee.side_data[i]
+                if sideData.type == AV_PKT_DATA_A53_CC {}
+            }
+        }
+        //        var startTime = CACurrentMediaTime()
+        decoder.decodeFrame(from: packet) { [weak self, weak decoder] result in
             guard let self else {
                 return
             }
@@ -166,7 +175,10 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             } catch {
                 KSLog("Decoder did Failed : \(error)")
                 if decoder is VideoToolboxDecode {
-                    decoder.shutdown()
+                    // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
+                    DispatchQueue.global().async {
+                        decoder?.shutdown()
+                    }
                     self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
                     KSLog("VideoCodec switch to software decompression")
                     self.doDecode(packet: packet)
@@ -243,7 +255,12 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         packetQueue.seek(seconds: time, needKeyFrame: needKeyFrame)
     }
 
-    override func updateCache(headIndex: UInt) {
+    override func updateCache(headIndex: UInt, time: TimeInterval) {
+        if options.isAccurateSeek {
+            seekTime = time
+        } else {
+            seekTime = 0
+        }
         isEndOfFile = false
         state = .flush
         outputRenderQueue.flush()
@@ -311,7 +328,7 @@ public extension Dictionary {
     }
 }
 
-protocol DecodeProtocol {
+protocol DecodeProtocol: AnyObject {
     func decode()
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void)
     func doFlushCodec()

@@ -7,6 +7,7 @@
 
 import AVFoundation
 import CoreMedia
+import FFmpegKit
 import Libavcodec
 #if canImport(UIKit)
 import UIKit
@@ -78,6 +79,9 @@ protocol MEFrame: ObjectQueueItem {
 
 // for MEPlayer
 public extension KSOptions {
+    /*
+     CGColorSpaceCreateICCBased
+     */
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
@@ -101,30 +105,6 @@ public extension KSOptions {
                 }
             } else {
                 return CGColorSpace(name: CGColorSpace.itur_2020)
-            }
-
-        default:
-            return CGColorSpace(name: CGColorSpace.sRGB)
-        }
-    }
-
-    static func colorSpace(colorPrimaries: CFString?) -> CGColorSpace? {
-        switch colorPrimaries {
-        case kCVImageBufferColorPrimaries_ITU_R_709_2:
-            return CGColorSpace(name: CGColorSpace.sRGB)
-        case kCVImageBufferColorPrimaries_DCI_P3:
-            if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
-                return CGColorSpace(name: CGColorSpace.displayP3_PQ)
-            } else {
-                return CGColorSpace(name: CGColorSpace.displayP3_PQ_EOTF)
-            }
-        case kCVImageBufferColorPrimaries_ITU_R_2020:
-            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
-                return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
-            } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
-                return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
-            } else {
-                return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
             }
         default:
             return CGColorSpace(name: CGColorSpace.sRGB)
@@ -420,8 +400,19 @@ public final class VideoVTBFrame: MEFrame {
     public let fps: Float
     public let isDovi: Bool
     public var edrMetaData: EDRMetaData? = nil
-    var corePixelBuffer: PixelBufferProtocol?
-    init(fps: Float, isDovi: Bool) {
+    public var pixelBuffer: PixelBufferProtocol
+    public var doviData: dovi_metadata? = nil {
+        didSet {
+            if doviData != nil {
+                pixelBuffer.cvPixelBuffer?.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+            }
+        }
+    }
+
+    public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
+        self.pixelBuffer = pixelBuffer
+        // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不会，所以统一设置下。
+        pixelBuffer.updateColorspace()
         self.fps = fps
         self.isDovi = isDovi
     }
@@ -441,10 +432,13 @@ extension VideoVTBFrame {
                 return CAEDRMetadata.hlg
             }
         }
-        if corePixelBuffer?.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
+        if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
             return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
-        } else if corePixelBuffer?.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
+        } else if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
             return CAEDRMetadata.hlg
+        }
+        if let doviData {
+            return CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance, maxLuminance: doviData.maxLuminance, opticalOutputScale: 10000)
         }
         return nil
     }
@@ -537,5 +531,17 @@ public extension [UInt8] {
         append(UInt8(newElement >> 8 & 0xFF))
         append(UInt8(newElement >> 16 & 0xFF))
         append(UInt8(newElement >> 24 & 0xFF))
+    }
+}
+
+extension simd_float3 {
+    init(tuple: (AVRational, AVRational, AVRational)) {
+        self.init(x: tuple.0.float, y: tuple.1.float, z: tuple.2.float)
+    }
+}
+
+extension simd_float3x3 {
+    init(tuple: (AVRational, AVRational, AVRational, AVRational, AVRational, AVRational, AVRational, AVRational, AVRational)) {
+        self.init(simd_float3(tuple.0.float, tuple.1.float, tuple.2.float), simd_float3(tuple.3.float, tuple.4.float, tuple.5.float), simd_float3(tuple.6.float, tuple.7.float, tuple.8.float))
     }
 }

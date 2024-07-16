@@ -101,7 +101,7 @@ variant_for_slice()
   "libass.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libass.xcframework/tvos-arm64_arm64e")
+  "libass.xcframework/tvos-arm64")
     echo ""
     ;;
   "libass.xcframework/tvos-arm64_x86_64-simulator")
@@ -203,8 +203,8 @@ archs_for_slice()
   "libass.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libass.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libass.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libass.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -300,5 +300,5 @@ install_xcframework() {
 install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libfreetype.xcframework" "Libass/Libass" "framework" "tvos-arm64_arm64e" "tvos-arm64_x86_64-simulator"
 install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libfribidi.xcframework" "Libass/Libass" "framework" "tvos-arm64_arm64e" "tvos-arm64_x86_64-simulator"
 install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libharfbuzz.xcframework" "Libass/Libass" "framework" "tvos-arm64_arm64e" "tvos-arm64_x86_64-simulator"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libass.xcframework" "Libass/Libass" "framework" "tvos-arm64_arm64e" "tvos-arm64_x86_64-simulator"
+install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libass.xcframework" "Libass/Libass" "framework" "tvos-arm64" "tvos-arm64_x86_64-simulator"
 

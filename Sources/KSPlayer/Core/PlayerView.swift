@@ -40,7 +40,7 @@ public protocol PlayerControllerDelegate: AnyObject {
 
 open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     public typealias ControllerDelegate = PlayerControllerDelegate
-    public var playerLayer: KSPlayerLayer? {
+    public var playerLayer: KSComplexPlayerLayer? {
         didSet {
             playerLayer?.delegate = self
         }
@@ -48,7 +48,6 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
 
     public weak var delegate: ControllerDelegate?
     public let toolBar = PlayerToolBar()
-    public let srtControl = SubtitleModel()
     // Listen to play time change
     public var playTimeDidChange: ((TimeInterval, TimeInterval) -> Void)?
     public var backBlock: (() -> Void)?
@@ -148,10 +147,9 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     }
 
     open func set(url: URL, options: KSOptions) {
-        srtControl.url = url
         toolBar.currentTime = 0
         totalTime = 0
-        playerLayer = KSPlayerLayer(url: url, options: options)
+        playerLayer = KSComplexPlayerLayer(url: url, options: options)
     }
 
     // MARK: - KSSliderDelegate
@@ -179,13 +177,9 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
             }
             if let subtitleDataSouce = layer.player.subtitleDataSouce {
                 // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2.5) { [weak self] in
                     guard let self else { return }
-                    self.srtControl.addSubtitle(dataSouce: subtitleDataSouce)
-                    if self.srtControl.selectedSubtitleInfo == nil, layer.options.autoSelectEmbedSubtitle {
-                        self.srtControl.selectedSubtitleInfo = self.srtControl.subtitleInfos.first { $0.isEnabled }
-                    }
-                    self.toolBar.srtButton.isHidden = self.srtControl.subtitleInfos.isEmpty
+                    self.toolBar.srtButton.isHidden = layer.subtitleModel.subtitleInfos.isEmpty
                     if #available(iOS 14.0, tvOS 15.0, *) {
                         self.buildMenusForButtons()
                     }
@@ -251,12 +245,15 @@ public extension PlayerView {
                 self.playerLayer?.player.playbackRate = value
             }
         }
-        toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: srtControl.selectedSubtitleInfo, list: srtControl.subtitleInfos, addDisabled: true) { value in
-            value.name
-        } completition: { [weak self] value in
-            guard let self else { return }
-            self.srtControl.selectedSubtitleInfo = value
+        if let subtitleModel = playerLayer?.subtitleModel {
+            toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: subtitleModel.selectedSubtitleInfo, list: subtitleModel.subtitleInfos, addDisabled: true) { value in
+                value.name
+            } completition: { [weak self] value in
+                guard let self else { return }
+                subtitleModel.selectedSubtitleInfo = value
+            }
         }
+
         #if os(iOS)
         toolBar.definitionButton.showsMenuAsPrimaryAction = true
         toolBar.videoSwitchButton.showsMenuAsPrimaryAction = true
@@ -269,7 +266,7 @@ public extension PlayerView {
 
     func set(subtitleTrack: any SubtitleInfo) {
         // setup the subtitle track
-        srtControl.selectedSubtitleInfo = subtitleTrack
+        playerLayer?.subtitleModel.selectedSubtitleInfo = subtitleTrack
     }
 }
 

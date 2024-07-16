@@ -1,0 +1,561 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1D04940177738BB046695E31 /* Pods_demo_visionOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C61DBE5F55C854CD7D1DA08 /* Pods_demo_visionOS.framework */; };
+		ACB51D7B2C3ECE2B0056C1D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = ACB51D7A2C3ECE2B0056C1D0 /* RealityKitContent */; };
+		ACB51D7D2C3ECE2B0056C1D0 /* demo_visionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB51D7C2C3ECE2B0056C1D0 /* demo_visionOSApp.swift */; };
+		ACB51D7F2C3ECE2B0056C1D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB51D7E2C3ECE2B0056C1D0 /* ContentView.swift */; };
+		ACB51D812C3ECE2D0056C1D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACB51D802C3ECE2D0056C1D0 /* Assets.xcassets */; };
+		ACB51D842C3ECE2D0056C1D0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACB51D832C3ECE2D0056C1D0 /* Preview Assets.xcassets */; };
+		ACB51D8F2C3ECE2D0056C1D0 /* demo_visionOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB51D8E2C3ECE2D0056C1D0 /* demo_visionOSTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		ACB51D8B2C3ECE2D0056C1D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ACB51D6D2C3ECE2B0056C1D0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ACB51D742C3ECE2B0056C1D0;
+			remoteInfo = "demo-visionOS";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		03C15AEA650F1784BE6127F2 /* Pods-demo-visionOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-demo-visionOS.release.xcconfig"; path = "Target Support Files/Pods-demo-visionOS/Pods-demo-visionOS.release.xcconfig"; sourceTree = "<group>"; };
+		0C61DBE5F55C854CD7D1DA08 /* Pods_demo_visionOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_demo_visionOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACB51D752C3ECE2B0056C1D0 /* demo-visionOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "demo-visionOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACB51D792C3ECE2B0056C1D0 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		ACB51D7C2C3ECE2B0056C1D0 /* demo_visionOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = demo_visionOSApp.swift; sourceTree = "<group>"; };
+		ACB51D7E2C3ECE2B0056C1D0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		ACB51D802C3ECE2D0056C1D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		ACB51D832C3ECE2D0056C1D0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		ACB51D852C3ECE2D0056C1D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		ACB51D8A2C3ECE2D0056C1D0 /* demo-visionOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "demo-visionOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACB51D8E2C3ECE2D0056C1D0 /* demo_visionOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = demo_visionOSTests.swift; sourceTree = "<group>"; };
+		EA06ADDBE2DC41F064260A71 /* Pods-demo-visionOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-demo-visionOS.debug.xcconfig"; path = "Target Support Files/Pods-demo-visionOS/Pods-demo-visionOS.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		ACB51D722C3ECE2B0056C1D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACB51D7B2C3ECE2B0056C1D0 /* RealityKitContent in Frameworks */,
+				1D04940177738BB046695E31 /* Pods_demo_visionOS.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACB51D872C3ECE2D0056C1D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8431A4F2DC6C7A716CF44064 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0C61DBE5F55C854CD7D1DA08 /* Pods_demo_visionOS.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9BBFA2F233BDFEF6E72CFE29 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				EA06ADDBE2DC41F064260A71 /* Pods-demo-visionOS.debug.xcconfig */,
+				03C15AEA650F1784BE6127F2 /* Pods-demo-visionOS.release.xcconfig */,
+			);
+			name = Pods;
+			path = ../Pods;
+			sourceTree = "<group>";
+		};
+		ACB51D6C2C3ECE2B0056C1D0 = {
+			isa = PBXGroup;
+			children = (
+				ACB51D772C3ECE2B0056C1D0 /* demo-visionOS */,
+				ACB51D782C3ECE2B0056C1D0 /* Packages */,
+				ACB51D8D2C3ECE2D0056C1D0 /* demo-visionOSTests */,
+				ACB51D762C3ECE2B0056C1D0 /* Products */,
+				9BBFA2F233BDFEF6E72CFE29 /* Pods */,
+				8431A4F2DC6C7A716CF44064 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		ACB51D762C3ECE2B0056C1D0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				ACB51D752C3ECE2B0056C1D0 /* demo-visionOS.app */,
+				ACB51D8A2C3ECE2D0056C1D0 /* demo-visionOSTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ACB51D772C3ECE2B0056C1D0 /* demo-visionOS */ = {
+			isa = PBXGroup;
+			children = (
+				ACB51D7C2C3ECE2B0056C1D0 /* demo_visionOSApp.swift */,
+				ACB51D7E2C3ECE2B0056C1D0 /* ContentView.swift */,
+				ACB51D802C3ECE2D0056C1D0 /* Assets.xcassets */,
+				ACB51D852C3ECE2D0056C1D0 /* Info.plist */,
+				ACB51D822C3ECE2D0056C1D0 /* Preview Content */,
+			);
+			path = "demo-visionOS";
+			sourceTree = "<group>";
+		};
+		ACB51D782C3ECE2B0056C1D0 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				ACB51D792C3ECE2B0056C1D0 /* RealityKitContent */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		ACB51D822C3ECE2D0056C1D0 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				ACB51D832C3ECE2D0056C1D0 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		ACB51D8D2C3ECE2D0056C1D0 /* demo-visionOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				ACB51D8E2C3ECE2D0056C1D0 /* demo_visionOSTests.swift */,
+			);
+			path = "demo-visionOSTests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		ACB51D742C3ECE2B0056C1D0 /* demo-visionOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ACB51D922C3ECE2D0056C1D0 /* Build configuration list for PBXNativeTarget "demo-visionOS" */;
+			buildPhases = (
+				77F84188176B1A0EA5997753 /* [CP] Check Pods Manifest.lock */,
+				ACB51D712C3ECE2B0056C1D0 /* Sources */,
+				ACB51D722C3ECE2B0056C1D0 /* Frameworks */,
+				ACB51D732C3ECE2B0056C1D0 /* Resources */,
+				1C4BCC751D1EF0D56502B1E1 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "demo-visionOS";
+			packageProductDependencies = (
+				ACB51D7A2C3ECE2B0056C1D0 /* RealityKitContent */,
+			);
+			productName = "demo-visionOS";
+			productReference = ACB51D752C3ECE2B0056C1D0 /* demo-visionOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		ACB51D892C3ECE2D0056C1D0 /* demo-visionOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ACB51D952C3ECE2D0056C1D0 /* Build configuration list for PBXNativeTarget "demo-visionOSTests" */;
+			buildPhases = (
+				ACB51D862C3ECE2D0056C1D0 /* Sources */,
+				ACB51D872C3ECE2D0056C1D0 /* Frameworks */,
+				ACB51D882C3ECE2D0056C1D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				ACB51D8C2C3ECE2D0056C1D0 /* PBXTargetDependency */,
+			);
+			name = "demo-visionOSTests";
+			productName = "demo-visionOSTests";
+			productReference = ACB51D8A2C3ECE2D0056C1D0 /* demo-visionOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		ACB51D6D2C3ECE2B0056C1D0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					ACB51D742C3ECE2B0056C1D0 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					ACB51D892C3ECE2D0056C1D0 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = ACB51D742C3ECE2B0056C1D0;
+					};
+				};
+			};
+			buildConfigurationList = ACB51D702C3ECE2B0056C1D0 /* Build configuration list for PBXProject "demo-visionOS" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = ACB51D6C2C3ECE2B0056C1D0;
+			productRefGroup = ACB51D762C3ECE2B0056C1D0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				ACB51D742C3ECE2B0056C1D0 /* demo-visionOS */,
+				ACB51D892C3ECE2D0056C1D0 /* demo-visionOSTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		ACB51D732C3ECE2B0056C1D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACB51D842C3ECE2D0056C1D0 /* Preview Assets.xcassets in Resources */,
+				ACB51D812C3ECE2D0056C1D0 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACB51D882C3ECE2D0056C1D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1C4BCC751D1EF0D56502B1E1 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-demo-visionOS/Pods-demo-visionOS-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-demo-visionOS/Pods-demo-visionOS-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-demo-visionOS/Pods-demo-visionOS-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		77F84188176B1A0EA5997753 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-demo-visionOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		ACB51D712C3ECE2B0056C1D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACB51D7F2C3ECE2B0056C1D0 /* ContentView.swift in Sources */,
+				ACB51D7D2C3ECE2B0056C1D0 /* demo_visionOSApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACB51D862C3ECE2D0056C1D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACB51D8F2C3ECE2D0056C1D0 /* demo_visionOSTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		ACB51D8C2C3ECE2D0056C1D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ACB51D742C3ECE2B0056C1D0 /* demo-visionOS */;
+			targetProxy = ACB51D8B2C3ECE2D0056C1D0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		ACB51D902C3ECE2D0056C1D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = xros;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		ACB51D912C3ECE2D0056C1D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = xros;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+		ACB51D932C3ECE2D0056C1D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EA06ADDBE2DC41F064260A71 /* Pods-demo-visionOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"demo-visionOS/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.test.demo-visionOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
+		ACB51D942C3ECE2D0056C1D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 03C15AEA650F1784BE6127F2 /* Pods-demo-visionOS.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"demo-visionOS/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.test.demo-visionOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
+		ACB51D962C3ECE2D0056C1D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.test.demo-visionOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 7;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/demo-visionOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/demo-visionOS";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		ACB51D972C3ECE2D0056C1D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.test.demo-visionOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 7;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/demo-visionOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/demo-visionOS";
+				XROS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		ACB51D702C3ECE2B0056C1D0 /* Build configuration list for PBXProject "demo-visionOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACB51D902C3ECE2D0056C1D0 /* Debug */,
+				ACB51D912C3ECE2D0056C1D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ACB51D922C3ECE2D0056C1D0 /* Build configuration list for PBXNativeTarget "demo-visionOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACB51D932C3ECE2D0056C1D0 /* Debug */,
+				ACB51D942C3ECE2D0056C1D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ACB51D952C3ECE2D0056C1D0 /* Build configuration list for PBXNativeTarget "demo-visionOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACB51D962C3ECE2D0056C1D0 /* Debug */,
+				ACB51D972C3ECE2D0056C1D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		ACB51D7A2C3ECE2B0056C1D0 /* RealityKitContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RealityKitContent;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = ACB51D6D2C3ECE2B0056C1D0 /* Project object */;
+}

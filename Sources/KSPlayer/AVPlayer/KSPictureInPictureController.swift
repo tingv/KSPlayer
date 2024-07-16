@@ -7,18 +7,25 @@
 
 import AVKit
 
+public protocol KSPictureInPictureProtocol {
+    func start(layer: KSComplexPlayerLayer)
+    func stop(restoreUserInterface: Bool)
+    static func mute()
+}
+
+@MainActor
 @available(tvOS 14.0, *)
-public class KSPictureInPictureController: AVPictureInPictureController {
+public class KSPictureInPictureController: AVPictureInPictureController, KSPictureInPictureProtocol {
     private static var pipController: KSPictureInPictureController?
-    private var layer: KSPlayerLayer?
+    private var layer: KSComplexPlayerLayer?
     private weak var originalViewController: UIViewController?
     private weak var viewController: UIViewController?
     private weak var presentingViewController: UIViewController?
     #if canImport(UIKit)
     private weak var navigationController: UINavigationController?
     #endif
-    @MainActor
-    func start(layer: KSPlayerLayer) {
+
+    public func start(layer: KSComplexPlayerLayer) {
         startPictureInPicture()
         self.layer = layer
         guard KSOptions.isPipPopViewController else {
@@ -54,8 +61,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
         KSPictureInPictureController.pipController = self
     }
 
-    @MainActor
-    func stop(restoreUserInterface: Bool) {
+    public func stop(restoreUserInterface: Bool) {
         stopPictureInPicture()
         guard KSOptions.isPipPopViewController else {
             layer = nil
@@ -93,7 +99,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
         layer = nil
     }
 
-    static func mute() {
+    public static func mute() {
         pipController?.layer?.player.isMuted = true
     }
 }

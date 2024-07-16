@@ -66,6 +66,9 @@ extension AVCodecParameters {
             avcodec_free_context(&codecContextOption)
             throw NSError(errorCode: .codecContextFindDecoder, avErrorCode: result)
         }
+        if KSOptions.logLevel == .debug {
+            codecContext.pointee.debug |= FF_DEBUG_PICT_INFO
+        }
         codecContext.pointee.codec_id = codec.pointee.id
         codecContext.pointee.flags2 |= AV_CODEC_FLAG2_FAST
         if options?.codecLowDelay == true {
@@ -316,6 +319,8 @@ extension AVCodecID {
             return .mpeg4Video
         case AV_CODEC_ID_VP9:
             return CMFormatDescription.MediaSubType(rawValue: kCMVideoCodecType_VP9)
+        case AV_CODEC_ID_AV1:
+            return CMFormatDescription.MediaSubType(rawValue: kCMVideoCodecType_AV1)
         case AV_CODEC_ID_AAC:
             return .mpeg4AAC
         case AV_CODEC_ID_AC3:
@@ -355,6 +360,10 @@ extension AVCodecID {
 extension AVRational {
     var size: CGSize {
         num > 0 && den > 0 ? CGSize(width: Int(num), height: Int(den)) : .one
+    }
+
+    var float: Float {
+        Float(num) / Float(den)
     }
 }
 

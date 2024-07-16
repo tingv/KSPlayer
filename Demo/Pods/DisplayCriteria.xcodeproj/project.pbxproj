@@ -7,54 +7,68 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03421C4E85236D0F963FFF2B182FC7C5 /* DisplayCriteria-iOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 335E086312F4964E3426311FA09E1A9B /* DisplayCriteria-iOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		18D14C5016DC0912B0A7E591BA4CD798 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = 71CA163E283EB945194039F48E4F2E4E /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		379176DD3F9579F0516B5C9B03AF538A /* DisplayCriteria-tvOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 54A0778BAD6ED907C372B2BBE0E8D270 /* DisplayCriteria-tvOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		380C3D60B0F28976AB4D2B90E5F56162 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = 71CA163E283EB945194039F48E4F2E4E /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		538F44A8D7C8CC45A9B1B1C779F1D955 /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C68CDE56696CAB41DCF88323DDD9E00 /* DisplayCriteria.m */; };
-		641729ACA4E236686B4AE065237A3A39 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = 71CA163E283EB945194039F48E4F2E4E /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		73449C7D7BF1634CB412436D559DCFFF /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 665C1E94617EA11A0980DF329A217A4B /* Cocoa.framework */; };
-		80B843B16BA0007843DD26CFF6C58C33 /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C68CDE56696CAB41DCF88323DDD9E00 /* DisplayCriteria.m */; };
-		81B931F51CF6FF67E4E80E14F0A01A7E /* DisplayCriteria-tvOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = E91AC89B5FCB82AC9F55AF8A8A48CB3D /* DisplayCriteria-tvOS-dummy.m */; };
-		93BDFAEAAA024DA0CBB9DC43B4550FFB /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C68CDE56696CAB41DCF88323DDD9E00 /* DisplayCriteria.m */; };
-		9A10D9F7C6A10FA82DC2387D6CDCDE50 /* DisplayCriteria-iOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 695FEF20736CA5F0E824284E79EEA30C /* DisplayCriteria-iOS-dummy.m */; };
-		B7797EF4EB94EF6C9358C450AC290BA9 /* DisplayCriteria-macOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = E483E48296F6C049FCB02252C0EEE877 /* DisplayCriteria-macOS-dummy.m */; };
-		D4EA68F7C280727A20935012AB930AA2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21D859CF00DB3D7F098B1D1B653FF53B /* Foundation.framework */; };
-		E3FF6754EE8398B991E3E19D81698CAC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97D27DAD58A16A469B5C799024EFC354 /* Foundation.framework */; };
-		F9C3D464CF1E212A4E670F63230B14A6 /* DisplayCriteria-macOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 61EEE1D9415B6359507261CC8A481700 /* DisplayCriteria-macOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		03421C4E85236D0F963FFF2B182FC7C5 /* DisplayCriteria-iOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = B9444F89F8939FF5435FF20E72F0BAB1 /* DisplayCriteria-iOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18D14C5016DC0912B0A7E591BA4CD798 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = EBE62EE100F568F26F529C587CDD716D /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2E56669BEA54B5C028ED88ED1029B2E1 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = EBE62EE100F568F26F529C587CDD716D /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		332DD48485640635B0BD73314273EF12 /* DisplayCriteria-visionOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 429A37A207BA803264324D7C94AE551B /* DisplayCriteria-visionOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		379176DD3F9579F0516B5C9B03AF538A /* DisplayCriteria-tvOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = B9B735120750CA55C73E8777C07DC62D /* DisplayCriteria-tvOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		380C3D60B0F28976AB4D2B90E5F56162 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = EBE62EE100F568F26F529C587CDD716D /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3BD0ED5E9A6C4C63ED509C0E5887332C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 793F353202C452A803F41DC079B6437E /* Foundation.framework */; };
+		538F44A8D7C8CC45A9B1B1C779F1D955 /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F61AEF1886DF9892BCE1E654E61FF70 /* DisplayCriteria.m */; };
+		641729ACA4E236686B4AE065237A3A39 /* AVDisplayCriteriaKS.h in Headers */ = {isa = PBXBuildFile; fileRef = EBE62EE100F568F26F529C587CDD716D /* AVDisplayCriteriaKS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		73449C7D7BF1634CB412436D559DCFFF /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFC76802F4983B47DA7D521D402FF926 /* Cocoa.framework */; };
+		80B843B16BA0007843DD26CFF6C58C33 /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F61AEF1886DF9892BCE1E654E61FF70 /* DisplayCriteria.m */; };
+		81B931F51CF6FF67E4E80E14F0A01A7E /* DisplayCriteria-tvOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 88F7E308F329396DFE95340E6077569B /* DisplayCriteria-tvOS-dummy.m */; };
+		93BDFAEAAA024DA0CBB9DC43B4550FFB /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F61AEF1886DF9892BCE1E654E61FF70 /* DisplayCriteria.m */; };
+		9A10D9F7C6A10FA82DC2387D6CDCDE50 /* DisplayCriteria-iOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = CE378D72B8926F8C4C83ACF9FD510DF4 /* DisplayCriteria-iOS-dummy.m */; };
+		9FC584A9371A3B7CA3F0475D1EE6EEBC /* DisplayCriteria-visionOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B98AF340DC6A59B33BFFF98E3FAFFFF /* DisplayCriteria-visionOS-dummy.m */; };
+		B37DF32C51E461EE7B78EE926587BFEC /* DisplayCriteria.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F61AEF1886DF9892BCE1E654E61FF70 /* DisplayCriteria.m */; };
+		B7797EF4EB94EF6C9358C450AC290BA9 /* DisplayCriteria-macOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 8022F56C900A63C07052A444BB5672F2 /* DisplayCriteria-macOS-dummy.m */; };
+		D4EA68F7C280727A20935012AB930AA2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49E5B5ADE082EAEDE31535DE2A0B9A1B /* Foundation.framework */; };
+		E3FF6754EE8398B991E3E19D81698CAC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 253B1A7F07B83C6D8CAD40560E3FAF3C /* Foundation.framework */; };
+		F9C3D464CF1E212A4E670F63230B14A6 /* DisplayCriteria-macOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CCB2E851CDA1A6FD846004D51172EEB /* DisplayCriteria-macOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		092E7AF8670EA609C6037CF54D463B2B /* DisplayCriteria-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-macOS.debug.xcconfig"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS.debug.xcconfig"; sourceTree = "<group>"; };
+		05C8F0963EF49F3DDFC4A15814AC5989 /* DisplayCriteria-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "DisplayCriteria-iOS.release.xcconfig"; sourceTree = "<group>"; };
+		0B98AF340DC6A59B33BFFF98E3FAFFFF /* DisplayCriteria-visionOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "DisplayCriteria-visionOS-dummy.m"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS-dummy.m"; sourceTree = "<group>"; };
 		0F9BC21C5AF491A63641420319B8D167 /* DisplayCriteria-macOS */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "DisplayCriteria-macOS"; path = DisplayCriteria.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		21D859CF00DB3D7F098B1D1B653FF53B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		335E086312F4964E3426311FA09E1A9B /* DisplayCriteria-iOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "DisplayCriteria-iOS-umbrella.h"; sourceTree = "<group>"; };
-		3EDA6354F3FD37C70F798B5A9CA05FF6 /* DisplayCriteria-tvOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "DisplayCriteria-tvOS-Info.plist"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-Info.plist"; sourceTree = "<group>"; };
-		44A3B2F8709BABD0E253654FA9B2F055 /* DisplayCriteria-iOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "DisplayCriteria-iOS.modulemap"; sourceTree = "<group>"; };
-		54A0778BAD6ED907C372B2BBE0E8D270 /* DisplayCriteria-tvOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-tvOS-umbrella.h"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-umbrella.h"; sourceTree = "<group>"; };
-		60AD233E52097AA952CCA415ACCFA30F /* DisplayCriteria-iOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "DisplayCriteria-iOS-Info.plist"; sourceTree = "<group>"; };
-		61EEE1D9415B6359507261CC8A481700 /* DisplayCriteria-macOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-macOS-umbrella.h"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-umbrella.h"; sourceTree = "<group>"; };
-		665C1E94617EA11A0980DF329A217A4B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		695FEF20736CA5F0E824284E79EEA30C /* DisplayCriteria-iOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "DisplayCriteria-iOS-dummy.m"; sourceTree = "<group>"; };
-		71CA163E283EB945194039F48E4F2E4E /* AVDisplayCriteriaKS.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = AVDisplayCriteriaKS.h; sourceTree = "<group>"; };
-		7C68CDE56696CAB41DCF88323DDD9E00 /* DisplayCriteria.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = DisplayCriteria.m; path = Sources/DisplayCriteria/DisplayCriteria.m; sourceTree = "<group>"; };
-		830F92CB29BFECADB0419B57BC50B2FD /* DisplayCriteria.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = DisplayCriteria.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		8A9CED3254FBB7B94EC82E65474E58FD /* DisplayCriteria-tvOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; name = "DisplayCriteria-tvOS.modulemap"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS.modulemap"; sourceTree = "<group>"; };
+		1B9CA5240EA0F3722B05434C45F9B137 /* DisplayCriteria-visionOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; name = "DisplayCriteria-visionOS.modulemap"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS.modulemap"; sourceTree = "<group>"; };
+		253B1A7F07B83C6D8CAD40560E3FAF3C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		2E6A11082252BADFFD85B3CC14164D66 /* DisplayCriteria-tvOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; name = "DisplayCriteria-tvOS.modulemap"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS.modulemap"; sourceTree = "<group>"; };
+		33CDAF2D21F1E04AE91F308F14D758C9 /* DisplayCriteria-visionOS */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "DisplayCriteria-visionOS"; path = DisplayCriteria.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FEAF98E6B5DCEA75259D2B975726AB7 /* DisplayCriteria-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "DisplayCriteria-iOS.debug.xcconfig"; sourceTree = "<group>"; };
+		429A37A207BA803264324D7C94AE551B /* DisplayCriteria-visionOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-visionOS-umbrella.h"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS-umbrella.h"; sourceTree = "<group>"; };
+		49E5B5ADE082EAEDE31535DE2A0B9A1B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		4D71554771EBF964DEBB63C3B058CB35 /* DisplayCriteria-macOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "DisplayCriteria-macOS-Info.plist"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-Info.plist"; sourceTree = "<group>"; };
+		4F61AEF1886DF9892BCE1E654E61FF70 /* DisplayCriteria.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = DisplayCriteria.m; path = Sources/DisplayCriteria/DisplayCriteria.m; sourceTree = "<group>"; };
+		5E2A97C325928D402A231FB2DFC988BE /* DisplayCriteria-visionOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-visionOS.debug.xcconfig"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS.debug.xcconfig"; sourceTree = "<group>"; };
+		5E4A2E2664110D6760EBEC2045525043 /* DisplayCriteria-iOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "DisplayCriteria-iOS-prefix.pch"; sourceTree = "<group>"; };
+		64529B8595AD7BCE9CF3C55784EE6DB4 /* DisplayCriteria-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-tvOS.release.xcconfig"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		6669F0D1B3DE4D551A3BAD1C62D6D368 /* DisplayCriteria-iOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "DisplayCriteria-iOS-Info.plist"; sourceTree = "<group>"; };
+		7898EC49CF77D44C296FC8EA980DE53E /* DisplayCriteria-macOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; name = "DisplayCriteria-macOS.modulemap"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS.modulemap"; sourceTree = "<group>"; };
+		793F353202C452A803F41DC079B6437E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		7B224C4756058966C22F06C96ED1FF48 /* DisplayCriteria-iOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "DisplayCriteria-iOS.modulemap"; sourceTree = "<group>"; };
+		7F2DFB8C9AC8C19168663574F1C64A70 /* DisplayCriteria-tvOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-tvOS-prefix.pch"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-prefix.pch"; sourceTree = "<group>"; };
+		8022F56C900A63C07052A444BB5672F2 /* DisplayCriteria-macOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "DisplayCriteria-macOS-dummy.m"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-dummy.m"; sourceTree = "<group>"; };
+		88F7E308F329396DFE95340E6077569B /* DisplayCriteria-tvOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "DisplayCriteria-tvOS-dummy.m"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-dummy.m"; sourceTree = "<group>"; };
+		8A1347885D7EAA3DC5AB02697EE0B9E5 /* DisplayCriteria.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = DisplayCriteria.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		977173C186DEB5C6EFE17D9314E08B6C /* DisplayCriteria-tvOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "DisplayCriteria-tvOS-Info.plist"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-Info.plist"; sourceTree = "<group>"; };
 		97AFA156B6FE0978010C7941960CE6F5 /* DisplayCriteria-iOS */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "DisplayCriteria-iOS"; path = DisplayCriteria.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		97D27DAD58A16A469B5C799024EFC354 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		9923B112FBA29682AC7F5303206169E3 /* DisplayCriteria-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "DisplayCriteria-iOS.release.xcconfig"; sourceTree = "<group>"; };
-		9DCE9A90A0FF2FAAE76C8CCCC07D6244 /* DisplayCriteria-iOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "DisplayCriteria-iOS-prefix.pch"; sourceTree = "<group>"; };
-		A4FF2B2A99A78A550000E27F50DDB37D /* DisplayCriteria-tvOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-tvOS-prefix.pch"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-prefix.pch"; sourceTree = "<group>"; };
+		9CCB2E851CDA1A6FD846004D51172EEB /* DisplayCriteria-macOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-macOS-umbrella.h"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-umbrella.h"; sourceTree = "<group>"; };
+		9CCC6A4E4EF1397AB8828FD955269BFA /* DisplayCriteria-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-macOS.release.xcconfig"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		9E1A21993881BA2617D69FF37E6490B4 /* DisplayCriteria-visionOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-visionOS.release.xcconfig"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS.release.xcconfig"; sourceTree = "<group>"; };
+		ACE20C3C62A00EDB81C0D65495AB6B42 /* DisplayCriteria-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-macOS.debug.xcconfig"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS.debug.xcconfig"; sourceTree = "<group>"; };
+		B9444F89F8939FF5435FF20E72F0BAB1 /* DisplayCriteria-iOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "DisplayCriteria-iOS-umbrella.h"; sourceTree = "<group>"; };
+		B9B735120750CA55C73E8777C07DC62D /* DisplayCriteria-tvOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-tvOS-umbrella.h"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-umbrella.h"; sourceTree = "<group>"; };
 		BB5B1AC8F4E4FE14A6398BBACE7F3AEB /* DisplayCriteria-tvOS */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "DisplayCriteria-tvOS"; path = DisplayCriteria.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD3DA7F0028C9804B63B8D07305DD1F2 /* DisplayCriteria-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "DisplayCriteria-iOS.debug.xcconfig"; sourceTree = "<group>"; };
-		CBF788532F430AA6B6ADA69256648B23 /* DisplayCriteria-macOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "DisplayCriteria-macOS-Info.plist"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-Info.plist"; sourceTree = "<group>"; };
-		E297144B718993D7F5CFAB0A4044DBDD /* DisplayCriteria-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-tvOS.debug.xcconfig"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
-		E483E48296F6C049FCB02252C0EEE877 /* DisplayCriteria-macOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "DisplayCriteria-macOS-dummy.m"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-dummy.m"; sourceTree = "<group>"; };
-		E91AC89B5FCB82AC9F55AF8A8A48CB3D /* DisplayCriteria-tvOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "DisplayCriteria-tvOS-dummy.m"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS-dummy.m"; sourceTree = "<group>"; };
-		EAEC13766E79E3BDF2D52493C8E182CD /* DisplayCriteria-macOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-macOS-prefix.pch"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-prefix.pch"; sourceTree = "<group>"; };
-		EB2546FD5027B707B7150E55711388F3 /* DisplayCriteria-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-tvOS.release.xcconfig"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS.release.xcconfig"; sourceTree = "<group>"; };
-		EB48536BE9C3C139976758A7B6D07CFE /* DisplayCriteria-macOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; name = "DisplayCriteria-macOS.modulemap"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS.modulemap"; sourceTree = "<group>"; };
-		F5534F7E77A784EBD562F6E82C49B3DC /* DisplayCriteria-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-macOS.release.xcconfig"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		BEA15E1E039338921846862D573C8275 /* DisplayCriteria-macOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-macOS-prefix.pch"; path = "../DisplayCriteria-macOS/DisplayCriteria-macOS-prefix.pch"; sourceTree = "<group>"; };
+		BFA1D7D07B699671A375F5355C8EE5E4 /* DisplayCriteria-visionOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "DisplayCriteria-visionOS-Info.plist"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS-Info.plist"; sourceTree = "<group>"; };
+		BFC76802F4983B47DA7D521D402FF926 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		CE378D72B8926F8C4C83ACF9FD510DF4 /* DisplayCriteria-iOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "DisplayCriteria-iOS-dummy.m"; sourceTree = "<group>"; };
+		EA9FB32326A00A21F23C4A5B99C67351 /* DisplayCriteria-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "DisplayCriteria-tvOS.debug.xcconfig"; path = "../DisplayCriteria-tvOS/DisplayCriteria-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		EBE62EE100F568F26F529C587CDD716D /* AVDisplayCriteriaKS.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = AVDisplayCriteriaKS.h; sourceTree = "<group>"; };
+		FFA1EE1632054A9875A71D74A2863B7F /* DisplayCriteria-visionOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "DisplayCriteria-visionOS-prefix.pch"; path = "../DisplayCriteria-visionOS/DisplayCriteria-visionOS-prefix.pch"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +77,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				E3FF6754EE8398B991E3E19D81698CAC /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6F1BDCFE8B15980FC7EE752B86273F47 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3BD0ED5E9A6C4C63ED509C0E5887332C /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,86 +107,50 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		03C15C30BD57C2F0FF311E29F1C7C60C /* DisplayCriteria */ = {
+		231F438E9F51C0927FD35B70726D3CF2 /* visionOS */ = {
 			isa = PBXGroup;
 			children = (
-				7C68CDE56696CAB41DCF88323DDD9E00 /* DisplayCriteria.m */,
-				1CC5EEAFB8F95448448ABC40043B7BB9 /* include */,
-				2E903A6BD551FBD49657D2FC266FB2C4 /* Pod */,
-				1946BD6B82C4000AFB19BA7C5BFC306A /* Support Files */,
+				793F353202C452A803F41DC079B6437E /* Foundation.framework */,
 			);
-			name = DisplayCriteria;
-			path = ../..;
+			name = visionOS;
 			sourceTree = "<group>";
 		};
-		043DB78E7EAEAE6B3C11F7AC19994E16 /* OS X */ = {
+		388A4AF183C0EE638C7E97A46C2743D5 /* include */ = {
 			isa = PBXGroup;
 			children = (
-				665C1E94617EA11A0980DF329A217A4B /* Cocoa.framework */,
-			);
-			name = "OS X";
-			sourceTree = "<group>";
-		};
-		1946BD6B82C4000AFB19BA7C5BFC306A /* Support Files */ = {
-			isa = PBXGroup;
-			children = (
-				44A3B2F8709BABD0E253654FA9B2F055 /* DisplayCriteria-iOS.modulemap */,
-				695FEF20736CA5F0E824284E79EEA30C /* DisplayCriteria-iOS-dummy.m */,
-				60AD233E52097AA952CCA415ACCFA30F /* DisplayCriteria-iOS-Info.plist */,
-				9DCE9A90A0FF2FAAE76C8CCCC07D6244 /* DisplayCriteria-iOS-prefix.pch */,
-				335E086312F4964E3426311FA09E1A9B /* DisplayCriteria-iOS-umbrella.h */,
-				BD3DA7F0028C9804B63B8D07305DD1F2 /* DisplayCriteria-iOS.debug.xcconfig */,
-				9923B112FBA29682AC7F5303206169E3 /* DisplayCriteria-iOS.release.xcconfig */,
-				EB48536BE9C3C139976758A7B6D07CFE /* DisplayCriteria-macOS.modulemap */,
-				E483E48296F6C049FCB02252C0EEE877 /* DisplayCriteria-macOS-dummy.m */,
-				CBF788532F430AA6B6ADA69256648B23 /* DisplayCriteria-macOS-Info.plist */,
-				EAEC13766E79E3BDF2D52493C8E182CD /* DisplayCriteria-macOS-prefix.pch */,
-				61EEE1D9415B6359507261CC8A481700 /* DisplayCriteria-macOS-umbrella.h */,
-				092E7AF8670EA609C6037CF54D463B2B /* DisplayCriteria-macOS.debug.xcconfig */,
-				F5534F7E77A784EBD562F6E82C49B3DC /* DisplayCriteria-macOS.release.xcconfig */,
-				8A9CED3254FBB7B94EC82E65474E58FD /* DisplayCriteria-tvOS.modulemap */,
-				E91AC89B5FCB82AC9F55AF8A8A48CB3D /* DisplayCriteria-tvOS-dummy.m */,
-				3EDA6354F3FD37C70F798B5A9CA05FF6 /* DisplayCriteria-tvOS-Info.plist */,
-				A4FF2B2A99A78A550000E27F50DDB37D /* DisplayCriteria-tvOS-prefix.pch */,
-				54A0778BAD6ED907C372B2BBE0E8D270 /* DisplayCriteria-tvOS-umbrella.h */,
-				E297144B718993D7F5CFAB0A4044DBDD /* DisplayCriteria-tvOS.debug.xcconfig */,
-				EB2546FD5027B707B7150E55711388F3 /* DisplayCriteria-tvOS.release.xcconfig */,
-			);
-			name = "Support Files";
-			path = "Demo/Pods/Target Support Files/DisplayCriteria-iOS";
-			sourceTree = "<group>";
-		};
-		1CC5EEAFB8F95448448ABC40043B7BB9 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				71CA163E283EB945194039F48E4F2E4E /* AVDisplayCriteriaKS.h */,
+				EBE62EE100F568F26F529C587CDD716D /* AVDisplayCriteriaKS.h */,
 			);
 			name = include;
 			path = Sources/DisplayCriteria/include;
 			sourceTree = "<group>";
 		};
-		2E903A6BD551FBD49657D2FC266FB2C4 /* Pod */ = {
+		434575BC2654AA1121F15F314F1E7753 /* DisplayCriteria */ = {
 			isa = PBXGroup;
 			children = (
-				830F92CB29BFECADB0419B57BC50B2FD /* DisplayCriteria.podspec */,
+				4F61AEF1886DF9892BCE1E654E61FF70 /* DisplayCriteria.m */,
+				388A4AF183C0EE638C7E97A46C2743D5 /* include */,
+				7F28F547A808AE2E79B105009F27F563 /* Pod */,
+				E9356B67923BD63111C1087825AA5322 /* Support Files */,
 			);
-			name = Pod;
+			name = DisplayCriteria;
+			path = ../..;
 			sourceTree = "<group>";
 		};
-		5A2C553952477704CCB8307CE7AD7405 /* Frameworks */ = {
+		4B3F07AB5A2A8BE2BA91551F9803ADBF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C83DC7D77DE2AF1947E52545F3F11F86 /* iOS */,
-				043DB78E7EAEAE6B3C11F7AC19994E16 /* OS X */,
-				5A75C7F9A5319C292101C5783254E53D /* tvOS */,
+				97AFA156B6FE0978010C7941960CE6F5 /* DisplayCriteria-iOS */,
+				0F9BC21C5AF491A63641420319B8D167 /* DisplayCriteria-macOS */,
+				BB5B1AC8F4E4FE14A6398BBACE7F3AEB /* DisplayCriteria-tvOS */,
+				33CDAF2D21F1E04AE91F308F14D758C9 /* DisplayCriteria-visionOS */,
 			);
-			name = Frameworks;
+			name = Products;
 			sourceTree = "<group>";
 		};
-		5A75C7F9A5319C292101C5783254E53D /* tvOS */ = {
+		64F90E962B384E9CD416D7A99B4E90CF /* tvOS */ = {
 			isa = PBXGroup;
 			children = (
-				97D27DAD58A16A469B5C799024EFC354 /* Foundation.framework */,
+				253B1A7F07B83C6D8CAD40560E3FAF3C /* Foundation.framework */,
 			);
 			name = tvOS;
 			sourceTree = "<group>";
@@ -172,28 +158,81 @@
 		75F81488C1DF5A39397EF858329D7061 = {
 			isa = PBXGroup;
 			children = (
-				03C15C30BD57C2F0FF311E29F1C7C60C /* DisplayCriteria */,
-				5A2C553952477704CCB8307CE7AD7405 /* Frameworks */,
-				CBC3E699C15AECB294C814FAD133513A /* Products */,
+				434575BC2654AA1121F15F314F1E7753 /* DisplayCriteria */,
+				A15DF58FE485A2A9CDD1FCA872BC421E /* Frameworks */,
+				4B3F07AB5A2A8BE2BA91551F9803ADBF /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		C83DC7D77DE2AF1947E52545F3F11F86 /* iOS */ = {
+		7F28F547A808AE2E79B105009F27F563 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
-				21D859CF00DB3D7F098B1D1B653FF53B /* Foundation.framework */,
+				8A1347885D7EAA3DC5AB02697EE0B9E5 /* DisplayCriteria.podspec */,
+			);
+			name = Pod;
+			sourceTree = "<group>";
+		};
+		842641B99A62D05066C008FE1694EEEE /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				BFC76802F4983B47DA7D521D402FF926 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		A09BA32F96F20E7609F8F8A63E277122 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				49E5B5ADE082EAEDE31535DE2A0B9A1B /* Foundation.framework */,
 			);
 			name = iOS;
 			sourceTree = "<group>";
 		};
-		CBC3E699C15AECB294C814FAD133513A /* Products */ = {
+		A15DF58FE485A2A9CDD1FCA872BC421E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				97AFA156B6FE0978010C7941960CE6F5 /* DisplayCriteria-iOS */,
-				0F9BC21C5AF491A63641420319B8D167 /* DisplayCriteria-macOS */,
-				BB5B1AC8F4E4FE14A6398BBACE7F3AEB /* DisplayCriteria-tvOS */,
+				A09BA32F96F20E7609F8F8A63E277122 /* iOS */,
+				842641B99A62D05066C008FE1694EEEE /* OS X */,
+				64F90E962B384E9CD416D7A99B4E90CF /* tvOS */,
+				231F438E9F51C0927FD35B70726D3CF2 /* visionOS */,
 			);
-			name = Products;
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E9356B67923BD63111C1087825AA5322 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				7B224C4756058966C22F06C96ED1FF48 /* DisplayCriteria-iOS.modulemap */,
+				CE378D72B8926F8C4C83ACF9FD510DF4 /* DisplayCriteria-iOS-dummy.m */,
+				6669F0D1B3DE4D551A3BAD1C62D6D368 /* DisplayCriteria-iOS-Info.plist */,
+				5E4A2E2664110D6760EBEC2045525043 /* DisplayCriteria-iOS-prefix.pch */,
+				B9444F89F8939FF5435FF20E72F0BAB1 /* DisplayCriteria-iOS-umbrella.h */,
+				3FEAF98E6B5DCEA75259D2B975726AB7 /* DisplayCriteria-iOS.debug.xcconfig */,
+				05C8F0963EF49F3DDFC4A15814AC5989 /* DisplayCriteria-iOS.release.xcconfig */,
+				7898EC49CF77D44C296FC8EA980DE53E /* DisplayCriteria-macOS.modulemap */,
+				8022F56C900A63C07052A444BB5672F2 /* DisplayCriteria-macOS-dummy.m */,
+				4D71554771EBF964DEBB63C3B058CB35 /* DisplayCriteria-macOS-Info.plist */,
+				BEA15E1E039338921846862D573C8275 /* DisplayCriteria-macOS-prefix.pch */,
+				9CCB2E851CDA1A6FD846004D51172EEB /* DisplayCriteria-macOS-umbrella.h */,
+				ACE20C3C62A00EDB81C0D65495AB6B42 /* DisplayCriteria-macOS.debug.xcconfig */,
+				9CCC6A4E4EF1397AB8828FD955269BFA /* DisplayCriteria-macOS.release.xcconfig */,
+				2E6A11082252BADFFD85B3CC14164D66 /* DisplayCriteria-tvOS.modulemap */,
+				88F7E308F329396DFE95340E6077569B /* DisplayCriteria-tvOS-dummy.m */,
+				977173C186DEB5C6EFE17D9314E08B6C /* DisplayCriteria-tvOS-Info.plist */,
+				7F2DFB8C9AC8C19168663574F1C64A70 /* DisplayCriteria-tvOS-prefix.pch */,
+				B9B735120750CA55C73E8777C07DC62D /* DisplayCriteria-tvOS-umbrella.h */,
+				EA9FB32326A00A21F23C4A5B99C67351 /* DisplayCriteria-tvOS.debug.xcconfig */,
+				64529B8595AD7BCE9CF3C55784EE6DB4 /* DisplayCriteria-tvOS.release.xcconfig */,
+				1B9CA5240EA0F3722B05434C45F9B137 /* DisplayCriteria-visionOS.modulemap */,
+				0B98AF340DC6A59B33BFFF98E3FAFFFF /* DisplayCriteria-visionOS-dummy.m */,
+				BFA1D7D07B699671A375F5355C8EE5E4 /* DisplayCriteria-visionOS-Info.plist */,
+				FFA1EE1632054A9875A71D74A2863B7F /* DisplayCriteria-visionOS-prefix.pch */,
+				429A37A207BA803264324D7C94AE551B /* DisplayCriteria-visionOS-umbrella.h */,
+				5E2A97C325928D402A231FB2DFC988BE /* DisplayCriteria-visionOS.debug.xcconfig */,
+				9E1A21993881BA2617D69FF37E6490B4 /* DisplayCriteria-visionOS.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "Demo/Pods/Target Support Files/DisplayCriteria-iOS";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -205,6 +244,15 @@
 			files = (
 				18D14C5016DC0912B0A7E591BA4CD798 /* AVDisplayCriteriaKS.h in Headers */,
 				03421C4E85236D0F963FFF2B182FC7C5 /* DisplayCriteria-iOS-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49A16465D9FC8F016C5DB8FD46704892 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E56669BEA54B5C028ED88ED1029B2E1 /* AVDisplayCriteriaKS.h in Headers */,
+				332DD48485640635B0BD73314273EF12 /* DisplayCriteria-visionOS-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -229,6 +277,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		10D6E2515C486AC9C2560B7F4B120F73 /* DisplayCriteria-visionOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FFE340429379C4AE10950C8E80CB1811 /* Build configuration list for PBXNativeTarget "DisplayCriteria-visionOS" */;
+			buildPhases = (
+				49A16465D9FC8F016C5DB8FD46704892 /* Headers */,
+				EB59724B3416A2189A7BC46B5A80E28A /* Sources */,
+				6F1BDCFE8B15980FC7EE752B86273F47 /* Frameworks */,
+				5F883FDA6E11F2A445F9E323F182AF76 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "DisplayCriteria-visionOS";
+			productName = DisplayCriteria;
+			productReference = 33CDAF2D21F1E04AE91F308F14D758C9 /* DisplayCriteria-visionOS */;
+			productType = "com.apple.product-type.framework";
+		};
 		1CCB077996AC3A8590B3C4ED40815F77 /* DisplayCriteria-iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B9A5AE162936E92D14DCE9B478AE03FB /* Build configuration list for PBXNativeTarget "DisplayCriteria-iOS" */;
@@ -301,18 +367,26 @@
 				en,
 			);
 			mainGroup = 75F81488C1DF5A39397EF858329D7061;
-			productRefGroup = CBC3E699C15AECB294C814FAD133513A /* Products */;
+			productRefGroup = 4B3F07AB5A2A8BE2BA91551F9803ADBF /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				1CCB077996AC3A8590B3C4ED40815F77 /* DisplayCriteria-iOS */,
 				CBC14E47093C1CDAC387FADFFF093763 /* DisplayCriteria-macOS */,
 				B2CAA65768CAEB010F26FB99B2B67AC0 /* DisplayCriteria-tvOS */,
+				10D6E2515C486AC9C2560B7F4B120F73 /* DisplayCriteria-visionOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5F883FDA6E11F2A445F9E323F182AF76 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ABD30421986E5D11E7C8C5F007654502 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -364,12 +438,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EB59724B3416A2189A7BC46B5A80E28A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B37DF32C51E461EE7B78EE926587BFEC /* DisplayCriteria.m in Sources */,
+				9FC584A9371A3B7CA3F0475D1EE6EEBC /* DisplayCriteria-visionOS-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		0025D11C1E5A1F23766EE2A93102C923 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E297144B718993D7F5CFAB0A4044DBDD /* DisplayCriteria-tvOS.debug.xcconfig */;
+			baseConfigurationReference = EA9FB32326A00A21F23C4A5B99C67351 /* DisplayCriteria-tvOS.debug.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -404,7 +487,7 @@
 		};
 		1731D27FFA653AA2470695E97AEB4D75 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9923B112FBA29682AC7F5303206169E3 /* DisplayCriteria-iOS.release.xcconfig */;
+			baseConfigurationReference = 05C8F0963EF49F3DDFC4A15814AC5989 /* DisplayCriteria-iOS.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
@@ -441,7 +524,7 @@
 		};
 		2474BBF9BFE82952F36223F0BF9A853B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BD3DA7F0028C9804B63B8D07305DD1F2 /* DisplayCriteria-iOS.debug.xcconfig */;
+			baseConfigurationReference = 3FEAF98E6B5DCEA75259D2B975726AB7 /* DisplayCriteria-iOS.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
@@ -477,7 +560,7 @@
 		};
 		639C229C10E559C3985FEF8A2973D96F /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F5534F7E77A784EBD562F6E82C49B3DC /* DisplayCriteria-macOS.release.xcconfig */;
+			baseConfigurationReference = 9CCC6A4E4EF1397AB8828FD955269BFA /* DisplayCriteria-macOS.release.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -514,7 +597,7 @@
 		};
 		63DEEB0ECD6CEABD918BED0F56ACB2F6 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 092E7AF8670EA609C6037CF54D463B2B /* DisplayCriteria-macOS.debug.xcconfig */;
+			baseConfigurationReference = ACE20C3C62A00EDB81C0D65495AB6B42 /* DisplayCriteria-macOS.debug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -549,7 +632,7 @@
 			};
 			name = Debug;
 		};
-		68C32475037F1AB2219017B5DE759B24 /* Debug */ = {
+		6CE087B3692A9164EEE444B98E3D1F9D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -614,12 +697,42 @@
 				SWIFT_VERSION = 5.0;
 				SYMROOT = "${SRCROOT}/../build";
 				TVOS_DEPLOYMENT_TARGET = 13.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Debug;
 		};
+		71A8956CF644FFA523C8D609EC52DBCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9E1A21993881BA2617D69FF37E6490B4 /* DisplayCriteria-visionOS.release.xcconfig */;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_PREFIX_HEADER = "Target Support Files/DisplayCriteria-visionOS/DisplayCriteria-visionOS-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/DisplayCriteria-visionOS/DisplayCriteria-visionOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/DisplayCriteria-visionOS/DisplayCriteria-visionOS.modulemap";
+				PRODUCT_MODULE_NAME = DisplayCriteria;
+				PRODUCT_NAME = DisplayCriteria;
+				SDKROOT = xros;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
 		7B3B2AA25D2D7EE6A523F318AE95C400 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EB2546FD5027B707B7150E55711388F3 /* DisplayCriteria-tvOS.release.xcconfig */;
+			baseConfigurationReference = 64529B8595AD7BCE9CF3C55784EE6DB4 /* DisplayCriteria-tvOS.release.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -653,7 +766,7 @@
 			};
 			name = Release;
 		};
-		B07753E7D341051B2281B61234BA11B0 /* Release */ = {
+		86968340AA7071C6E752AAC5C3D280C1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -714,8 +827,38 @@
 				SWIFT_VERSION = 5.0;
 				SYMROOT = "${SRCROOT}/../build";
 				TVOS_DEPLOYMENT_TARGET = 13.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Release;
+		};
+		94447AA2A1D2E3321FF1A43E371271A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5E2A97C325928D402A231FB2DFC988BE /* DisplayCriteria-visionOS.debug.xcconfig */;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_PREFIX_HEADER = "Target Support Files/DisplayCriteria-visionOS/DisplayCriteria-visionOS-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/DisplayCriteria-visionOS/DisplayCriteria-visionOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/DisplayCriteria-visionOS/DisplayCriteria-visionOS.modulemap";
+				PRODUCT_MODULE_NAME = DisplayCriteria;
+				PRODUCT_NAME = DisplayCriteria;
+				SDKROOT = xros;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -741,8 +884,8 @@
 		959576A54D7904B22AB2309B3CD940EA /* Build configuration list for PBXProject "DisplayCriteria" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				68C32475037F1AB2219017B5DE759B24 /* Debug */,
-				B07753E7D341051B2281B61234BA11B0 /* Release */,
+				6CE087B3692A9164EEE444B98E3D1F9D /* Debug */,
+				86968340AA7071C6E752AAC5C3D280C1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -752,6 +895,15 @@
 			buildConfigurations = (
 				2474BBF9BFE82952F36223F0BF9A853B /* Debug */,
 				1731D27FFA653AA2470695E97AEB4D75 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FFE340429379C4AE10950C8E80CB1811 /* Build configuration list for PBXNativeTarget "DisplayCriteria-visionOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				94447AA2A1D2E3321FF1A43E371271A4 /* Debug */,
+				71A8956CF644FFA523C8D609EC52DBCF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

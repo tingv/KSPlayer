@@ -17,7 +17,7 @@ let package = Package(
         .library(name: "MPVPlayer", targets: ["MPVPlayer"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/littleTurnip/FFmpegKit.git", exact: "7.0.1"),
+        .package(url: "https://github.com/littleTurnip/FFmpegKit.git", exact: "7.0.2"),
     ],
     targets: [
         .target(
@@ -34,12 +34,12 @@ let package = Package(
             name: "KSPlayer",
             dependencies: [
                 .product(name: "FFmpegKit", package: "FFmpegKit"),
-                .product(name: "renderer", package: "FFmpegKit"),
                 "DisplayCriteria",
             ],
-            resources: [.process("Metal/Shaders.metal")],
+            resources: [.process("Metal/Resources")],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
+                .enableUpcomingFeature("StrictConcurrency"),
             ]
         ),
         .target(
@@ -50,5 +50,6 @@ let package = Package(
             dependencies: ["KSPlayer"],
             resources: [.process("Resources")]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
