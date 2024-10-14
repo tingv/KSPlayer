@@ -1046,7 +1046,12 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 
     public func setVideo(time: CMTime, position: Int64) {
 //        KSLog("[video] video interval \(CACurrentMediaTime() - videoClock.lastMediaTime) video diff \(time.seconds - videoClock.time.seconds)")
-        videoClock.time = CMTime(seconds: videoClock.getTime(), preferredTimescale: time.timescale)
+        let oldTime = videoClock.getTime()
+        if abs(oldTime - time.seconds) > 1 {
+            videoClock.time = time
+        } else {
+            videoClock.time = CMTime(seconds: oldTime, preferredTimescale: time.timescale)
+        }
         videoClock.position = position
         videoDisplayCount += 1
         let diff = videoClock.lastMediaTime - lastVideoClock.lastMediaTime
@@ -1077,7 +1082,8 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
         var type: ClockProcessType = force ? .next : .remain
         let predicate: ((VideoVTBFrame, Int) -> Bool)? = force ? nil : { [weak self] frame, count -> Bool in
             guard let self else { return true }
-            (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: self.mainClock(), nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
+            let main = KSOptions.audioVideoClockSync ? self.mainClock() : videoClock
+            (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: main, nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
             if case .remain = type {
                 return false
             } else {

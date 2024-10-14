@@ -89,6 +89,7 @@ open class KSOptions {
     public static var isSeekedAutoPlay = true
     /// 是否开启秒开
     public var isSecondOpen = KSOptions.isSecondOpen
+    public static var audioVideoClockSync = true
     /// Applies to short videos only
     public var isLoopPlay = KSOptions.isLoopPlay
     open func adaptable(state: VideoAdaptationState?) -> (Int64, Int64)? {
@@ -289,7 +290,7 @@ open class KSOptions {
 
     // MARK: audio options
 
-    public static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
+    public static var audioPlayerType: AudioOutput.Type = AudioUnitPlayer.self
     public var audioFilters = [String]()
     public var syncDecodeAudio = false
     open func wantedAudio(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {

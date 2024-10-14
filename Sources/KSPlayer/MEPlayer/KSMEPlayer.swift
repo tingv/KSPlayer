@@ -284,7 +284,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 }
             }
         } else {
-            if loadingState.isFirst {
+            if loadingState.isFirst || loadingState.isSeek {
                 runOnMainThread { [weak self] in
                     // 在主线程更新进度
                     if let videoOutput = self?.videoOutput, videoOutput.pixelBuffer == nil {
