@@ -150,6 +150,8 @@ public class AudioEnginePlayer: AudioOutput {
     }
 
     public required init() {
+        // 有人反馈没有reset的话，音频播放可能会出问题。所以一开始就reset一下
+        engine.reset()
         engine.attach(timePitch)
         if let audioUnit = engine.outputNode.audioUnit {
             addRenderNotify(audioUnit: audioUnit)
