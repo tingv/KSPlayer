@@ -192,7 +192,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    func change(state: KSPlayerState) {
+    open func change(state: KSPlayerState) {
         if state == .initialized {
             bufferedCount = 0
             shouldSeekTo = 0
@@ -209,7 +209,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    func play(currentTime: TimeInterval) {
+    open func play(currentTime: TimeInterval) {
         if player.playbackState != .seeking {
             if subtitleModel.isHDR != options.isHDR {
                 subtitleModel.isHDR = options.isHDR
@@ -273,7 +273,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 
 //    deinit之前调用stop
-    public func stop() {
+    open func stop() {
         KSLog("stop KSPlayerLayer")
         state = .initialized
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
@@ -362,7 +362,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    public func changeLoadState(player: some MediaPlayerProtocol) {
+    open func changeLoadState(player: some MediaPlayerProtocol) {
         guard player.playbackState != .seeking else {
             // seek的时候不要变成是buffering。不然会以为处于播放状态，显示播放按钮。
             return
@@ -546,7 +546,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         }
     }
 
-    override func change(state: KSPlayerState) {
+    override open func change(state: KSPlayerState) {
         super.change(state: state)
         if state == .initialized {
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
@@ -599,7 +599,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         }
     }
 
-    override public func stop() {
+    override open func stop() {
         super.stop()
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
