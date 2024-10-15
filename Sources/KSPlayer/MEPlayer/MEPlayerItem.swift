@@ -1082,7 +1082,16 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
         var type: ClockProcessType = force ? .next : .remain
         let predicate: ((VideoVTBFrame, Int) -> Bool)? = force ? nil : { [weak self] frame, count -> Bool in
             guard let self else { return true }
-            let main = KSOptions.audioVideoClockSync ? self.mainClock() : videoClock
+            let main: KSClock
+            if KSOptions.audioVideoClockSync {
+                main = self.mainClock()
+            } else {
+                if isAudioStalled || abs(audioClock.getTime() - videoClock.getTime()) < 1 {
+                    main = videoClock
+                } else {
+                    main = audioClock
+                }
+            }
             (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: main, nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
             if case .remain = type {
                 return false
