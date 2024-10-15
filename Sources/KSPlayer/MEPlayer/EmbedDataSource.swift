@@ -27,7 +27,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
             /// 这样非空字幕就无法清除了。所以这边需要更新下字幕的结束时间。（字幕有进行了排序了）
             var prePart: SubtitlePart?
             for part in parts {
-                if let prePart, prePart.end == .infinity {
+                if let prePart, prePart.end == .infinity, part.isEmpty {
                     prePart.end = part.start
                 }
                 prePart = part
