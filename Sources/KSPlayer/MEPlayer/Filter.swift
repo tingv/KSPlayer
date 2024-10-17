@@ -13,7 +13,7 @@ class MEFilter {
     private var graph: UnsafeMutablePointer<AVFilterGraph>?
     private var bufferSrcContext: UnsafeMutablePointer<AVFilterContext>?
     private var bufferSinkContext: UnsafeMutablePointer<AVFilterContext>?
-    private var filters: String?
+    var filters: String?
     let timebase: Timebase
     private var format = Int32(0)
     private var height = Int32(0)
@@ -137,12 +137,15 @@ class MEFilter {
                 return
             }
         }
+        let duration = inputFrame.pointee.duration
         let ret = av_buffersrc_add_frame_flags(bufferSrcContext, inputFrame, 0)
         if ret < 0 {
             return
         }
         while av_buffersink_get_frame_flags(bufferSinkContext, inputFrame, 0) >= 0 {
-//                timebase = Timebase(av_buffersink_get_time_base(bufferSinkContext))
+            if !isVideo {
+                inputFrame.pointee.duration = duration
+            }
             completionHandler(inputFrame)
             // 一定要加av_frame_unref，不然会内存泄漏。
             av_frame_unref(inputFrame)

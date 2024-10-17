@@ -339,6 +339,7 @@ open class SubtitleModel: ObservableObject {
 
     public func subtitle(currentTime: TimeInterval, playSize: CGSize, screenSize: CGSize) {
         self.screenSize = screenSize
+//        KSLog("[subtitle] currentTime \(currentTime)")
         Task { @MainActor in
             var newParts = [SubtitlePart]()
             if let subtile = selectedSubtitleInfo {

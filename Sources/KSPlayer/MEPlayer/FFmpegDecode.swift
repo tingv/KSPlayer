@@ -210,6 +210,10 @@ class FFmpegDecode: DecodeProtocol {
                     frame.duration = Int64(avframe.pointee.nb_samples) * Int64(frame.timebase.den) / (Int64(avframe.pointee.sample_rate) * Int64(frame.timebase.num))
                 }
                 var timestamp = avframe.pointee.best_effort_timestamp
+                // 音频倍速有可能会出现相邻两个帧时间戳一样的情况。所以这里做一下判断。为了不影响正常的播放，所以加下filter的判断
+                if !isVideo, filter.filters != nil, timestamp > 0, timestamp + frame.duration == bestEffortTimestamp {
+                    timestamp += frame.duration
+                }
                 if timestamp < 0 {
                     timestamp = avframe.pointee.pts
                 }
