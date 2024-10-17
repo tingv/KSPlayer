@@ -157,27 +157,37 @@ public extension KSOptions {
     // MARK: PlayerSlider options
 
     // tvos的seek是否需要确认键
+    @MainActor
     static var seekRequireConfirmation = true
     // 圆点大小
+    @MainActor
     static var thumbSize: CGSize = .init(width: 15, height: 15)
     // 交互面积，比圆点要大一些
     #if os(tvOS)
+    @MainActor
     static var interactiveSize: CGSize = .init(width: 20, height: 20)
     #else
+    @MainActor
     static var interactiveSize: CGSize = .init(width: 25, height: 25)
     #endif
     // 轨道高度
+    @MainActor
     static var trackHeight: CGFloat = 5
 
     // 圆点颜色
+    @MainActor
     static var thumbColor = Color.white
     // 轨道颜色
+    @MainActor
     static var trackColor = Color.white.opacity(0.5)
     // 播放进度颜色
+    @MainActor
     static var progressColor = Color.green.opacity(0.8)
     // 播放进度颜色
+    @MainActor
     static var focusProgressColor = Color.red.opacity(0.9)
     // 缓存进度颜色
+    @MainActor
     static var bufferColor = Color.white.opacity(0.9)
 }
 

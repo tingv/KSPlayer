@@ -7,6 +7,7 @@
 
 import AVKit
 
+@MainActor
 public protocol KSPictureInPictureProtocol {
     func start(layer: KSComplexPlayerLayer)
     func stop(restoreUserInterface: Bool)

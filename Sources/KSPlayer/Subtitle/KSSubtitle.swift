@@ -240,6 +240,7 @@ extension Collection where Element: NumericComparable {
     }
 }
 
+@MainActor
 open class SubtitleModel: ObservableObject {
     public enum Size {
         case smaller

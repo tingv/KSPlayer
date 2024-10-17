@@ -417,9 +417,8 @@ extension KSAVPlayer: MediaPlayerProtocol {
             self?.bufferingProgress = 0
         }
         let tolerance: CMTime = options.isAccurateSeek ? .zero : .positiveInfinity
-        player.seek(to: CMTime(seconds: time), toleranceBefore: tolerance, toleranceAfter: tolerance) {
-            [weak self] finished in
-            guard let self else { return }
+        Task { @MainActor in
+            let finished = await player.seek(to: CMTime(seconds: time), toleranceBefore: tolerance, toleranceAfter: tolerance)
             self.shouldSeekTo = 0
             completion(finished)
         }

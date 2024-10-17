@@ -108,10 +108,13 @@ extension AssImageRenderer: KSSubtitleProtocol {
         let boundingRect = images.map(\.imageRect).boundingRect()
         let imagePipeline: ImagePipelineType.Type
         /// 如果图片大于10张的话，那要用PointerImagePipeline。
-        if images.count > 10 {
-            imagePipeline = PointerImagePipeline.self
+        /// 图片小的话，用PointerImagePipeline 差不多是0.0001，而Accelerate要0.0003。
+        /// 图片大的话  用Accelerate差不多0.005 ，而PointerImagePipeline差不多要0.04
+
+        if images.count <= 10, #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
+            imagePipeline = vImage.PixelBuffer<vImage.Interleaved8x4>.self
         } else {
-            imagePipeline = KSOptions.imagePipelineType
+            imagePipeline = PointerImagePipeline.self
         }
         guard let image = imagePipeline.process(images: images, boundingRect: boundingRect, isHDR: isHDR) else {
             return nil
@@ -148,17 +151,4 @@ public extension ImagePipelineType {
     static func process(images: [ASS_Image], boundingRect: CGRect, isHDR: Bool) -> CGImage? {
         Self(images: images, boundingRect: boundingRect).cgImage(isHDR: isHDR, alphaInfo: .first)
     }
-}
-
-public extension KSOptions {
-    static var imagePipelineType: ImagePipelineType.Type = {
-        /// 图片小的话，用PointerImagePipeline 差不多是0.0001，而Accelerate要0.0003。
-        /// 图片大的话  用Accelerate差不多0.005 ，而PointerImagePipeline差不多要0.04
-
-        if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
-            return vImage.PixelBuffer<vImage.Interleaved8x4>.self
-        } else {
-            return PointerImagePipeline.self
-        }
-    }()
 }

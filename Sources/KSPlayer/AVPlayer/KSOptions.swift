@@ -27,7 +27,11 @@ open class KSOptions {
     public internal(set) var readVideoTime = 0.0
     public internal(set) var decodeAudioTime = 0.0
     public internal(set) var decodeVideoTime = 0.0
+    @MainActor
     public init() {
+        isSecondOpen = KSOptions.isSecondOpen
+        maxBufferDuration = KSOptions.maxBufferDuration
+        preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
         formatContextOptions["user_agent"] = userAgent
         // 参数的配置可以参考protocols.texi 和 http.c
         // 这个一定要，不然有的流就会判断不准FieldOrder
@@ -72,26 +76,34 @@ open class KSOptions {
 
     // MARK: playback options
 
-    public static var stackSize = 65536
+    public nonisolated(unsafe) static var stackSize = 65536
     public var startPlayTime: TimeInterval = 0
     public var startPlayRate: Float = 1.0
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
+    @MainActor
     public static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
+    @MainActor
     public static var secondPlayerType: MediaPlayerProtocol.Type? = KSMEPlayer.self
+    @MainActor
     public static var playerLayerType: KSPlayerLayer.Type = KSComplexPlayerLayer.self
     /// 是否开启秒开
+    @MainActor
     public static var isSecondOpen = false
     /// Applies to short videos only
-    public static var isLoopPlay = false
+    public nonisolated(unsafe) static var isLoopPlay = false
     /// 是否自动播放，默认true
+    @MainActor
     public static var isAutoPlay = true
     /// seek完是否自动播放
+    @MainActor
     public static var isSeekedAutoPlay = true
     /// 是否开启秒开
-    public var isSecondOpen = KSOptions.isSecondOpen
+    public var isSecondOpen: Bool
+    @MainActor
     public static var audioVideoClockSync = true
     /// Applies to short videos only
     public var isLoopPlay = KSOptions.isLoopPlay
+    @MainActor
     open func adaptable(state: VideoAdaptationState?) -> (Int64, Int64)? {
         guard let state, let last = state.bitRateStates.last, CACurrentMediaTime() - last.time > maxBufferDuration / 2, let index = state.bitRates.firstIndex(of: last.bitRate) else {
             return nil
@@ -129,7 +141,7 @@ open class KSOptions {
     // MARK: seek options
 
     /// 开启精确seek
-    public static var isAccurateSeek = false
+    public nonisolated(unsafe) static var isAccurateSeek = false
     /// 开启精确seek
     public var isAccurateSeek = KSOptions.isAccurateSeek
     /// seek完是否自动播放
@@ -141,6 +153,7 @@ open class KSOptions {
      AVSEEK_FLAG_FRAME: 8
      */
     public var seekFlags = Int32(1)
+    @MainActor
     public static var seekInterruptIO = false
 
     // MARK: record options
@@ -194,7 +207,7 @@ open class KSOptions {
 
     // MARK: network options
 
-    public static var useSystemHTTPProxy = true
+    public nonisolated(unsafe) static var useSystemHTTPProxy = true
     // 没事不要设置probesize，不然会导致fps判断不准确。除非是很为了秒开或是其他原因才进行设置。
     public var probesize: Int64?
     public var maxAnalyzeDuration: Int64?
@@ -244,16 +257,19 @@ open class KSOptions {
     // MARK: cache options
 
     /// 最低缓存视频时间
+    @MainActor
     public static var preferredForwardBufferDuration = 3.0
     /// 最大缓存视频时间
+    @MainActor
     public static var maxBufferDuration = 30.0
     public var seekUsePacketCache = false
     /// 最低缓存视频时间
     @Published
-    public var preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
+    public var preferredForwardBufferDuration: Double
     /// 最大缓存视频时间
-    public var maxBufferDuration = KSOptions.maxBufferDuration
+    public var maxBufferDuration: Double
     // 缓冲算法函数
+    @MainActor
     open func playable(capacitys: [CapacityProtocol], isFirst: Bool, isSeek: Bool) -> LoadingState {
         let packetCount = capacitys.map(\.packetCount).min() ?? 0
         let frameCount = capacitys.map(\.frameCount).min() ?? 0
@@ -290,7 +306,7 @@ open class KSOptions {
 
     // MARK: audio options
 
-    public static var audioPlayerType: AudioOutput.Type = AudioUnitPlayer.self
+    public nonisolated(unsafe) static var audioPlayerType: AudioOutput.Type = AudioUnitPlayer.self
     public var audioFilters = [String]()
     public var syncDecodeAudio = false
     open func wantedAudio(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {
@@ -309,24 +325,30 @@ open class KSOptions {
     // MARK: subtile options
 
     static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
-    public static var defaultFont: URL?
-    public static var isASSUseImageRender = false
-    public static var isSRTUseImageRender = false
+    public nonisolated(unsafe) static var defaultFont: URL?
+    public nonisolated(unsafe) static var isASSUseImageRender = false
+    public nonisolated(unsafe) static var isSRTUseImageRender = false
     // 如果图片字幕的比率跟视频的比率不一致，是否要对图片进行伸缩
-    public static var isResizeImageSubtitle = false
+    public nonisolated(unsafe) static var isResizeImageSubtitle = false
     // 丢弃掉字幕自带的样式，用自定义的样式
+    @MainActor
     public static var stripSubtitleStyle = true
+    @MainActor
     public static var textColor: Color = .white
+    @MainActor
     public static var textBackgroundColor: Color = .clear
+    @MainActor
     public static var textFont: UIFont {
         textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
     }
 
-    public static var textFontSize = SubtitleModel.Size.standard.rawValue
-    public static var textBold = false
-    public static var textItalic = false
+    public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
+    public nonisolated(unsafe) static var textBold = false
+    public nonisolated(unsafe) static var textItalic = false
+    @MainActor
     public static var textPosition = TextPosition()
-    public static var audioRecognizes = [any AudioRecognize]()
+    public nonisolated(unsafe) static var audioRecognizes = [any AudioRecognize]()
+    @MainActor
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var subtitleDynamicRange = Image.DynamicRange.high
     public var autoSelectEmbedSubtitle = true
@@ -350,41 +372,52 @@ open class KSOptions {
     // MARK: video options
 
     /// 开启VR模式的陀飞轮
+
+    @MainActor
     public static var enableSensor = true
+    @MainActor
     public static var isClearVideoWhereReplace = true
+    @MainActor
     public static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
-    public static var yadifMode = 1
-    public static var deInterlaceAddIdet = false
-    public static var hardwareDecode = true
+    public nonisolated(unsafe) static var yadifMode = 1
+    public nonisolated(unsafe) static var deInterlaceAddIdet = false
+    public nonisolated(unsafe) static var hardwareDecode = true
     /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
     /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
-    public static var asynchronousDecompression = false
+    public nonisolated(unsafe) static var asynchronousDecompression = false
+    @MainActor
     public static var isPipPopViewController = false
     #if os(tvOS)
     // 现在xcode beta版本，会在_pipController crash。因为tvos目前也无法使用pip。所以先返回nil。
+    @MainActor
     public static var enablePictureInPicture = false
     #else
+    @MainActor
     public static var enablePictureInPicture = true
     #endif
 
+    @MainActor
     public static var canStartPictureInPictureAutomaticallyFromInline = true
+    @MainActor
     public static var preferredFrame = false
     #if os(tvOS)
     // tvos 只能在tmp上创建文件
+    @MainActor
     public static var recordDir: URL? = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("record")
     #else
+    @MainActor
     public static var recordDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("record")
     #endif
+    @MainActor
     public static var doviMatrix = simd_float3x3(1)
     public static let displayEnumPlane = PlaneDisplayModel()
     public static let displayEnumDovi = DoviDisplayModel()
-    @MainActor
     public static let displayEnumVR = VRDisplayModel()
-    @MainActor
     public static let displayEnumVRBox = VRBoxDisplayModel()
     @available(tvOS 14.0, *)
+    @MainActor
     public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
-    public static var videoSoftDecodeThreadCount = 4
+    public nonisolated(unsafe) static var videoSoftDecodeThreadCount = 4
     public var isHDR = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
@@ -400,6 +433,7 @@ open class KSOptions {
     public var canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
     public var automaticWindowResize = true
     public var videoSoftDecodeThreadCount = KSOptions.videoSoftDecodeThreadCount
+    @MainActor
     open func preferredFrame(fps: Float) -> Bool {
         KSOptions.preferredFrame || fps > 61
     }
@@ -426,6 +460,7 @@ open class KSOptions {
     }
 
     // 虽然只有iOS才支持PIP。但是因为AVSampleBufferDisplayLayer能够支持HDR10+。所以默认还是推荐用AVSampleBufferDisplayLayer
+    @MainActor
     open func isUseDisplayLayer() -> Bool {
         display === KSOptions.displayEnumPlane
     }
@@ -504,8 +539,8 @@ open class KSOptions {
 
     // MARK: log options
 
-    public static var logLevel = LogLevel.warning
-    public static var logger: LogHandler = OSLog(lable: "KSPlayer")
+    public nonisolated(unsafe) static var logLevel = LogLevel.warning
+    public nonisolated(unsafe) static var logger: LogHandler = OSLog(lable: "KSPlayer")
     open func urlIO(log: String) {
         if log.starts(with: "Original list of addresses"), dnsStartTime == 0 {
             dnsStartTime = CACurrentMediaTime()

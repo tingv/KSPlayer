@@ -174,6 +174,7 @@ public class Defaults: ObservableObject {
     }
 
     public static let shared = Defaults()
+    @MainActor
     private init() {
         KSOptions.hardwareDecode = hardwareDecode
         MEOptions.isUseDisplayLayer = isUseDisplayLayer

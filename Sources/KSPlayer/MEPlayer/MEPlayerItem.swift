@@ -191,6 +191,7 @@ public final class MEPlayerItem: Sendable {
         timer.fireDate = Date.distantPast
     }
 
+    @MainActor
     func select(track: some MediaPlayerTrack) -> Bool {
         if track.isEnabled {
             return false
@@ -226,9 +227,7 @@ public final class MEPlayerItem: Sendable {
         return true
     }
 
-//    deinit {
-//        KSLog("MEPlayerItem deinit")
-//    }
+    deinit {}
 }
 
 // MARK: private functions
@@ -378,9 +377,6 @@ extension MEPlayerItem {
             }
         }
 
-        if let outputURL = options.outputURL {
-            startRecord(url: outputURL)
-        }
         if videoTrack == nil, audioTrack == nil {
             state = .failed
         } else {
@@ -389,6 +385,7 @@ extension MEPlayerItem {
         }
     }
 
+    @MainActor
     public func startRecord(url: URL) {
         stopRecord()
         let filename = url.isFileURL ? url.path : url.absoluteString
@@ -697,11 +694,11 @@ extension MEPlayerItem {
                 }
                 isSeek = true
                 allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
-                codecDidChangeCapacity()
                 audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
+                    self.codecDidChangeCapacity()
                     self.seekingCompletionHandler?(result >= 0)
                     self.seekingCompletionHandler = nil
                 }
@@ -947,6 +944,7 @@ extension MEPlayerItem: MediaPlayback {
 }
 
 extension MEPlayerItem: CodecCapacityDelegate {
+    @MainActor
     func codecDidChangeCapacity() {
         var loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
         if state == .seeking {
@@ -998,12 +996,15 @@ extension MEPlayerItem: CodecCapacityDelegate {
                 audioTrack?.isLoopModel = false
                 videoTrack?.isLoopModel = false
                 if state == .finished {
-                    seek(time: 0) { _ in }
+                    runOnMainThread { [weak self] in
+                        self?.seek(time: 0) { _ in }
+                    }
                 }
             }
         }
     }
 
+    @MainActor
     private func adaptableVideo(loadingState: LoadingState) {
         if options.videoDisable || videoAdaptation == nil || loadingState.isEndOfFile || loadingState.isSeek || state == .seeking {
             return
@@ -1075,6 +1076,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
         }
     }
 
+    @MainActor
     public func getVideoOutputRender(force: Bool) -> VideoVTBFrame? {
         guard let videoTrack else {
             return nil

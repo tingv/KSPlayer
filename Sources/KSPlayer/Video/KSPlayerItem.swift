@@ -29,6 +29,7 @@ public class KSPlayerResource: Equatable, Hashable {
      - parameter cover:     video cover, will show before playing, and hide when play
      - parameter subtitleURLs: video subtitles
      */
+    @MainActor
     public convenience init(url: URL, options: KSOptions = KSOptions(), name: String = "", cover: URL? = nil, subtitleURLs: [URL]? = nil, extinf: [String: String]? = nil) {
         let definition = KSPlayerResourceDefinition(url: url, definition: "", options: options)
         let subtitleDataSource: SubtitleDataSource?
@@ -75,6 +76,7 @@ public struct KSPlayerResourceDefinition: Hashable {
     public let url: URL
     public let definition: String
     public let options: KSOptions
+    @MainActor
     public init(url: URL) {
         self.init(url: url, definition: url.lastPathComponent)
     }
@@ -86,6 +88,7 @@ public struct KSPlayerResourceDefinition: Hashable {
      - parameter definition: url deifination
      - parameter options:    specifying options for the initialization of the AVURLAsset
      */
+    @MainActor
     public init(url: URL, definition: String, options: KSOptions = KSOptions()) {
         self.url = url
         self.definition = definition

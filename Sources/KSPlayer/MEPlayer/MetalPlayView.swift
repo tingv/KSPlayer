@@ -15,6 +15,7 @@ import UIKit
 #else
 import AppKit
 #endif
+@MainActor
 public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
 //    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。

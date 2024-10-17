@@ -16,6 +16,7 @@ public protocol AudioOutput: FrameOutput {
     func prepare(audioFormat: AVAudioFormat)
 }
 
+@MainActor
 public protocol AudioDynamicsProcessor {
     var audioUnitForDynamicsProcessor: AudioUnit { get }
 }

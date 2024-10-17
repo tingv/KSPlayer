@@ -9,6 +9,7 @@ import UIKit
 #else
 import AppKit
 #endif
+@MainActor
 public protocol SeekViewProtocol {
     func set(text: String, isAdd: Bool)
 }

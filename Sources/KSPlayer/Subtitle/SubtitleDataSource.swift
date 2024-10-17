@@ -20,8 +20,9 @@ public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
     public var isEnabled: Bool = false {
         didSet {
             if isEnabled, searchProtocol == nil {
-                Task {
-                    try? await parse(url: downloadURL, userAgent: userAgent)
+                Task { [weak self] in
+                    guard let self else { return }
+                    try? await self.parse(url: self.downloadURL, userAgent: self.userAgent)
                 }
             }
         }
@@ -81,10 +82,12 @@ public protocol CacheSubtitleDataSource: URLSubtitleDataSource {
 }
 
 public extension KSOptions {
+    @MainActor
     static var subtitleDataSources: [SubtitleDataSource] = [DirectorySubtitleDataSource()]
 }
 
-public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource {
+public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource, @unchecked Sendable {
+    @MainActor
     public static let singleton = PlistCacheSubtitleDataSource()
     private let srtCacheInfoPath: String
     // 因为plist不能保存URL
@@ -96,11 +99,11 @@ public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource {
         }
         srtCacheInfoPath = (cacheFolder as NSString).appendingPathComponent("KSSrtInfo.plist")
         srtInfoCaches = [String: [String]]()
-        DispatchQueue.global().async { [weak self] in
+        Task { [weak self] in
             guard let self else {
                 return
             }
-            self.srtInfoCaches = (NSMutableDictionary(contentsOfFile: self.srtCacheInfoPath) as? [String: [String]]) ?? [String: [String]]()
+            srtInfoCaches = (NSMutableDictionary(contentsOfFile: srtCacheInfoPath) as? [String: [String]]) ?? [String: [String]]()
         }
     }
 
@@ -122,7 +125,7 @@ public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource {
         if !array.contains(where: { $0 == path }) {
             array.append(path)
             srtInfoCaches[file] = array
-            DispatchQueue.global().async { [weak self] in
+            Task { [weak self] in
                 guard let self else {
                     return
                 }

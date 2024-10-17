@@ -209,6 +209,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
+    @MainActor
     open func play(currentTime: TimeInterval) {
         if player.playbackState != .seeking {
             if subtitleModel.isHDR != options.isHDR {
@@ -553,7 +554,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         }
     }
 
-    override func play(currentTime: TimeInterval) {
+    override open func play(currentTime: TimeInterval) {
         super.play(currentTime: currentTime)
         if player.isPlaying {
             MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime

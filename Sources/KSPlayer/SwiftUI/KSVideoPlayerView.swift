@@ -153,18 +153,17 @@ public struct KSVideoPlayerView: View {
         }
     }
 
+    @MainActor
     public func openURL(_ url: URL, options: KSOptions? = nil) {
-        runOnMainThread {
-            if url.isAudio || url.isMovie {
-                if let options {
-                    self.options = options
-                }
-                self.url = url
-                title = url.lastPathComponent
-            } else {
-                let info = URLSubtitleInfo(url: url)
-                config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
+        if url.isAudio || url.isMovie {
+            if let options {
+                self.options = options
             }
+            self.url = url
+            title = url.lastPathComponent
+        } else {
+            let info = URLSubtitleInfo(url: url)
+            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
         }
     }
 
@@ -180,7 +179,9 @@ public struct KSVideoPlayerView: View {
         .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url") { data, _ in
                 if let data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-                    openURL(url)
+                    Task { @MainActor in
+                        openURL(url)
+                    }
                 }
             }
             return true

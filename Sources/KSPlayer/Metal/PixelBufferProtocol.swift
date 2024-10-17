@@ -31,6 +31,7 @@ public protocol PixelBufferProtocol: AnyObject {
     var cvPixelBuffer: CVPixelBuffer? { get }
     var isFullRangeVideo: Bool { get }
     func cgImage(isHDR: Bool) -> CGImage?
+    @MainActor
     func textures() -> [MTLTexture]
     func widthOfPlane(at planeIndex: Int) -> Int
     func heightOfPlane(at planeIndex: Int) -> Int

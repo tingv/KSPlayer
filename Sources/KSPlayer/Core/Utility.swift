@@ -410,10 +410,9 @@ func - (left: CGSize, right: CGSize) -> CGSize {
 
 @inline(__always)
 @preconcurrency
-// @MainActor
-public func runOnMainThread(block: @escaping () -> Void) {
+public func runOnMainThread(block: @MainActor @Sendable @escaping () -> Void) {
     if Thread.isMainThread {
-        block()
+        MainActor.assumeIsolated(block)
     } else {
         Task {
             await MainActor.run(body: block)

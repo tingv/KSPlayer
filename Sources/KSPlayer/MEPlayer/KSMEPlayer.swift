@@ -43,6 +43,7 @@ public class KSMEPlayer: NSObject {
     }()
 
     @available(tvOS 14.0, *)
+    @MainActor
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
         KSOptions.enablePictureInPicture ? _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol : nil
     }
@@ -80,7 +81,7 @@ public class KSMEPlayer: NSObject {
     public private(set) var isReadyToPlay = false
     public var allowsExternalPlayback: Bool = false
     public var usesExternalPlaybackWhileExternalScreenIsActive: Bool = false
-
+    @MainActor
     public var playbackRate: Float = 1 {
         didSet {
             if playbackRate != audioOutput.playbackRate {
@@ -124,6 +125,7 @@ public class KSMEPlayer: NSObject {
         }
     }
 
+    @MainActor
     public required init(url: URL, options: KSOptions) {
         KSOptions.setAudioSession()
         audioOutput = KSOptions.audioPlayerType.init()
@@ -190,6 +192,7 @@ private extension KSMEPlayer {
         }
     }
 
+    @MainActor
     @objc private func spatialCapabilityChange(notification _: Notification) {
         KSLog("[audio] spatialCapabilityChange")
         for track in tracks(mediaType: .audio) {
@@ -198,6 +201,7 @@ private extension KSMEPlayer {
     }
 
     #if !os(macOS)
+    @MainActor
     @objc private func audioRouteChange(notification: Notification) {
         guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt else {
             return
@@ -230,11 +234,14 @@ extension KSMEPlayer: MEPlayerDelegate {
     func sourceDidOpened() {
         isReadyToPlay = true
         options.readyTime = CACurrentMediaTime()
-        let audioDescriptor = tracks(mediaType: .audio).first { $0.isEnabled }.flatMap {
-            $0 as? FFmpegAssetTrack
-        }?.audioDescriptor
         runOnMainThread { [weak self] in
             guard let self else { return }
+            let audioDescriptor = tracks(mediaType: .audio).first { $0.isEnabled }.flatMap {
+                $0 as? FFmpegAssetTrack
+            }?.audioDescriptor
+            if let outputURL = options.outputURL {
+                startRecord(url: outputURL)
+            }
             if let audioDescriptor {
                 KSLog("[audio] audio type: \(audioOutput) prepare audioFormat )")
                 audioOutput.prepare(audioFormat: audioDescriptor.audioFormat)
@@ -267,6 +274,7 @@ extension KSMEPlayer: MEPlayerDelegate {
         }
     }
 
+    @MainActor
     func sourceDidChange(loadingState: LoadingState) {
         if loadingState.isEndOfFile {
             playableTime = duration
@@ -349,6 +357,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         replace(item: MEPlayerItem(url: url, options: options))
     }
 
+    @MainActor
     public func replace(item: MEPlayerItem) {
         KSLog("replace item \(item)")
         reset()
@@ -522,6 +531,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
 }
 
 @available(tvOS 14.0, *)
+@MainActor
 extension KSMEPlayer: AVPictureInPictureSampleBufferPlaybackDelegate {
     public func pictureInPictureController(_: AVPictureInPictureController, setPlaying playing: Bool) {
         playing ? play() : pause()
@@ -583,6 +593,7 @@ extension KSMEPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
         }
     }
 
+    @MainActor
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue seekCommand: AVDelegatingPlaybackCoordinatorSeekCommand) async {
         guard seekCommand.expectedCurrentItemIdentifier == (playbackCoordinator as? AVDelegatingPlaybackCoordinator)?.currentItemIdentifier else {
             return

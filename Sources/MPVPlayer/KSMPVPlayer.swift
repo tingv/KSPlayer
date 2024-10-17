@@ -235,6 +235,7 @@ extension KSMPVPlayer {
 }
 
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
+@MainActor
 extension KSMPVPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue playCommand: AVDelegatingPlaybackCoordinatorPlayCommand, completionHandler: @escaping () -> Void) {
         guard playCommand.expectedCurrentItemIdentifier == (playbackCoordinator as? AVDelegatingPlaybackCoordinator)?.currentItemIdentifier else {

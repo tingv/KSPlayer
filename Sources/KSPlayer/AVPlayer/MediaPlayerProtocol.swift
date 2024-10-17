@@ -17,6 +17,7 @@ import UIKit
 import AppKit
 #endif
 
+@MainActor
 public protocol MediaPlayback: AnyObject {
     var duration: TimeInterval { get }
     var fileSize: Int64 { get }
@@ -76,6 +77,7 @@ public struct Chapter {
     public let title: String
 }
 
+@MainActor
 public protocol MediaPlayerProtocol: MediaPlayback {
     var delegate: MediaPlayerDelegate? { get set }
     var view: UIView { get }
