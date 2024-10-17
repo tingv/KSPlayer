@@ -32,6 +32,9 @@ open class KSOptions {
         isSecondOpen = KSOptions.isSecondOpen
         maxBufferDuration = KSOptions.maxBufferDuration
         preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
+        isAccurateSeek = KSOptions.isAccurateSeek
+        isSeekedAutoPlay = KSOptions.isSeekedAutoPlay
+        canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
         formatContextOptions["user_agent"] = userAgent
         // 参数的配置可以参考protocols.texi 和 http.c
         // 这个一定要，不然有的流就会判断不准FieldOrder
@@ -143,9 +146,9 @@ open class KSOptions {
     /// 开启精确seek
     public nonisolated(unsafe) static var isAccurateSeek = false
     /// 开启精确seek
-    public var isAccurateSeek = KSOptions.isAccurateSeek
+    public var isAccurateSeek: Bool
     /// seek完是否自动播放
-    public var isSeekedAutoPlay = KSOptions.isSeekedAutoPlay
+    public var isSeekedAutoPlay: Bool
     /*
      AVSEEK_FLAG_BACKWARD: 1
      AVSEEK_FLAG_BYTE: 2
@@ -412,7 +415,9 @@ open class KSOptions {
     public static var doviMatrix = simd_float3x3(1)
     public static let displayEnumPlane = PlaneDisplayModel()
     public static let displayEnumDovi = DoviDisplayModel()
+    @MainActor
     public static let displayEnumVR = VRDisplayModel()
+    @MainActor
     public static let displayEnumVRBox = VRBoxDisplayModel()
     @available(tvOS 14.0, *)
     @MainActor
@@ -430,7 +435,7 @@ open class KSOptions {
     public var hardwareDecode = KSOptions.hardwareDecode
     public var asynchronousDecompression = KSOptions.asynchronousDecompression
     public var videoDisable = false
-    public var canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
+    public var canStartPictureInPictureAutomaticallyFromInline: Bool
     public var automaticWindowResize = true
     public var videoSoftDecodeThreadCount = KSOptions.videoSoftDecodeThreadCount
     @MainActor

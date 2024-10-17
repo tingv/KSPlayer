@@ -107,7 +107,7 @@ extension MasterViewController {
             else {
                 return
             }
-            let resource = KSPlayerResource(url: url)
+            let resource = KSPlayerResource(url: url, options: KSOptions())
             self?.play(resource: resource)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))

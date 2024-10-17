@@ -78,7 +78,7 @@ class RootViewController: UIViewController {
             else {
                 return
             }
-            let resource = KSPlayerResource(url: url)
+            let resource = KSPlayerResource(url: url, options: KSOptions())
             let controller = DetailViewController()
             controller.resource = resource
             self?.navigationController?.pushViewController(controller, animated: true)

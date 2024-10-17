@@ -9,6 +9,7 @@ import Foundation
 import KSPlayer
 import SwiftUI
 
+@MainActor
 public class Defaults: ObservableObject {
     @AppStorage("showRecentPlayList") public var showRecentPlayList = false
 

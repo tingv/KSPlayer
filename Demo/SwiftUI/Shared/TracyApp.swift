@@ -105,12 +105,13 @@ struct TracyApp: App {
 //        }
 //        .menuBarExtraStyle(.menu)
         #endif
-
+        #if os(visionOS)
         // immersive
         ImmersiveSpace(id: "ImmersiveView", for: String.self) { url in
             ImmersiveView(url: url)
         }
         .immersionStyle(selection: .constant(.full), in: .full)
+        #endif
     }
 }
 
@@ -150,6 +151,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
+@MainActor
 class APPModel: ObservableObject {
     @Published
     var openURL: URL?

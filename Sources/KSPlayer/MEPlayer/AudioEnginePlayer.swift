@@ -165,8 +165,8 @@ public class AudioEnginePlayer: AudioOutput {
             return
         }
         let isRunning = engine.isRunning
+        engine.reset()
         if sourceNodeAudioFormat != nil {
-            engine.reset()
             engine.stop()
         }
         sourceNodeAudioFormat = audioFormat

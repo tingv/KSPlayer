@@ -11,7 +11,7 @@ import simd
 #if canImport(UIKit)
 import UIKit
 #endif
-@MainActor
+
 public class SphereDisplayModel: DisplayEnum {
     private lazy var yuvSphere = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", isSphere: true)
     private lazy var yuvp010LESphere = MetalRender.makePipelineState(fragmentFunction: "displayYUVTexture", isSphere: true, bitDepth: 10)
@@ -28,6 +28,7 @@ public class SphereDisplayModel: DisplayEnum {
     let indexBuffer: MTLBuffer
     let posBuffer: MTLBuffer?
     let uvBuffer: MTLBuffer?
+    @MainActor
     init() {
         let (indices, positions, uvs) = SphereDisplayModel.genSphere()
         let device = MetalRender.device
@@ -145,7 +146,7 @@ public class SphereDisplayModel: DisplayEnum {
 
 public class VRDisplayModel: SphereDisplayModel {
     private let modelViewProjectionMatrix: simd_float4x4
-
+    @MainActor
     override required init() {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height)
@@ -167,6 +168,7 @@ public class VRDisplayModel: SphereDisplayModel {
 public class VRBoxDisplayModel: SphereDisplayModel {
     private let modelViewProjectionMatrixLeft: simd_float4x4
     private let modelViewProjectionMatrixRight: simd_float4x4
+    @MainActor
     override required init() {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height) / 2

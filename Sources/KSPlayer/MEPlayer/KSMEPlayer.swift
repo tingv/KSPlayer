@@ -32,6 +32,7 @@ public class KSMEPlayer: NSObject {
 
     #if os(tvOS)
     // 在visionOS，这样的代码会crash，所以只能区分下系统
+    @MainActor
     private lazy var _pipController: Any? = {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
@@ -48,6 +49,7 @@ public class KSMEPlayer: NSObject {
         KSOptions.enablePictureInPicture ? _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol : nil
     }
     #else
+    @MainActor
     public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
         if KSOptions.enablePictureInPicture, #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)

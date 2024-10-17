@@ -153,13 +153,14 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     private var shouldSeekTo: TimeInterval = 0
     private var startTime: TimeInterval = 0
     public let subtitleModel: SubtitleModel
-    public required init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
+
+    public required init(url: URL, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
         self.url = url
         self.options = options
         self.delegate = delegate
         let firstPlayerType: MediaPlayerProtocol.Type
         player = KSOptions.firstPlayerType.init(url: url, options: options)
-        self.isAutoPlay = isAutoPlay
+        isAutoPlay = KSOptions.isAutoPlay
         subtitleModel = SubtitleModel(url: url)
         subtitleVC = UIHostingController(rootView: VideoSubtitleView(model: subtitleModel))
         /// macos <=13 会报错-[NSNib _initWithNibNamed:bundle:options:] could not load the nibName: _TtGC7SwiftUI19NSHostingControllerV8KSPlayer17VideoSubtitleView_ in bundle NSBundle
@@ -518,8 +519,9 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         }
     }
 
-    public required init(url: URL, isAutoPlay: Bool = KSOptions.isAutoPlay, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
-        super.init(url: url, isAutoPlay: isAutoPlay, options: options, delegate: delegate)
+    @MainActor
+    public required init(url: URL, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
+        super.init(url: url, options: options, delegate: delegate)
         if options.registerRemoteControll {
             registerRemoteControllEvent()
         }

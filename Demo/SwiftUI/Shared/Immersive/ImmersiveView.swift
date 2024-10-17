@@ -7,10 +7,11 @@
 
 import Combine
 import KSPlayer
-import RealityKit
 import SwiftUI
 
 #if os(visionOS)
+import RealityKit
+
 struct ImmersiveView: View {
     @Binding var url: String?
 

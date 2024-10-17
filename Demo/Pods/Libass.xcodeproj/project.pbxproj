@@ -169,6 +169,7 @@
 				en,
 			);
 			mainGroup = 8E00CB885EEB7436E9D74EDF2D26F63A;
+			minimizedProjectReferenceProxies = 0;
 			productRefGroup = E1CEA05B1AA669A7DDB0E2A9DE43E463 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";

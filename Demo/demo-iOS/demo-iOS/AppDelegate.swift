@@ -88,7 +88,7 @@ class CustomVideoPlayerView: VideoPlayerView {
 }
 
 class MEOptions: KSOptions {}
-
+@MainActor
 var testObjects: [KSPlayerResource] = {
     var objects = [KSPlayerResource]()
     if let url = Bundle.main.url(forResource: "test", withExtension: "m3u"), let data = try? Data(contentsOf: url) {
