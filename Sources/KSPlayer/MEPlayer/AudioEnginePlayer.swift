@@ -165,10 +165,9 @@ public class AudioEnginePlayer: AudioOutput {
             return
         }
         let isRunning = engine.isRunning
+        // 第一次进入需要调用reset和stop。不然会报错from AU (0x1038d6c10): aufc/conv/appl, render err: -10867
         engine.reset()
-        if sourceNodeAudioFormat != nil {
-            engine.stop()
-        }
+        engine.stop()
         sourceNodeAudioFormat = audioFormat
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
