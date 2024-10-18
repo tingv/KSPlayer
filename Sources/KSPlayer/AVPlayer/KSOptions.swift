@@ -102,8 +102,7 @@ open class KSOptions {
     public static var isSeekedAutoPlay = true
     /// 是否开启秒开
     public var isSecondOpen: Bool
-    @MainActor
-    public static var audioVideoClockSync = true
+
     /// Applies to short videos only
     public var isLoopPlay = KSOptions.isLoopPlay
     @MainActor
@@ -423,6 +422,8 @@ open class KSOptions {
     @MainActor
     public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
     public nonisolated(unsafe) static var videoSoftDecodeThreadCount = 4
+    @MainActor
+    public static var audioVideoClockSync = true
     public var isHDR = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s

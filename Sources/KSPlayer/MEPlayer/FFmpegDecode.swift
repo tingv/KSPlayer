@@ -81,10 +81,12 @@ class FFmpegDecode: DecodeProtocol {
                 }
             }
         }
+        var success = false
         while true {
             let result = avcodec_receive_frame(codecContext, coreFrame)
             // 有的音频视频可以多次调用avcodec_receive_frame，所以不能第一次成功就直接return
             if result == 0, let inputFrame = coreFrame {
+                success = true
                 hasDecodeSuccess = true
                 decodeFrame(inputFrame: inputFrame, packet: packet, completionHandler: completionHandler)
             } else {
@@ -102,9 +104,20 @@ class FFmpegDecode: DecodeProtocol {
                         return
                     }
                 } else {
+                    // 当前的packet有解决成功过，那就直接返回
+                    if success {
+                        return
+                    }
                     let error = NSError(errorCode: isVideo ? .codecVideoReceiveFrame : .codecAudioReceiveFrame, avErrorCode: result)
                     KSLog(error)
-                    completionHandler(.failure(error))
+                    if isVideo, options.hardwareDecode {
+                        // 在这里做下兜底，转为软解
+                        avcodec_free_context(&self.codecContext)
+                        options.hardwareDecode = false
+                        self.codecContext = try? packet.assetTrack.createContext(options: options)
+                    } else {
+                        completionHandler(.failure(error))
+                    }
                     return
                 }
             }
