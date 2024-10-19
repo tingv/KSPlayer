@@ -381,9 +381,11 @@ public final class AudioFrame: MEFrame {
         }
         var sampleBuffer: CMSampleBuffer?
         // 因为sampleRate跟timescale没有对齐，所以导致杂音。所以要让duration为invalid
-//        let duration = CMTime(value: CMTimeValue(sampleCount), timescale: CMTimeScale(audioFormat.sampleRate))
-        let duration = CMTime.invalid
+//        let duration = CMTime(value: CMTimeValue(1), timescale: CMTimeScale(audioFormat.sampleRate))
+//        let duration = CMTime.invalid
+        let duration = timebase.cmtime(for: 1)
         let timing = CMSampleTimingInfo(duration: duration, presentationTimeStamp: cmtime, decodeTimeStamp: .invalid)
+
         let sampleSizeEntryCount: CMItemCount
         let sampleSizeArray: [Int]?
         if audioFormat.isInterleaved {

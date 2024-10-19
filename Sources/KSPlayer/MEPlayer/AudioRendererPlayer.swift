@@ -60,6 +60,23 @@ public class AudioRendererPlayer: AudioOutput {
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
         KSLog("[audio] set preferredOutputNumberOfChannels: \(audioFormat.channelCount)")
         #endif
+        synchronizer.rate = playbackRate
+        renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
+            guard let self else {
+                return
+            }
+            self.request()
+        }
+        if let periodicTimeObserver {
+            synchronizer.removeTimeObserver(periodicTimeObserver)
+            self.periodicTimeObserver = nil
+        }
+        periodicTimeObserver = synchronizer.addPeriodicTimeObserver(forInterval: CMTime(value: 100, timescale: CMTimeScale(audioFormat.sampleRate)), queue: .main) { [weak self] time in
+            guard let self else {
+                return
+            }
+            self.renderSource?.setAudio(time: time, position: -1)
+        }
     }
 
     public func play() {
@@ -77,30 +94,15 @@ public class AudioRendererPlayer: AudioOutput {
                 time = synchronizer.currentTime()
             }
         }
+
         renderSource?.setAudio(time: time, position: -1)
-        // 一定要用setRate(_ rate: Float, time: CMTime)，只改rate是无法进行播放的
+        // 一定要用setRate(_ rate: Float, time: CMTime)，只改rate的话，那seek会有问题
+        //        synchronizer.rate = playbackRate
         synchronizer.setRate(playbackRate, time: time)
-        renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
-            guard let self else {
-                return
-            }
-            self.request()
-        }
-        periodicTimeObserver = synchronizer.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.01), queue: .main) { [weak self] time in
-            guard let self else {
-                return
-            }
-            self.renderSource?.setAudio(time: time, position: -1)
-        }
     }
 
     public func pause() {
         synchronizer.rate = 0
-        renderer.stopRequestingMediaData()
-        if let periodicTimeObserver {
-            synchronizer.removeTimeObserver(periodicTimeObserver)
-            self.periodicTimeObserver = nil
-        }
     }
 
     public func flush() {
@@ -108,18 +110,29 @@ public class AudioRendererPlayer: AudioOutput {
         flushTime = true
     }
 
-    public func invalidate() {}
+    public func invalidate() {
+        renderer.stopRequestingMediaData()
+        flush()
+        if let periodicTimeObserver {
+            synchronizer.removeTimeObserver(periodicTimeObserver)
+            self.periodicTimeObserver = nil
+        }
+        synchronizer.rate = 0
+    }
 
     private func request() {
         guard !isPaused, var render = renderSource?.getAudioOutputRender() else {
             return
         }
         var array = [render]
-        let loopCount = Int32(render.audioFormat.sampleRate) / 20 / Int32(render.numberOfSamples) - 2
+        let loopCount = Int32(render.audioFormat.sampleRate) / 10 / Int32(render.numberOfSamples)
         if loopCount > 0 {
-            for _ in 0 ..< loopCount {
+            for _ in 0 ..< loopCount * 2 {
                 if let render = renderSource?.getAudioOutputRender() {
                     array.append(render)
+                }
+                if array.count == loopCount {
+                    break
                 }
             }
         }
