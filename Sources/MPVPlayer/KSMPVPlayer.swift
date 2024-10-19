@@ -41,6 +41,20 @@ public class KSMPVPlayer: MPVHandle {
     private var tracks = [MPVTrack]()
     private var bufferingCountDownTimer: Timer?
     private var url: URL
+    #if os(tvOS)
+    @available(tvOS 14.0, *)
+    @MainActor
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+        get {
+            nil
+        }
+        set {}
+    }
+    #else
+    @MainActor
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = nil
+    #endif
+
     @MainActor
     public required init(url: URL, options: KSOptions) {
         self.url = url
@@ -150,11 +164,6 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         // swiftlint:enable force_cast
     }
 
-    @available(tvOS 14.0, *)
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        nil
-    }
-
     public var dynamicInfo: KSPlayer.DynamicInfo? {
         nil
     }
@@ -216,6 +225,8 @@ extension KSMPVPlayer: MediaPlayerProtocol {
             completion(code == 0)
         }
     }
+
+    public func configPIP() {}
 }
 
 extension KSMPVPlayer {

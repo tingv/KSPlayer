@@ -507,13 +507,20 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
     public var isPipActive = false {
         didSet {
             if #available(tvOS 14.0, *) {
-                guard let pipController = player.pipController else {
-                    return
-                }
                 if isPipActive {
-                    pipController.start(layer: self)
+                    if let pipController = player.pipController {
+                        pipController.start(layer: self)
+                    } else {
+                        player.configPIP()
+                        player.pipController?.delegate = self
+                        // 刚创建pip的话，需要等待0.3才能pip
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                            guard let self else { return }
+                            self.player.pipController?.start(layer: self)
+                        }
+                    }
                 } else {
-                    pipController.stop(restoreUserInterface: true)
+                    player.pipController?.stop(restoreUserInterface: true)
                 }
             }
         }
@@ -580,8 +587,9 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         super.readyToPlay(player: player)
         #if !os(macOS) && !os(tvOS)
         if #available(iOS 14.2, *) {
-            player.pipController?.delegate = self
             if options.canStartPictureInPictureAutomaticallyFromInline {
+                player.configPIP()
+                player.pipController?.delegate = self
                 player.pipController?.canStartPictureInPictureAutomaticallyFromInline = true
             }
         }
@@ -819,6 +827,11 @@ extension KSComplexPlayerLayer {
             return
         }
         if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
+            isPipActive = false
+            if !options.canStartPictureInPictureAutomaticallyFromInline {
+                player.pipController?.delegate = nil
+                player.pipController = nil
+            }
             return
         }
         if !KSOptions.canBackgroundPlay {

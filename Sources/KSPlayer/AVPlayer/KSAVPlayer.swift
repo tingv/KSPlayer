@@ -97,25 +97,17 @@ public class KSAVPlayer {
     }
 
     #if os(tvOS)
-    // 在visionOS，这样的代码会crash，所以只能区分下系统
-    private lazy var _pipController: Any? = {
-        if #available(tvOS 14.0, *) {
-            let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
-            return pip
-        } else {
-            return nil
-        }
-    }()
-
     @available(tvOS 14.0, *)
+    @MainActor
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
+        get {
+            nil
+        }
+        set {}
     }
     #else
-    public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
-        let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
-        return pip
-    }()
+    @MainActor
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = nil
     #endif
 
     public var naturalSize: CGSize = .zero
@@ -496,6 +488,13 @@ extension KSAVPlayer: MediaPlayerProtocol {
     public func select(track: some MediaPlayerTrack) {
         player.currentItem?.tracks.filter { $0.assetTrack?.mediaType == track.mediaType }.forEach { $0.isEnabled = false }
         track.isEnabled = true
+    }
+
+    public func configPIP() {
+        if #available(tvOS 14.0, *) {
+            let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
+            pipController = pip
+        }
     }
 }
 

@@ -31,34 +31,17 @@ public class KSMEPlayer: NSObject {
     }
 
     #if os(tvOS)
-    // 在visionOS，这样的代码会crash，所以只能区分下系统
-    @MainActor
-    private lazy var _pipController: Any? = {
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
-            let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
-            let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
-            return pip
-        } else {
-            return nil
-        }
-    }()
-
     @available(tvOS 14.0, *)
     @MainActor
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        KSOptions.enablePictureInPicture ? _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol : nil
+        get {
+            nil
+        }
+        set {}
     }
     #else
     @MainActor
-    public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
-        if KSOptions.enablePictureInPicture, #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
-            let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
-            let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
-            return pip
-        } else {
-            return nil
-        }
-    }()
+    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = nil
     #endif
 
     private lazy var _playbackCoordinator: Any? = {
@@ -529,6 +512,14 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     public func stopRecord() {
         playerItem.stopRecord()
+    }
+
+    public func configPIP() {
+        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
+            let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: videoOutput.displayLayer, playbackDelegate: self)
+            let pip = KSOptions.pictureInPictureType.init(contentSource: contentSource)
+            pipController = pip
+        }
     }
 }
 

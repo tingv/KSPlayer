@@ -389,15 +389,6 @@ open class KSOptions {
     public nonisolated(unsafe) static var asynchronousDecompression = false
     @MainActor
     public static var isPipPopViewController = false
-    #if os(tvOS)
-    // 现在xcode beta版本，会在_pipController crash。因为tvos目前也无法使用pip。所以先返回nil。
-    @MainActor
-    public static var enablePictureInPicture = false
-    #else
-    @MainActor
-    public static var enablePictureInPicture = true
-    #endif
-
     @MainActor
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     @MainActor
