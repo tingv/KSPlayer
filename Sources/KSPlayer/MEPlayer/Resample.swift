@@ -243,11 +243,9 @@ class AudioSwresample: FrameChange {
 
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame {
         if !(descriptor == avframe.pointee) || outChannel != descriptor.outChannel {
-            let newDescriptor = AudioDescriptor(frame: avframe.pointee)
-            if setup(descriptor: newDescriptor) {
-                descriptor = newDescriptor
-            } else {
-                throw NSError(errorCode: .auidoSwrInit, userInfo: ["outChannel": newDescriptor.outChannel, "inChannel": newDescriptor.channel])
+            descriptor.update(frame: avframe.pointee)
+            if !setup(descriptor: descriptor) {
+                throw NSError(errorCode: .auidoSwrInit, userInfo: ["outChannel": descriptor.outChannel, "inChannel": descriptor.channel])
             }
         }
         let numberOfSamples = avframe.pointee.nb_samples
@@ -270,23 +268,14 @@ class AudioSwresample: FrameChange {
 }
 
 public class AudioDescriptor: Equatable {
-//    static let defaultValue = AudioDescriptor()
-    public let sampleRate: Int32
+    public var sampleRate: Int32
     public private(set) var audioFormat: AVAudioFormat
     fileprivate(set) var channel: AVChannelLayout
-    fileprivate let sampleFormat: AVSampleFormat
+    fileprivate var sampleFormat: AVSampleFormat
     fileprivate var outChannel: AVChannelLayout
-
-    private convenience init() {
-        self.init(sampleFormat: AV_SAMPLE_FMT_FLT, sampleRate: 48000, channel: AVChannelLayout.defaultValue)
-    }
 
     convenience init(codecpar: AVCodecParameters) {
         self.init(sampleFormat: AVSampleFormat(rawValue: codecpar.format), sampleRate: codecpar.sample_rate, channel: codecpar.ch_layout)
-    }
-
-    convenience init(frame: AVFrame) {
-        self.init(sampleFormat: AVSampleFormat(rawValue: frame.format), sampleRate: frame.sample_rate, channel: frame.ch_layout)
     }
 
     init(sampleFormat: AVSampleFormat, sampleRate: Int32, channel: AVChannelLayout) {
@@ -372,6 +361,18 @@ public class AudioDescriptor: Equatable {
         }
         return AVAudioFormat(commonFormat: commonFormat, sampleRate: Double(sampleRate), interleaved: interleaved, channelLayout: AVAudioChannelLayout(layoutTag: layoutTag)!)
         //        AVAudioChannelLayout(layout: outChannel.layoutTag.channelLayout)
+    }
+
+    public func update(frame: AVFrame) {
+        sampleFormat = AVSampleFormat(rawValue: frame.format)
+        sampleRate = frame.sample_rate
+        if frame.sample_rate <= 0 {
+            sampleRate = 48000
+        } else {
+            sampleRate = frame.sample_rate
+        }
+        channel = frame.ch_layout
+        updateAudioFormat()
     }
 
     public func updateAudioFormat() {

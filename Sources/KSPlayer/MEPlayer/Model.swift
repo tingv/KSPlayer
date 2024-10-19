@@ -348,6 +348,7 @@ public final class AudioFrame: MEFrame {
         let sampleCount = CMItemCount(numberOfSamples)
         let dataByteSize = sampleCount * sampleSize
         if dataByteSize > dataSize {
+            // 关闭空间音频之后， 在打开空间音频，可能就会遇到这个问题，但是也就一瞬间
             assertionFailure("dataByteSize: \(dataByteSize),render.dataSize: \(dataSize)")
         }
         for i in 0 ..< data.count {
