@@ -829,8 +829,12 @@ extension KSComplexPlayerLayer {
         if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
             isPipActive = false
             if !options.canStartPictureInPictureAutomaticallyFromInline {
-                player.pipController?.delegate = nil
-                player.pipController = nil
+                // 要延迟清空，这样delegate的方法才能调用，不然会导致回到前台，字幕无法显示了。并且1秒还不行，一定要2秒
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                    guard let self else { return }
+                    player.pipController?.delegate = nil
+                    player.pipController = nil
+                }
             }
             return
         }
