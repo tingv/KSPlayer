@@ -119,7 +119,7 @@ public class TVSlide: UIControl {
             onEditingChanged(false)
         default:
             timer.fireDate = .distantFuture
-            if !KSOptions.seekRequireConfirmation {
+            if moveDirection != nil, !KSOptions.seekRequireConfirmation {
                 onEditingChanged(false)
             }
             super.pressesBegan(presses, with: event)
