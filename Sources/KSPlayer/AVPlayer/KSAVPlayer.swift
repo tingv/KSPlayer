@@ -545,12 +545,22 @@ class AVMediaPlayerTrack: MediaPlayerTrack {
 
     init(track: AVPlayerItemTrack) {
         self.track = track
-        trackID = track.assetTrack?.trackID ?? 0
-        mediaType = track.assetTrack?.mediaType ?? .video
-        name = track.assetTrack?.languageCode ?? ""
-        languageCode = track.assetTrack?.languageCode
-        nominalFrameRate = track.assetTrack?.nominalFrameRate ?? 24.0
-        bitRate = Int64(track.assetTrack?.estimatedDataRate ?? 0)
+        if let assetTrack = track.assetTrack {
+            trackID = assetTrack.trackID
+            mediaType = assetTrack.mediaType
+            name = assetTrack.languageCode ?? ""
+            languageCode = assetTrack.languageCode ?? ""
+            nominalFrameRate = assetTrack.nominalFrameRate
+            bitRate = assetTrack.estimatedDataRate.isNormal ? Int64(assetTrack.estimatedDataRate) : 0
+        } else {
+            trackID = 0
+            mediaType = .video
+            name = ""
+            languageCode = ""
+            nominalFrameRate = 24.0
+            bitRate = 0
+        }
+
         #if os(xrOS)
         isPlayable = false
         #else
