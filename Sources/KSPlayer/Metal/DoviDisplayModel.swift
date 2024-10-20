@@ -40,12 +40,13 @@ public class DoviDisplayModel: PlaneDisplayModel {
     }
 
     private func pipeline(source: String, fragmentFunction: String, bitDepth: Int32 = 10) -> MTLRenderPipelineState {
-        if let pipeline = pipelineMap[source] {
+        let key = source + fragmentFunction + String(bitDepth)
+        if let pipeline = pipelineMap[key] {
             return pipeline
         }
         var library = try! MetalRender.device.makeLibrary(source: source, options: nil)
-        let pipeline = library.makePipelineState(vertexFunction: "mapTexture", fragmentFunction: fragmentFunction, bitDepth: 10)
-        pipelineMap[source] = pipeline
+        let pipeline = library.makePipelineState(vertexFunction: "mapTexture", fragmentFunction: fragmentFunction, bitDepth: bitDepth)
+        pipelineMap[key] = pipeline
         return pipeline
     }
 }
