@@ -60,7 +60,6 @@ public class AudioRendererPlayer: AudioOutput {
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
         KSLog("[audio] set preferredOutputNumberOfChannels: \(audioFormat.channelCount)")
         #endif
-        synchronizer.rate = playbackRate
         renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
             guard let self else {
                 return
