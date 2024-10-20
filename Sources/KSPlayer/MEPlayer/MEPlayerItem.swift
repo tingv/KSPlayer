@@ -188,7 +188,7 @@ public final class MEPlayerItem: Sendable {
         // 一开始要清空字体，不然字体太多用ass加载的话，会内存暴涨
         try? FileManager.default.removeItem(at: KSOptions.fontsDir)
         timer.tolerance = 0.02
-        timer.fireDate = Date.distantPast
+        timer.fireDate = .distantFuture
     }
 
     @MainActor
