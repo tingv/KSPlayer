@@ -287,7 +287,9 @@ extension AVPixelFormat {
         case AV_PIX_FMT_NV12: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         //  AVSampleBufferDisplayLayer不能显示 kCVPixelFormatType_420YpCbCr8PlanarFullRange,所以换成是kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
         case AV_PIX_FMT_YUV420P, AV_PIX_FMT_YUVJ420P: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8Planar
-        case AV_PIX_FMT_P010BE, AV_PIX_FMT_P010LE, AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_YUV420P10LE: return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+        case AV_PIX_FMT_P010BE, AV_PIX_FMT_P010LE:
+            return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+        case AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_YUV420P10LE: return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
         case AV_PIX_FMT_UYVY422: return kCVPixelFormatType_422YpCbCr8
         case AV_PIX_FMT_YUYV422: return kCVPixelFormatType_422YpCbCr8_yuvs
         case AV_PIX_FMT_NV16: return fullRange ? kCVPixelFormatType_422YpCbCr8BiPlanarFullRange : kCVPixelFormatType_422YpCbCr8BiPlanarVideoRange

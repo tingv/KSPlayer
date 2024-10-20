@@ -12,56 +12,9 @@ import Libavcodec
 import Libswresample
 import Libswscale
 
-protocol FrameTransfer {
-    func transfer(avframe: UnsafeMutablePointer<AVFrame>) -> UnsafeMutablePointer<AVFrame>
-    func shutdown()
-}
-
 protocol FrameChange {
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame
     func shutdown()
-}
-
-class VideoSwscale: FrameTransfer {
-    private var imgConvertCtx: OpaquePointer?
-    private var format: AVPixelFormat = AV_PIX_FMT_NONE
-    private var height: Int32 = 0
-    private var width: Int32 = 0
-    private var outFrame: UnsafeMutablePointer<AVFrame>?
-    private func setup(format: AVPixelFormat, width: Int32, height: Int32, linesize _: Int32) {
-        if self.format == format, self.width == width, self.height == height {
-            return
-        }
-        self.format = format
-        self.height = height
-        self.width = width
-        if format.osType() != nil {
-            sws_freeContext(imgConvertCtx)
-            imgConvertCtx = nil
-            outFrame = nil
-        } else {
-            let dstFormat = format.bestPixelFormat
-            imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, width, height, dstFormat, SWS_BICUBIC, nil, nil, nil)
-            outFrame = av_frame_alloc()
-            outFrame?.pointee.format = dstFormat.rawValue
-            outFrame?.pointee.width = width
-            outFrame?.pointee.height = height
-        }
-    }
-
-    func transfer(avframe: UnsafeMutablePointer<AVFrame>) -> UnsafeMutablePointer<AVFrame> {
-        setup(format: AVPixelFormat(rawValue: avframe.pointee.format), width: avframe.pointee.width, height: avframe.pointee.height, linesize: avframe.pointee.linesize.0)
-        if let imgConvertCtx, let outFrame {
-            sws_scale_frame(imgConvertCtx, outFrame, avframe)
-            return outFrame
-        }
-        return avframe
-    }
-
-    func shutdown() {
-        sws_freeContext(imgConvertCtx)
-        imgConvertCtx = nil
-    }
 }
 
 class VideoSwresample: FrameChange {
