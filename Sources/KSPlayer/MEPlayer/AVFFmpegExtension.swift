@@ -360,7 +360,7 @@ extension AVCodecID {
         case AV_CODEC_ID_QDM2:
             return .qDesign2
         default:
-            return CMFormatDescription.MediaSubType(rawValue: 0)
+            return CMFormatDescription.MediaSubType(rawValue: rawValue)
         }
     }
 }
