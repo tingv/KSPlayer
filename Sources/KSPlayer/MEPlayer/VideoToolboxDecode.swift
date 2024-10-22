@@ -26,6 +26,7 @@ class VideoToolboxDecode: DecodeProtocol {
 
     init(options: KSOptions, session: DecompressionSession) {
         self.options = options
+        options.decodeType = .asynchronousHardware
         self.session = session
     }
 
