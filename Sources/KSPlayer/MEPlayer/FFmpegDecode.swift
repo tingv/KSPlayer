@@ -39,6 +39,9 @@ class FFmpegDecode: DecodeProtocol {
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
+        guard let codecContext else {
+            return
+        }
         let status = avcodec_send_packet(codecContext, packet.corePacket)
         if status != 0 {
             /**
@@ -61,7 +64,7 @@ class FFmpegDecode: DecodeProtocol {
                 return
             }
         }
-        guard let codecContext else {
+        guard let codecContext = self.codecContext else {
             return
         }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
