@@ -55,10 +55,6 @@ public class AssParse: KSParseProtocol {
     // ffmpeg 软解的字幕
     // 875,,Default,NTP,0000,0000,0000,!Effect,- 你们两个别冲这么快\\N- 我会取消所有行程尽快赶过去
     public func parsePart(scanner: Scanner) -> SubtitlePart? {
-        // 还无法处理ass的移动效果。所以先过滤掉
-        if scanner.string.contains("move(") {
-            return nil
-        }
         let isDialogue = scanner.scanString("Dialogue") != nil
         var dic = [String: String]()
         for i in 0 ..< eventKeys.count {
