@@ -142,6 +142,8 @@ extension Scanner {
                 start.removeLast()
                 var end = end.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
                 end.removeLast()
+                // \n只在 WrapStyle: 2是会换行，其他模式下都相当于一个空格。\N在任何模式下都会强制换行。所以要进行转换
+                var text = text.replacingOccurrences(of: "\n", with: "\\N")
                 ass += "Dialogue: 0,\(start),\(end),Default,,0,0,0,,\(text)\n"
             }
         }
