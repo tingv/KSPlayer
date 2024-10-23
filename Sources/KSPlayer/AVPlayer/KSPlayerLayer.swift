@@ -214,7 +214,11 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     open func play(currentTime: TimeInterval) {
         if player.playbackState != .seeking {
             if subtitleModel.isHDR != options.isHDR {
-                subtitleModel.isHDR = options.isHDR
+                if KSOptions.enableHDRSubtitle{
+                    subtitleModel.isHDR = options.isHDR
+                }else if subtitleModel.isHDR{
+                    subtitleModel.isHDR = false
+                }
             }
             // pip播放的时候用view.frame.size获取到的大小不对，要用subtitleVC的
             var screenSize = subtitleVC.view.frame.size
