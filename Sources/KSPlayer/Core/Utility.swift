@@ -293,12 +293,13 @@ extension AVPlayer.HDRMode {
 #endif
 
 public extension FourCharCode {
+    // proRes的值是147，使用CChar会越界。FourCharCode是UInt32，每个字符是UInt8才对。
     var string: String {
-        let cString: [CChar] = [
-            CChar(self >> 24 & 0xFF),
-            CChar(self >> 16 & 0xFF),
-            CChar(self >> 8 & 0xFF),
-            CChar(self & 0xFF),
+        let cString: [UInt8] = [
+            UInt8(self >> 24 & 0xFF),
+            UInt8(self >> 16 & 0xFF),
+            UInt8(self >> 8 & 0xFF),
+            UInt8(self & 0xFF),
             0,
         ]
         return String(cString: cString)
