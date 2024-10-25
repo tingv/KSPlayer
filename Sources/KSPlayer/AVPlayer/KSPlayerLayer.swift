@@ -214,9 +214,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     open func play(currentTime: TimeInterval) {
         if player.playbackState != .seeking {
             if subtitleModel.isHDR != options.isHDR {
-                if KSOptions.enableHDRSubtitle{
+                if KSOptions.enableHDRSubtitle {
                     subtitleModel.isHDR = options.isHDR
-                }else if subtitleModel.isHDR{
+                } else if subtitleModel.isHDR {
                     subtitleModel.isHDR = false
                 }
             }
