@@ -23,9 +23,9 @@ public class CircularBuffer<Item: ObjectQueueItem> {
     private var _count: Int { Int(tailIndex &- headIndex) }
     @inline(__always)
     public var count: Int {
-//        condition.lock()
-//        defer { condition.unlock() }
-        Int(tailIndex &- headIndex)
+        condition.lock()
+        defer { condition.unlock() }
+        return Int(tailIndex &- headIndex)
     }
 
     public internal(set) var fps: Float = 24
