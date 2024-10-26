@@ -20,6 +20,8 @@ class FFmpegDecode: DecodeProtocol {
     private let seekByBytes: Bool
     private var hasDecodeSuccess = false
     private let isVideo: Bool
+    // 因为seek之后，frame可能不会带有doviData，所以需要保存起来，下次使用。
+    private var doviData: dovi_metadata? = nil
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         self.options = options
         seekByBytes = assetTrack.seekByBytes
@@ -61,6 +63,7 @@ class FFmpegDecode: DecodeProtocol {
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
                 avcodec_send_packet(codecContext, packet.corePacket)
             } else {
+                avcodec_flush_buffers(codecContext)
                 return
             }
         }
@@ -131,7 +134,6 @@ class FFmpegDecode: DecodeProtocol {
         var displayData: MasteringDisplayMetadata?
         var contentData: ContentLightMetadata?
         var ambientViewingEnvironment: AmbientViewingEnvironment?
-        var doviData: dovi_metadata? = nil
         // filter之后，side_data信息会丢失，所以放在这里
         if inputFrame.pointee.nb_side_data > 0 {
             for i in 0 ..< inputFrame.pointee.nb_side_data {
