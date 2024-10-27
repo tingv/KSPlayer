@@ -950,6 +950,20 @@ extension MEPlayerItem: CodecCapacityDelegate {
         if state == .seeking {
             loadingState.loadedTime = 0
         }
+        if loadingState.isPlayable {
+            isFirst = false
+            isSeek = false
+            if loadingState.loadedTime > options.maxBufferDuration {
+                adaptableVideo(loadingState: loadingState)
+                pause()
+            } else if loadingState.loadedTime < options.maxBufferDuration / 2 {
+                resume()
+            }
+        } else {
+            resume()
+            adaptableVideo(loadingState: loadingState)
+        }
+        // 硬盘缓存要在后面才增加，这样才不会影响到内存缓存。因为只是为了进度条的显示。
         if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0 {
             if preload.urlPos == initFileSize, preload.loadedSize != 0 {
                 loadingState.loadedTime = initDuration - currentPlaybackTime
@@ -964,23 +978,8 @@ extension MEPlayerItem: CodecCapacityDelegate {
                     loadingState.loadedTime = min(loadingState.loadedTime, duration - currentPlaybackTime)
                 }
             }
-            delegate?.sourceDidChange(loadingState: loadingState)
-        } else {
-            delegate?.sourceDidChange(loadingState: loadingState)
         }
-        if loadingState.isPlayable {
-            isFirst = false
-            isSeek = false
-            if loadingState.loadedTime > options.maxBufferDuration {
-                adaptableVideo(loadingState: loadingState)
-                pause()
-            } else if loadingState.loadedTime < options.maxBufferDuration / 2 {
-                resume()
-            }
-        } else {
-            resume()
-            adaptableVideo(loadingState: loadingState)
-        }
+        delegate?.sourceDidChange(loadingState: loadingState)
     }
 
     func codecDidFinished(track: some CapacityProtocol) {
