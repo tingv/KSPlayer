@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -53,7 +53,6 @@
 		AC77DFB726402329001351AE /* Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Player.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ACADA07528EDC067001B76D1 /* Player.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Player.entitlements; sourceTree = "<group>"; };
 		ACB965462A42EDCD00378A4C /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
-		ACD2F747275F6E860006D16F /* KSPlayer */ = {isa = PBXFileReference; lastKnownFileType = folder; name = KSPlayer; path = ../..; sourceTree = "<group>"; };
 		ACD786482A6A8648004A0220 /* Defaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Defaults.swift; sourceTree = "<group>"; };
 		ACE3619328EB689F00F234EB /* Player-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Player-Info.plist"; sourceTree = "<group>"; };
 		ACEA9FEA298BFC8800FBA74B /* MovieModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieModel.swift; sourceTree = "<group>"; };
@@ -92,7 +91,6 @@
 			children = (
 				ACADA07528EDC067001B76D1 /* Player.entitlements */,
 				ACE3619328EB689F00F234EB /* Player-Info.plist */,
-				ACD2F743275F6D7A0006D16F /* Packages */,
 				AC77DFAF26402327001351AE /* Shared */,
 				AC77DFB826402329001351AE /* Products */,
 				ACD2F74C275F6EE60006D16F /* Frameworks */,
@@ -127,14 +125,6 @@
 				8004D9392C464F8D001936E9 /* Player Vision.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		ACD2F743275F6D7A0006D16F /* Packages */ = {
-			isa = PBXGroup;
-			children = (
-				ACD2F747275F6E860006D16F /* KSPlayer */,
-			);
-			name = Packages;
 			sourceTree = "<group>";
 		};
 		ACD2F74C275F6EE60006D16F /* Frameworks */ = {
@@ -212,6 +202,9 @@
 				de,
 			);
 			mainGroup = AC77DFAA26402327001351AE;
+			packageReferences = (
+				AC6EEE192CCE479D009F4790 /* XCLocalSwiftPackageReference "../../../KSPlayer" */,
+			);
 			productRefGroup = AC77DFB826402329001351AE /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -615,6 +608,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		AC6EEE192CCE479D009F4790 /* XCLocalSwiftPackageReference "../../../KSPlayer" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../../KSPlayer;
+		};
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		8004D9242C464F8D001936E9 /* KSPlayer */ = {

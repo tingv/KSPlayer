@@ -1,4 +1,0 @@
-[submodule "FFmpegKit"]
-	path = FFmpegKit
-	url = git@github.com:TracyPlayer/FFmpegKit.git
-	branch = lgpl
