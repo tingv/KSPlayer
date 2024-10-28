@@ -202,6 +202,10 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             runOnMainThread {
                 UIApplication.shared.isIdleTimerDisabled = false
             }
+        } else if state == .buffering || state == .bufferFinished {
+            timer.fireDate = .distantPast
+        } else {
+            timer.fireDate = .distantFuture
         }
         runOnMainThread { [weak self] in
             guard let self else { return }
@@ -253,16 +257,12 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             } else {
                 player.play()
             }
-            timer.fireDate = Date.distantPast
         }
-        state = player.loadState == .playable ? .bufferFinished : .buffering
     }
 
     open func pause() {
         isAutoPlay = false
         player.pause()
-        timer.fireDate = Date.distantFuture
-        state = .paused
         runOnMainThread {
             UIApplication.shared.isIdleTimerDisabled = false
         }
@@ -401,14 +401,17 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             bufferedCount += 1
             startTime = 0
         }
-        guard state.isPlaying else { return }
-        if player.loadState == .playable {
-            state = .bufferFinished
-        } else {
-            if state == .bufferFinished {
-                startTime = CACurrentMediaTime()
+        if player.playbackState == .paused {
+            state = .paused
+        } else if player.playbackState == .playing {
+            if player.loadState == .playable {
+                state = .bufferFinished
+            } else {
+                if state == .bufferFinished {
+                    startTime = CACurrentMediaTime()
+                }
+                state = .buffering
             }
-            state = .buffering
         }
     }
 
@@ -427,7 +430,6 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         } else {
             state = .playedToTheEnd
         }
-        timer.fireDate = Date.distantFuture
         bufferedCount = 1
         let duration = player.duration
         runOnMainThread { [weak self] in

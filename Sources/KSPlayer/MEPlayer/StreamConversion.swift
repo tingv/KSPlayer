@@ -11,7 +11,7 @@ import Libavcodec
 import Libavdevice
 import Libavformat
 
-public class StreamConversion: ObservableObject {
+public class StreamConversion {
     private var formatCtx: UnsafeMutablePointer<AVFormatContext>?
     private var outputFormatCtx: UnsafeMutablePointer<AVFormatContext>?
     private var packet: UnsafeMutablePointer<AVPacket>?
