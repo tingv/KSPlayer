@@ -38,6 +38,8 @@ class SubtitleDecode: DecodeProtocol {
                         subtitleHeader = str
                             .replacingOccurrences(of: "PlayResY: 288", with: "PlayResY: 216")
                             .replacingOccurrences(of: "Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1", with: KSOptions.assStyle)
+                            // movtext的默认样式不一样
+                            .replacingOccurrences(of: "Style: Default,Serif,18,&Hffffff,&Hffffff,&Hff000000,&Hff000000,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1", with: KSOptions.assStyle)
                     }
                     // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
                     if (KSOptions.isASSUseImageRender && isASS) || KSOptions.isSRTUseImageRender {
