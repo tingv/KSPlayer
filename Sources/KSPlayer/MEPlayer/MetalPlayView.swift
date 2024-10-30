@@ -137,8 +137,10 @@ public final class MetalPlayView: UIView, VideoOutput {
         pixelBuffer = nil
         if displayView.isHidden {
             drawable.clear()
-            if let mtlTextureCache = MetalRender.mtlTextureCache {
-                CVMetalTextureCacheFlush(mtlTextureCache, 0)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                if let mtlTextureCache = MetalRender.mtlTextureCache {
+                    CVMetalTextureCacheFlush(mtlTextureCache, 0)
+                }
             }
         } else {
             displayView.displayLayer.flushAndRemoveImage()
