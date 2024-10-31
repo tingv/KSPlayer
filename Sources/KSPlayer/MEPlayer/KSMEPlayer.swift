@@ -31,13 +31,16 @@ public class KSMEPlayer: NSObject {
     }
 
     #if os(tvOS)
+    private var _pipController: Any?
     @available(tvOS 14.0, *)
     @MainActor
     public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
         get {
-            nil
+            _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
         }
-        set {}
+        set {
+            _pipController = newValue
+        }
     }
     #else
     @MainActor
