@@ -8,7 +8,7 @@
 import AVKit
 
 @MainActor
-public protocol KSPictureInPictureProtocol: NSObjectProtocol {
+public protocol KSPictureInPictureProtocol {
     var isPictureInPictureActive: Bool { get }
     @available(tvOS 14.0, *)
     var delegate: AVPictureInPictureControllerDelegate? { get set }
