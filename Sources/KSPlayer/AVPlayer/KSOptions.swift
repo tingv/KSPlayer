@@ -412,7 +412,7 @@ open class KSOptions {
     public static let displayEnumVRBox = VRBoxDisplayModel()
     @available(tvOS 14.0, *)
     @MainActor
-    public static var pictureInPictureType: (KSPictureInPictureProtocol & AVPictureInPictureController).Type = KSPictureInPictureController.self
+    public static var pictureInPictureType: KSPictureInPictureProtocol.Type = KSPictureInPictureController.self
     public nonisolated(unsafe) static var videoSoftDecodeThreadCount = 4
     @MainActor
     public static var audioVideoClockSync = true

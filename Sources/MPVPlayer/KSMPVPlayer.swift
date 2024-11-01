@@ -44,7 +44,7 @@ public class KSMPVPlayer: MPVHandle {
     #if os(tvOS)
     @available(tvOS 14.0, *)
     @MainActor
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+    public var pipController: KSPictureInPictureProtocol? {
         get {
             nil
         }
@@ -52,7 +52,7 @@ public class KSMPVPlayer: MPVHandle {
     }
     #else
     @MainActor
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = nil
+    public var pipController: KSPictureInPictureProtocol? = nil
     #endif
 
     @MainActor

@@ -271,9 +271,6 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     // 这个是用来清空资源，例如断开网络和缓存，调用这个方法之后，就要调用replace(url)才能重新开始播放
     public func reset() {
         state = .initialized
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
-            player.pipController?.contentSource = nil
-        }
         subtitleModel.selectedSubtitleInfo = nil
         player.reset()
     }
@@ -282,9 +279,6 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     open func stop() {
         KSLog("stop KSPlayerLayer")
         state = .initialized
-        if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
-            player.pipController?.contentSource = nil
-        }
         subtitleModel.selectedSubtitleInfo = nil
         subtitleVC.view.removeFromSuperview()
         player.stop()
@@ -591,15 +585,12 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 
     override public func readyToPlay(player: some MediaPlayerProtocol) {
         super.readyToPlay(player: player)
-        #if !os(macOS) && !os(tvOS)
-        if #available(iOS 14.2, *) {
+        if #available(tvOS 14.0, *) {
             if options.canStartPictureInPictureAutomaticallyFromInline, player.pipController == nil {
                 player.configPIP()
                 player.pipController?.delegate = self
-                player.pipController?.canStartPictureInPictureAutomaticallyFromInline = true
             }
         }
-        #endif
         updateNowPlayingInfo()
     }
 
@@ -618,6 +609,8 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 
     override open func stop() {
         super.stop()
+        player.pipController?.delegate = nil
+        player.pipController = nil
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
@@ -851,7 +844,7 @@ extension KSComplexPlayerLayer {
 
     @available(tvOS 14.0, *)
     private func pipAddSubtitle() {
-        if let pipVC = player.pipController?.value(forKey: "pictureInPictureViewController") as? UIViewController {
+        if let pipVC = (player.pipController as? NSObject)?.value(forKey: "pictureInPictureViewController") as? UIViewController {
             addSubtitle(to: pipVC.view)
         }
     }

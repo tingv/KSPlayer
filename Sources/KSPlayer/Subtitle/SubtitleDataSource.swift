@@ -122,7 +122,7 @@ public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource, @unchecked S
         let file = fileURL.absoluteString
         let path = downloadURL.absoluteString
         var array = srtInfoCaches[file] ?? [String]()
-        if !array.contains(where: { $0 == path }) {
+        if !array.contains(path) {
             array.append(path)
             srtInfoCaches[file] = array
             Task { [weak self] in

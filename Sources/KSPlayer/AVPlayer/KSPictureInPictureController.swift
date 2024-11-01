@@ -8,7 +8,16 @@
 import AVKit
 
 @MainActor
-public protocol KSPictureInPictureProtocol {
+public protocol KSPictureInPictureProtocol: NSObjectProtocol {
+    var isPictureInPictureActive: Bool { get }
+    @available(tvOS 14.0, *)
+    var delegate: AVPictureInPictureControllerDelegate? { get set }
+    init?(playerLayer: AVPlayerLayer)
+    @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
+    init(contentSource: AVPictureInPictureController.ContentSource)
+    @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
+    func invalidatePlaybackState()
+
     func start(layer: KSComplexPlayerLayer)
     func stop(restoreUserInterface: Bool)
     static func mute()
@@ -25,6 +34,10 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
     #if canImport(UIKit)
     private weak var navigationController: UINavigationController?
     #endif
+    @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
+    override public required init(contentSource: AVPictureInPictureController.ContentSource) {
+        super.init(contentSource: contentSource)
+    }
 
     public func start(layer: KSComplexPlayerLayer) {
         startPictureInPicture()

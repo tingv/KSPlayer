@@ -99,7 +99,7 @@ public class KSAVPlayer {
     #if os(tvOS)
     @available(tvOS 14.0, *)
     @MainActor
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+    public var pipController: KSPictureInPictureProtocol? {
         get {
             nil
         }
@@ -107,7 +107,7 @@ public class KSAVPlayer {
     }
     #else
     @MainActor
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = nil
+    public var pipController: KSPictureInPictureProtocol? = nil
     #endif
 
     public var naturalSize: CGSize = .zero

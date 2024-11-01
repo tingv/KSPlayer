@@ -34,9 +34,9 @@ public class KSMEPlayer: NSObject {
     private var _pipController: Any?
     @available(tvOS 14.0, *)
     @MainActor
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
+    public var pipController: KSPictureInPictureProtocol? {
         get {
-            _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
+            _pipController as? KSPictureInPictureProtocol
         }
         set {
             _pipController = newValue
@@ -44,7 +44,7 @@ public class KSMEPlayer: NSObject {
     }
     #else
     @MainActor
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = nil
+    public var pipController: KSPictureInPictureProtocol? = nil
     #endif
 
     private lazy var _playbackCoordinator: Any? = {
