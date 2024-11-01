@@ -16,7 +16,7 @@ jobs:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
 #      https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
-      - uses: webfactory/ssh-agent@main
+      - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ACCESS_TOKEN }}
       - name: Set up Xcode
