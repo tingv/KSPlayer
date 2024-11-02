@@ -210,13 +210,17 @@ extension KSMPVPlayer: MediaPlayerProtocol {
     }
 
     public func stop() {
+        if let mpv {
+            mpv_set_wakeup_callback(mpv, nil, nil)
+        }
         command(.stop)
-        mpv_set_wakeup_callback(mpv, nil, nil)
     }
 
     public func reset() {
+        if let mpv {
+            mpv_set_wakeup_callback(mpv, nil, nil)
+        }
         command(.stop)
-        mpv_set_wakeup_callback(mpv, nil, nil)
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
