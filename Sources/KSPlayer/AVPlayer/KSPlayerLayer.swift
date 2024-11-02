@@ -506,22 +506,22 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
     @MainActor
     public var isPipActive = false {
         didSet {
-            if #available(tvOS 14.0, *) {
-                if isPipActive {
-                    if let pipController = player.pipController {
-                        pipController.start(layer: self)
-                    } else {
-                        player.configPIP()
-                        player.pipController?.delegate = self
-                        // 刚创建pip的话，需要等待0.3才能pip
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                            guard let self else { return }
-                            self.player.pipController?.start(layer: self)
-                        }
-                    }
+            if isPipActive {
+                if let pipController = player.pipController {
+                    pipController.start(layer: self)
                 } else {
-                    player.pipController?.stop(restoreUserInterface: true)
+                    player.configPIP()
+                    if #available(tvOS 14.0, *) {
+                        player.pipController?.delegate = self
+                    }
+                    // 刚创建pip的话，需要等待0.3才能pip
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                        guard let self else { return }
+                        self.player.pipController?.start(layer: self)
+                    }
                 }
+            } else {
+                player.pipController?.stop(restoreUserInterface: true)
             }
         }
     }
@@ -585,9 +585,9 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 
     override public func readyToPlay(player: some MediaPlayerProtocol) {
         super.readyToPlay(player: player)
-        if #available(tvOS 14.0, *) {
-            if options.canStartPictureInPictureAutomaticallyFromInline, player.pipController == nil {
-                player.configPIP()
+        if options.canStartPictureInPictureAutomaticallyFromInline, player.pipController == nil {
+            player.configPIP()
+            if #available(tvOS 14.0, *) {
                 player.pipController?.delegate = self
             }
         }
@@ -611,8 +611,8 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         super.stop()
         if #available(tvOS 14.0, *) {
             player.pipController?.delegate = nil
-            player.pipController = nil
         }
+        player.pipController = nil
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
@@ -811,7 +811,7 @@ extension KSComplexPlayerLayer {
         guard state.isPlaying, !player.isExternalPlaybackActive else {
             return
         }
-        if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
+        if player.pipController?.isPictureInPictureActive == true {
             pipAddSubtitle()
             return
         }
@@ -827,13 +827,15 @@ extension KSComplexPlayerLayer {
         guard !player.isExternalPlaybackActive else {
             return
         }
-        if #available(tvOS 14.0, *), player.pipController?.isPictureInPictureActive == true {
+        if player.pipController?.isPictureInPictureActive == true {
             isPipActive = false
             if !options.canStartPictureInPictureAutomaticallyFromInline {
                 // 要延迟清空，这样delegate的方法才能调用，不然会导致回到前台，字幕无法显示了。并且1秒还不行，一定要2秒
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
                     guard let self else { return }
-                    player.pipController?.delegate = nil
+                    if #available(tvOS 14.0, *) {
+                        player.pipController?.delegate = nil
+                    }
                     player.pipController = nil
                 }
             }
@@ -844,7 +846,6 @@ extension KSComplexPlayerLayer {
         }
     }
 
-    @available(tvOS 14.0, *)
     private func pipAddSubtitle() {
         if let pipVC = (player.pipController as? NSObject)?.value(forKey: "pictureInPictureViewController") as? UIViewController {
             addSubtitle(to: pipVC.view)

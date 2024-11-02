@@ -102,7 +102,6 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     #endif
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     var playbackCoordinator: AVPlaybackCoordinator { get }
-    @available(tvOS 14.0, *)
     var pipController: KSPictureInPictureProtocol? { get set }
     var dynamicInfo: DynamicInfo? { get }
     init(url: URL, options: KSOptions)

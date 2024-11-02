@@ -41,20 +41,8 @@ public class KSMPVPlayer: MPVHandle {
     private var tracks = [MPVTrack]()
     private var bufferingCountDownTimer: Timer?
     private var url: URL
-    #if os(tvOS)
-    @available(tvOS 14.0, *)
-    @MainActor
-    public var pipController: KSPictureInPictureProtocol? {
-        get {
-            nil
-        }
-        set {}
-    }
-    #else
     @MainActor
     public var pipController: KSPictureInPictureProtocol? = nil
-    #endif
-
     @MainActor
     public required init(url: URL, options: KSOptions) {
         self.url = url

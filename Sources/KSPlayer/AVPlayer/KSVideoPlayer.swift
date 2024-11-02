@@ -170,7 +170,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             didSet {
                 oldValue?.delegate = nil
                 oldValue?.stop()
-                if #available(tvOS 14.0, *), oldValue?.player.pipController?.isPictureInPictureActive == true {
+                if oldValue?.player.pipController?.isPictureInPictureActive == true {
                     return
                 }
             }

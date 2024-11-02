@@ -96,19 +96,8 @@ public class KSAVPlayer {
         }
     }
 
-    #if os(tvOS)
-    @available(tvOS 14.0, *)
-    @MainActor
-    public var pipController: KSPictureInPictureProtocol? {
-        get {
-            nil
-        }
-        set {}
-    }
-    #else
     @MainActor
     public var pipController: KSPictureInPictureProtocol? = nil
-    #endif
 
     public var naturalSize: CGSize = .zero
     public let dynamicInfo: DynamicInfo? = nil

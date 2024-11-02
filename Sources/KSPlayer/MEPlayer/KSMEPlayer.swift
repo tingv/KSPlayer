@@ -30,22 +30,8 @@ public class KSMEPlayer: NSObject {
         }
     }
 
-    #if os(tvOS)
-    private var _pipController: Any?
-    @available(tvOS 14.0, *)
-    @MainActor
-    public var pipController: KSPictureInPictureProtocol? {
-        get {
-            _pipController as? KSPictureInPictureProtocol
-        }
-        set {
-            _pipController = newValue
-        }
-    }
-    #else
     @MainActor
     public var pipController: KSPictureInPictureProtocol? = nil
-    #endif
 
     private lazy var _playbackCoordinator: Any? = {
         if #available(macOS 12.0, iOS 15.0, tvOS 15.0, *) {
