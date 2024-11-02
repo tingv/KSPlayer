@@ -609,8 +609,10 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 
     override open func stop() {
         super.stop()
-        player.pipController?.delegate = nil
-        player.pipController = nil
+        if #available(tvOS 14.0, *) {
+            player.pipController?.delegate = nil
+            player.pipController = nil
+        }
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
