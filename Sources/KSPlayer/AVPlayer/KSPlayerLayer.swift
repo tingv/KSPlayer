@@ -596,6 +596,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 
     override public func finish(player: some MediaPlayerProtocol, error: (any Error)?) {
         if let error {
+            KSLog(error as CustomStringConvertible)
             if type(of: player) != KSOptions.secondPlayerType, let secondPlayerType = KSOptions.secondPlayerType {
                 self.player = secondPlayerType.init(url: url, options: options)
                 return

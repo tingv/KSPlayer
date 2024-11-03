@@ -389,8 +389,6 @@ open class KSOptions {
     /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
     public nonisolated(unsafe) static var asynchronousDecompression = false
     @MainActor
-    public static var isPipPopViewController = false
-    @MainActor
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     @MainActor
     public static var preferredFrame = false

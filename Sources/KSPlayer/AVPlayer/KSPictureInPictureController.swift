@@ -8,7 +8,7 @@
 import AVKit
 
 @MainActor
-public protocol KSPictureInPictureProtocol {
+public protocol KSPictureInPictureProtocol: AnyObject {
     var isPictureInPictureActive: Bool { get }
     @available(tvOS 14.0, *)
     var delegate: AVPictureInPictureControllerDelegate? { get set }
@@ -27,6 +27,32 @@ public protocol KSPictureInPictureProtocol {
 @MainActor
 @available(tvOS 14.0, *)
 public class KSPictureInPictureController: AVPictureInPictureController, KSPictureInPictureProtocol {
+    @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
+    override public required init(contentSource: AVPictureInPictureController.ContentSource) {
+        super.init(contentSource: contentSource)
+    }
+
+    public func start(layer _: KSComplexPlayerLayer) {
+        startPictureInPicture()
+    }
+
+    public func didStart(layer _: KSComplexPlayerLayer) {
+        #if canImport(UIKit)
+        // 直接退到后台
+        UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
+        #endif
+    }
+
+    public func stop(restoreUserInterface _: Bool) {
+        stopPictureInPicture()
+    }
+
+    public static func mute() {}
+}
+
+@MainActor
+@available(tvOS 14.0, *)
+public class KSpopPictureInPictureController: AVPictureInPictureController, KSPictureInPictureProtocol {
     static var layer: KSComplexPlayerLayer?
     @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
     override public required init(contentSource: AVPictureInPictureController.ContentSource) {
@@ -38,13 +64,6 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
     }
 
     public func didStart(layer: KSComplexPlayerLayer) {
-        guard KSOptions.isPipPopViewController else {
-            #if canImport(UIKit)
-            // 直接退到后台
-            UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
-            #endif
-            return
-        }
         #if canImport(UIKit)
         guard let viewController = layer.player.view.viewController else { return }
         let originalViewController: UIViewController
@@ -59,15 +78,15 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
             viewController.dismiss(animated: true)
         }
         #endif
-        KSPictureInPictureController.layer?.stop()
-        KSPictureInPictureController.layer = layer
+        KSpopPictureInPictureController.layer?.stop()
+        KSpopPictureInPictureController.layer = layer
     }
 
     public func stop(restoreUserInterface _: Bool) {
         stopPictureInPicture()
         DispatchQueue.main.async {
-            KSPictureInPictureController.layer?.stop()
-            KSPictureInPictureController.layer = nil
+            KSpopPictureInPictureController.layer?.stop()
+            KSpopPictureInPictureController.layer = nil
         }
     }
 
