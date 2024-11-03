@@ -416,7 +416,8 @@ open class KSOptions {
     public nonisolated(unsafe) static var videoSoftDecodeThreadCount = 4
     @MainActor
     public static var audioVideoClockSync = true
-    public var isHDR = false
+    public var dynamicRange: DynamicRange = .sdr
+    public var isPictureInPictureActive = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoRotate = true
@@ -477,8 +478,7 @@ open class KSOptions {
 
     @MainActor
     open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription) {
-        let dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
-        isHDR = dynamicRange.isHDR
+        dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
         #if os(tvOS) || os(xrOS)
         /**
          快速更改preferredDisplayCriteria，会导致isDisplayModeSwitchInProgress变成true。

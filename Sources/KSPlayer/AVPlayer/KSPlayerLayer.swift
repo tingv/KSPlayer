@@ -217,9 +217,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     @MainActor
     open func play(currentTime: TimeInterval) {
         if player.playbackState != .seeking {
-            if subtitleModel.isHDR != options.isHDR {
+            if subtitleModel.isHDR != options.dynamicRange.isHDR {
                 if KSOptions.enableHDRSubtitle {
-                    subtitleModel.isHDR = options.isHDR
+                    subtitleModel.isHDR = options.dynamicRange.isHDR
                 } else if subtitleModel.isHDR {
                     subtitleModel.isHDR = false
                 }
@@ -516,13 +516,15 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
                     }
                     // 刚创建pip的话，需要等待0.3才能pip
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                        guard let self else { return }
-                        self.player.pipController?.start(layer: self)
+                        guard let self, let pipController = self.player.pipController else { return }
+                        pipController.start(layer: self)
+                        self.options.isPictureInPictureActive = pipController.isPictureInPictureActive
                     }
                 }
             } else {
                 player.pipController?.stop(restoreUserInterface: true)
             }
+            options.isPictureInPictureActive = player.pipController?.isPictureInPictureActive ?? false
         }
     }
 

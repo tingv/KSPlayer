@@ -40,8 +40,8 @@ public protocol PixelBufferProtocol: AnyObject {
 
 extension PixelBufferProtocol {
     var size: CGSize { CGSize(width: width, height: height) }
-    func updateColorspace() {
-        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction)
+    func updateColorspace(isDovi: Bool) {
+        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction, isDovi: isDovi)
     }
 }
 

@@ -84,17 +84,17 @@ public extension KSOptions {
     /*
      CGColorSpaceCreateICCBased
      */
-    static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
+    static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?, isDovi: Bool) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
-                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, macCatalyst 15.1, *) {
+                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, *) {
                     return CGColorSpace(name: CGColorSpace.itur_709_PQ)
                 } else {
                     return CGColorSpace(name: CGColorSpace.itur_709)
                 }
             } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, macCatalyst 15.1, *) {
+                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, *) {
                     return CGColorSpace(name: CGColorSpace.itur_709_HLG)
                 } else {
                     return CGColorSpace(name: CGColorSpace.itur_709)
@@ -108,7 +108,13 @@ public extension KSOptions {
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
                 return colorSpace2020PQ
             } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-                return colorSpace2020HLG
+                if isDovi {
+                    return colorSpace2020HLG
+                } else if #available(iOS 18.0, *) {
+                    return colorSpace2020HLG
+                } else {
+                    return CGColorSpace(name: CGColorSpace.itur_2020)
+                }
             } else {
                 return CGColorSpace(name: CGColorSpace.itur_2020)
             }
@@ -439,7 +445,7 @@ public final class VideoVTBFrame: MEFrame {
     public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
         self.pixelBuffer = pixelBuffer
         // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不对，所以统一设置下。
-        pixelBuffer.updateColorspace()
+        pixelBuffer.updateColorspace(isDovi: isDovi)
         self.fps = fps
         self.isDovi = isDovi
     }
@@ -462,7 +468,11 @@ extension VideoVTBFrame {
         if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
             return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
         } else if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-            return CAEDRMetadata.hlg
+            if DynamicRange.availableHDRModes.contains(.hlg) {
+                return CAEDRMetadata.hlg
+            } else {
+                return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
+            }
         }
         if let doviData {
             return CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance, maxLuminance: doviData.maxLuminance, opticalOutputScale: 10000)

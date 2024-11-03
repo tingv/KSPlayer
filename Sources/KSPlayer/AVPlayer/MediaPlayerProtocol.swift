@@ -311,7 +311,7 @@ public extension MediaPlayerTrack {
     }
 
     var colorSpace: CGColorSpace? {
-        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?)
+        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?, isDovi: dynamicRange == .dolbyVision)
     }
 
     var mediaSubType: CMFormatDescription.MediaSubType {
