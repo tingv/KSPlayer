@@ -177,10 +177,10 @@ extension KSVideoPlayer: UIViewRepresentable {
         public var playerLayer: KSPlayerLayer? {
             didSet {
                 oldValue?.delegate = nil
-                oldValue?.stop()
                 if oldValue?.player.pipController?.isPictureInPictureActive == true {
                     return
                 }
+                oldValue?.stop()
             }
         }
 

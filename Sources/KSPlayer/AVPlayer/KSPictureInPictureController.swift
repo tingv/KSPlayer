@@ -19,6 +19,7 @@ public protocol KSPictureInPictureProtocol {
     func invalidatePlaybackState()
 
     func start(layer: KSComplexPlayerLayer)
+    func didStart(layer: KSComplexPlayerLayer)
     func stop(restoreUserInterface: Bool)
     static func mute()
 }
@@ -26,94 +27,51 @@ public protocol KSPictureInPictureProtocol {
 @MainActor
 @available(tvOS 14.0, *)
 public class KSPictureInPictureController: AVPictureInPictureController, KSPictureInPictureProtocol {
-    private static var pipController: KSPictureInPictureController?
-    private var layer: KSComplexPlayerLayer?
-    private weak var originalViewController: UIViewController?
-    private weak var viewController: UIViewController?
-    private weak var presentingViewController: UIViewController?
-    #if canImport(UIKit)
-    private weak var navigationController: UINavigationController?
-    #endif
+    static var layer: KSComplexPlayerLayer?
     @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
     override public required init(contentSource: AVPictureInPictureController.ContentSource) {
         super.init(contentSource: contentSource)
     }
 
-    public func start(layer: KSComplexPlayerLayer) {
+    public func start(layer _: KSComplexPlayerLayer) {
         startPictureInPicture()
-        self.layer = layer
+    }
+
+    public func didStart(layer: KSComplexPlayerLayer) {
         guard KSOptions.isPipPopViewController else {
+            #if canImport(UIKit)
+            // 直接退到后台
+            UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
+            #endif
             return
         }
         #if canImport(UIKit)
         guard let viewController = layer.player.view.viewController else { return }
-        originalViewController = viewController
+        let originalViewController: UIViewController
         if let navigationController = viewController.navigationController, navigationController.viewControllers.count == 1 {
-            self.viewController = navigationController
+            originalViewController = navigationController
         } else {
-            self.viewController = viewController
+            originalViewController = viewController
         }
-        navigationController = self.viewController?.navigationController
-        if let pre = KSPictureInPictureController.pipController {
-            layer.player.isMuted = true
-            pre.layer?.isPipActive = false
+        if let navigationController = originalViewController.navigationController {
+            navigationController.popViewController(animated: true)
         } else {
-            if let navigationController {
-                navigationController.popViewController(animated: true)
-                navigationController.pushViewController(viewController, animated: true)
-//                #if os(iOS)
-//                if navigationController.tabBarController != nil, navigationController.viewControllers.count == 1 {
-//                    navigationController.setToolbarHidden(false, animated: true)
-//                }
-//                #endif
-            } else {
-                presentingViewController = originalViewController?.presentingViewController
-                originalViewController?.dismiss(animated: true)
-            }
+            viewController.dismiss(animated: true)
         }
         #endif
-        KSPictureInPictureController.pipController = self
+        KSPictureInPictureController.layer?.stop()
+        KSPictureInPictureController.layer = layer
     }
 
-    public func stop(restoreUserInterface: Bool) {
+    public func stop(restoreUserInterface _: Bool) {
         stopPictureInPicture()
-        guard KSOptions.isPipPopViewController else {
-            layer = nil
-            return
+        DispatchQueue.main.async {
+            KSPictureInPictureController.layer?.stop()
+            KSPictureInPictureController.layer = nil
         }
-        KSPictureInPictureController.pipController = nil
-        if restoreUserInterface {
-            #if canImport(UIKit)
-            guard let viewController, let originalViewController else { return }
-            if let nav = viewController as? UINavigationController,
-               nav.viewControllers.isEmpty || (nav.viewControllers.count == 1 && nav.viewControllers[0] != originalViewController)
-            {
-                nav.viewControllers = [originalViewController]
-            }
-            if let navigationController {
-                var viewControllers = navigationController.viewControllers
-                if viewControllers.count > 1, let last = viewControllers.last, type(of: last) == type(of: viewController) {
-                    viewControllers[viewControllers.count - 1] = viewController
-                    navigationController.viewControllers = viewControllers
-                }
-                if viewControllers.firstIndex(of: viewController) == nil {
-                    // 新的swiftUI push之后。view会变成是emptyView。所以页面就空白了。
-                    navigationController.pushViewController(viewController, animated: true)
-                }
-            } else {
-                presentingViewController?.present(originalViewController, animated: true)
-            }
-
-            #endif
-            layer?.player.isMuted = false
-            layer?.play()
-        }
-
-        originalViewController = nil
-        layer = nil
     }
 
     public static func mute() {
-        pipController?.layer?.player.isMuted = true
+        layer?.player.isMuted = true
     }
 }

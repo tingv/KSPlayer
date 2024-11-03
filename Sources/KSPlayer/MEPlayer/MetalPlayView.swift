@@ -137,6 +137,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         pixelBuffer = nil
         if displayView.isHidden {
             drawable.clear()
+            // 一定要延迟1s才能清空metal缓存，0.5s不行
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 if let mtlTextureCache = MetalRender.mtlTextureCache {
                     CVMetalTextureCacheFlush(mtlTextureCache, 0)

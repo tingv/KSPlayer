@@ -271,7 +271,7 @@ public extension PlayerView {
     }
 }
 
-extension UIView {
+public extension UIView {
     var viewController: UIViewController? {
         var next = next
         while next != nil {

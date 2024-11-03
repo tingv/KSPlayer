@@ -518,13 +518,11 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                         guard let self, let pipController = self.player.pipController else { return }
                         pipController.start(layer: self)
-                        self.options.isPictureInPictureActive = pipController.isPictureInPictureActive
                     }
                 }
             } else {
                 player.pipController?.stop(restoreUserInterface: true)
             }
-            options.isPictureInPictureActive = player.pipController?.isPictureInPictureActive ?? false
         }
     }
 
@@ -638,19 +636,16 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
     @MainActor
     public func pictureInPictureControllerDidStartPictureInPicture(_: AVPictureInPictureController) {
-        if !KSOptions.isPipPopViewController {
-            #if canImport(UIKit)
-            // 直接退到后台
-            UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
-            #endif
-        }
         pipAddSubtitle()
+        options.isPictureInPictureActive = true
+        player.pipController?.didStart(layer: self)
     }
 
     @MainActor
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
         player.pipController?.stop(restoreUserInterface: false)
         addSubtitle(to: player.view)
+        options.isPictureInPictureActive = false
     }
 
     @MainActor
