@@ -29,6 +29,14 @@ public struct KSVideoPlayer {
     }
 }
 
+public extension KSVideoPlayer {
+    init(playerLayer: KSPlayerLayer) {
+        let coordinator = KSVideoPlayer.Coordinator()
+        coordinator.playerLayer = playerLayer
+        self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
+    }
+}
+
 #if !os(tvOS)
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 @MainActor

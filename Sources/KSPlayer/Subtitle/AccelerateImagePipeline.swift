@@ -68,7 +68,7 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 8 * 4,
-            colorSpace: isHDR ? CGColorSpace(name: CGColorSpace.itur_2100_PQ) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB(),
+            colorSpace: isHDR ? KSOptions.colorSpace2020PQ ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: CGBitmapInfo(rawValue: alphaInfo.rawValue)
         ).flatMap { format in
             makeCGImage(cgImageFormat: format)

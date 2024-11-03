@@ -87,29 +87,53 @@ public extension KSOptions {
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
-            return CGColorSpace(name: CGColorSpace.itur_709)
+            if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
+                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, macCatalyst 15.1, *) {
+                    return CGColorSpace(name: CGColorSpace.itur_709_PQ)
+                } else {
+                    return CGColorSpace(name: CGColorSpace.itur_709)
+                }
+            } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
+                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, macCatalyst 15.1, *) {
+                    return CGColorSpace(name: CGColorSpace.itur_709_HLG)
+                } else {
+                    return CGColorSpace(name: CGColorSpace.itur_709)
+                }
+            } else {
+                return CGColorSpace(name: CGColorSpace.itur_709)
+            }
         case kCVImageBufferYCbCrMatrix_ITU_R_601_4:
             return CGColorSpace(name: CGColorSpace.sRGB)
         case kCVImageBufferYCbCrMatrix_ITU_R_2020:
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
-                if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
-                } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
-                } else {
-                    return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
-                }
+                return colorSpace2020PQ
             } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-                if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_2100_HLG)
-                } else {
-                    return CGColorSpace(name: CGColorSpace.itur_2020)
-                }
+                return colorSpace2020HLG
             } else {
                 return CGColorSpace(name: CGColorSpace.itur_2020)
             }
         default:
             return CGColorSpace(name: CGColorSpace.sRGB)
+        }
+    }
+
+    static var colorSpace2020PQ: CGColorSpace? {
+        if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
+        } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
+        } else {
+            return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+        }
+    }
+
+    static var colorSpace2020HLG: CGColorSpace? {
+        if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2100_HLG)
+        } else if #available(macOS 10.15.6, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2020_HLG)
+        } else {
+            return CGColorSpace(name: CGColorSpace.itur_2020)
         }
     }
 

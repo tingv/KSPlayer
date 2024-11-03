@@ -139,7 +139,7 @@ extension CVPixelBuffer: PixelBufferProtocol {
     public func cgImage(isHDR: Bool) -> CGImage? {
         var cgImage: CGImage?
         if isHDR {
-            colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+            colorspace = KSOptions.colorSpace2020PQ
         }
         VTCreateCGImageFromCVPixelBuffer(self, options: nil, imageOut: &cgImage)
         return cgImage

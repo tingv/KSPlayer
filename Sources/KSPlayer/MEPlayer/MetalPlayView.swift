@@ -215,7 +215,7 @@ extension MetalPlayView {
                     displayView.displayLayer.flushAndRemoveImage()
                 }
                 if frame.doviData != nil, options.display === KSOptions.displayEnumDovi {
-                    frame.pixelBuffer.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+                    frame.pixelBuffer.colorspace = KSOptions.colorSpace2020PQ
                 }
                 drawable.draw(frame: frame, display: options.display)
             }

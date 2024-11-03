@@ -80,7 +80,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         defer {
             rgbData.deallocate()
         }
-        let colorSpace = isHDR ? CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB()
+        let colorSpace = isHDR ? KSOptions.colorSpace2020PQ ?? CGColorSpaceCreateDeviceRGB() : CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = CGBitmapInfo(rawValue: alphaInfo.rawValue)
         let bitsPerPixel = alphaInfo != .none ? 32 : 24
         let bytesPerRow = stride * bitsPerPixel / 8
