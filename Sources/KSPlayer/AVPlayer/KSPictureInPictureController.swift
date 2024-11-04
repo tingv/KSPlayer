@@ -53,7 +53,7 @@ public class KSPictureInPictureController: AVPictureInPictureController, KSPictu
 @MainActor
 @available(tvOS 14.0, *)
 public class KSpopPictureInPictureController: AVPictureInPictureController, KSPictureInPictureProtocol {
-    static var layer: KSComplexPlayerLayer?
+    private static var layer: KSComplexPlayerLayer?
     @available(iOS 15.0, tvOS 15.0, macOS 12.0, *)
     override public required init(contentSource: AVPictureInPictureController.ContentSource) {
         super.init(contentSource: contentSource)

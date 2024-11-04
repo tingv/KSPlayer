@@ -35,14 +35,6 @@ public struct KSVideoPlayerView: View {
     private var focusableView: FocusableView?
     @State
     private var isDropdownShow = false
-    public init(url: URL, options: KSOptions, title: String? = nil) {
-        self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSource: nil)
-    }
-
-    // xcode 15.2还不支持对MainActor参数设置默认值
-    public init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil) {
-        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
-    }
 
     public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
         _url = url
@@ -191,6 +183,24 @@ public struct KSVideoPlayerView: View {
 
     fileprivate enum FocusableView {
         case play, controller, slider
+    }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+public extension KSVideoPlayerView {
+    init(url: URL, options: KSOptions, title: String? = nil) {
+        self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSource: nil)
+    }
+
+    // xcode 15.2还不支持对MainActor参数设置默认值
+    init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil) {
+        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
+    }
+
+    init(playerLayer: KSPlayerLayer) {
+        let coordinator = KSVideoPlayer.Coordinator()
+        coordinator.playerLayer = playerLayer
+        self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
     }
 }
 
@@ -516,7 +526,7 @@ struct VideoControllerView: View {
         Button {
             (config.playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
         } label: {
-            Image(systemName: "rectangle.on.rectangle.circle.fill")
+            Image(systemName: "pip.fill")
         }
     }
 
