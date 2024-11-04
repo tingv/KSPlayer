@@ -12,56 +12,9 @@ import Libavcodec
 import Libswresample
 import Libswscale
 
-protocol FrameTransfer {
-    func transfer(avframe: UnsafeMutablePointer<AVFrame>) -> UnsafeMutablePointer<AVFrame>
-    func shutdown()
-}
-
 protocol FrameChange {
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame
     func shutdown()
-}
-
-class VideoSwscale: FrameTransfer {
-    private var imgConvertCtx: OpaquePointer?
-    private var format: AVPixelFormat = AV_PIX_FMT_NONE
-    private var height: Int32 = 0
-    private var width: Int32 = 0
-    private var outFrame: UnsafeMutablePointer<AVFrame>?
-    private func setup(format: AVPixelFormat, width: Int32, height: Int32, linesize _: Int32) {
-        if self.format == format, self.width == width, self.height == height {
-            return
-        }
-        self.format = format
-        self.height = height
-        self.width = width
-        if format.osType() != nil {
-            sws_freeContext(imgConvertCtx)
-            imgConvertCtx = nil
-            outFrame = nil
-        } else {
-            let dstFormat = format.bestPixelFormat
-            imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, width, height, dstFormat, SWS_BICUBIC, nil, nil, nil)
-            outFrame = av_frame_alloc()
-            outFrame?.pointee.format = dstFormat.rawValue
-            outFrame?.pointee.width = width
-            outFrame?.pointee.height = height
-        }
-    }
-
-    func transfer(avframe: UnsafeMutablePointer<AVFrame>) -> UnsafeMutablePointer<AVFrame> {
-        setup(format: AVPixelFormat(rawValue: avframe.pointee.format), width: avframe.pointee.width, height: avframe.pointee.height, linesize: avframe.pointee.linesize.0)
-        if let imgConvertCtx, let outFrame {
-            sws_scale_frame(imgConvertCtx, outFrame, avframe)
-            return outFrame
-        }
-        return avframe
-    }
-
-    func shutdown() {
-        sws_freeContext(imgConvertCtx)
-        imgConvertCtx = nil
-    }
 }
 
 class VideoSwresample: FrameChange {
@@ -115,7 +68,7 @@ class VideoSwresample: FrameChange {
             // AV_PIX_FMT_VIDEOTOOLBOX格式是无法进行swscale的
             imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, dstWidth, dstHeight, dstFormat, SWS_FAST_BILINEAR, nil, nil, nil)
         }
-        pool = CVPixelBufferPool.ceate(width: dstWidth, height: dstHeight, bytesPerRowAlignment: linesize, pixelFormatType: pixelFormatType)
+        pool = CVPixelBufferPool.create(width: dstWidth, height: dstHeight, bytesPerRowAlignment: linesize, pixelFormatType: pixelFormatType)
     }
 
     func transfer(frame: AVFrame) throws -> PixelBufferProtocol {
@@ -206,6 +159,8 @@ class VideoSwresample: FrameChange {
         sws_freeContext(imgConvertCtx)
         imgConvertCtx = nil
     }
+
+    deinit {}
 }
 
 extension BinaryInteger {
@@ -241,11 +196,9 @@ class AudioSwresample: FrameChange {
 
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame {
         if !(descriptor == avframe.pointee) || outChannel != descriptor.outChannel {
-            let newDescriptor = AudioDescriptor(frame: avframe.pointee)
-            if setup(descriptor: newDescriptor) {
-                descriptor = newDescriptor
-            } else {
-                throw NSError(errorCode: .auidoSwrInit, userInfo: ["outChannel": newDescriptor.outChannel, "inChannel": newDescriptor.channel])
+            descriptor.update(frame: avframe.pointee)
+            if !setup(descriptor: descriptor) {
+                throw NSError(errorCode: .auidoSwrInit, userInfo: ["outChannel": descriptor.outChannel, "inChannel": descriptor.channel])
             }
         }
         let numberOfSamples = avframe.pointee.nb_samples
@@ -263,26 +216,19 @@ class AudioSwresample: FrameChange {
     func shutdown() {
         swr_free(&swrContext)
     }
+
+    deinit {}
 }
 
 public class AudioDescriptor: Equatable {
-//    static let defaultValue = AudioDescriptor()
-    public let sampleRate: Int32
+    public var sampleRate: Int32
     public private(set) var audioFormat: AVAudioFormat
     fileprivate(set) var channel: AVChannelLayout
-    fileprivate let sampleFormat: AVSampleFormat
+    fileprivate var sampleFormat: AVSampleFormat
     fileprivate var outChannel: AVChannelLayout
-
-    private convenience init() {
-        self.init(sampleFormat: AV_SAMPLE_FMT_FLT, sampleRate: 48000, channel: AVChannelLayout.defaultValue)
-    }
 
     convenience init(codecpar: AVCodecParameters) {
         self.init(sampleFormat: AVSampleFormat(rawValue: codecpar.format), sampleRate: codecpar.sample_rate, channel: codecpar.ch_layout)
-    }
-
-    convenience init(frame: AVFrame) {
-        self.init(sampleFormat: AVSampleFormat(rawValue: frame.format), sampleRate: frame.sample_rate, channel: frame.ch_layout)
     }
 
     init(sampleFormat: AVSampleFormat, sampleRate: Int32, channel: AVChannelLayout) {
@@ -368,6 +314,18 @@ public class AudioDescriptor: Equatable {
         }
         return AVAudioFormat(commonFormat: commonFormat, sampleRate: Double(sampleRate), interleaved: interleaved, channelLayout: AVAudioChannelLayout(layoutTag: layoutTag)!)
         //        AVAudioChannelLayout(layout: outChannel.layoutTag.channelLayout)
+    }
+
+    public func update(frame: AVFrame) {
+        sampleFormat = AVSampleFormat(rawValue: frame.format)
+        sampleRate = frame.sample_rate
+        if frame.sample_rate <= 0 {
+            sampleRate = 48000
+        } else {
+            sampleRate = frame.sample_rate
+        }
+        channel = frame.ch_layout
+        updateAudioFormat()
     }
 
     public func updateAudioFormat() {

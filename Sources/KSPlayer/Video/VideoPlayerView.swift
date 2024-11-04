@@ -20,6 +20,7 @@ public enum KSPanDirection {
     case vertical
 }
 
+@MainActor
 public protocol LoadingIndector {
     func startAnimating()
     func stopAnimating()
@@ -56,8 +57,8 @@ open class VideoPlayerView: PlayerView {
     public private(set) var resource: KSPlayerResource? {
         didSet {
             if let resource, oldValue != resource {
-                if let subtitleDataSouce = resource.subtitleDataSouce {
-                    playerLayer?.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
+                if let subtitleDataSource = resource.subtitleDataSource {
+                    playerLayer?.subtitleModel.addSubtitle(dataSource: subtitleDataSource)
                 }
                 titleLabel.text = resource.name
                 toolBar.definitionButton.isHidden = resource.definitions.count < 2
@@ -65,7 +66,7 @@ open class VideoPlayerView: PlayerView {
                     #if !os(tvOS)
                     toolBar.definitionButton.setMenu(title: NSLocalizedString("video quality", comment: ""), current: resource.definitions[currentDefinition], list: resource.definitions) { value in
                         value.definition
-                    } completition: { [weak self] value in
+                    } completion: { [weak self] value in
                         guard let self else { return }
                         if let value, let index = self.resource?.definitions.firstIndex(of: value) {
                             self.change(definitionIndex: index)
@@ -112,10 +113,11 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
-    override public var playerLayer: KSComplexPlayerLayer? {
+    override public var playerLayer: KSPlayerLayer? {
         didSet {
-            oldValue?.player.view?.removeFromSuperview()
-            if let view = playerLayer?.player.view {
+            oldValue?.player.view.removeFromSuperview()
+            if let playerLayer {
+                let view = playerLayer.player.view
                 #if canImport(UIKit)
                 insertSubview(view, belowSubview: contentOverlayView)
                 #else
@@ -128,6 +130,9 @@ open class VideoPlayerView: PlayerView {
                     view.bottomAnchor.constraint(equalTo: bottomAnchor),
                     view.trailingAnchor.constraint(equalTo: trailingAnchor),
                 ])
+                if let cancellable = (playerLayer as? KSComplexPlayerLayer)?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
+                    cancellables.append(cancellable)
+                }
             }
         }
     }
@@ -135,9 +140,6 @@ open class VideoPlayerView: PlayerView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         setupUIComponents()
-        if let cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
-            cancellables.append(cancellable)
-        }
         toolBar.onFocusUpdate = { [weak self] _ in
             self?.autoFadeOutViewWithAnimation()
         }
@@ -150,7 +152,7 @@ open class VideoPlayerView: PlayerView {
         super.onButtonPressed(type: type, button: button)
         if type == .pictureInPicture {
             if #available(tvOS 14.0, *) {
-                playerLayer?.isPipActive.toggle()
+                (playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
             }
         }
         #if os(tvOS)
@@ -770,17 +772,23 @@ public enum KSPlayerTopBarShowCase {
 
 public extension KSOptions {
     /// 顶部返回、标题、AirPlay按钮 显示选项，默认.Always，可选.HorizantalOnly、.None
+    @MainActor
     static var topBarShowInCase = KSPlayerTopBarShowCase.always
     /// 自动隐藏操作栏的时间间隔 默认5秒
+    @MainActor
     static var animateDelayTimeInterval = TimeInterval(5)
     /// 开启亮度手势 默认true
+    @MainActor
     static var enableBrightnessGestures = true
     /// 开启音量手势 默认true
+    @MainActor
     static var enableVolumeGestures = true
     /// 开启进度滑动手势 默认true
+    @MainActor
     static var enablePlaytimeGestures = true
     /// 播放内核选择策略 先使用firstPlayer，失败了自动切换到secondPlayer，播放内核有KSAVPlayer、KSMEPlayer两个选项
     /// 是否能后台播放视频
+    @MainActor
     static var canBackgroundPlay = false
 }
 

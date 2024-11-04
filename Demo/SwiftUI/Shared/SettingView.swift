@@ -27,6 +27,11 @@ struct SettingView: View {
                 NavigationLink(destination: SettingAdvancedView()) {
                     Label("Advanced", systemImage: "gearshape.2.fill")
                 }
+                #if os(visionOS)
+                NavigationLink(destination: SettingVisionView()) {
+                    Label("Vision", systemImage: "gearshape.2.fill")
+                }
+                #endif
             }
         }
         .preferredColorScheme(.dark)
@@ -172,6 +177,9 @@ struct SettingAdvancedView: View {
     private var isAccurateSeek
     @Default(\.isPipPopViewController)
     private var isPipPopViewController
+    #if os(visionOS)
+    @SceneStorage("360Play") var is360Play: Bool = false
+    #endif
 //    @Default(\.isLoopPlay)
 //    private var isLoopPlay
     var body: some View {
@@ -197,6 +205,19 @@ struct SettingAdvancedView: View {
         }
     }
 }
+
+#if os(visionOS)
+struct SettingVisionView: View {
+    @AppStorage("is360Play")
+    private var is360Play = false
+
+    var body: some View {
+        Form {
+            Toggle("360Play", isOn: $is360Play)
+        }
+    }
+}
+#endif
 
 struct SettingView_Previews: PreviewProvider {
     static var previews: some View {

@@ -15,7 +15,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
     private weak var originalSuperView: UIView?
     private var originalframeConstraints: [NSLayoutConstraint]?
     private var originalFrame = CGRect.zero
-    private var originalOrientations: UIInterfaceOrientationMask?
     private weak var fullScreenDelegate: PlayerViewFullScreenDelegate?
     private var isVolume = false
     private let volumeView = BrightnessVolume()
@@ -139,7 +138,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
                 NSLayoutConstraint.deactivate(originalframeConstraints)
             }
             originalFrame = frame
-            originalOrientations = viewController.supportedInterfaceOrientations
             let fullVC = PlayerFullScreenViewController(isHorizonal: isHorizonal)
             fullScreenDelegate = fullVC
             fullVC.view.addSubview(self)
@@ -161,9 +159,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
                 return
             }
             let presentingVC = viewController.presentingViewController ?? viewController
-            if let originalOrientations {
-                KSOptions.supportedInterfaceOrientations = originalOrientations
-            }
+            KSOptions.supportedInterfaceOrientations = nil
             presentingVC.dismiss(animated: true) {
                 self.originalSuperView?.addSubview(self)
                 if let constraints = self.originalframeConstraints, !constraints.isEmpty {
@@ -349,17 +345,6 @@ public class AirplayStatusView: UIView {
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-}
-
-public extension KSOptions {
-    /// func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask
-    static var supportedInterfaceOrientations = UIInterfaceOrientationMask.portrait
-}
-
-extension UIApplication {
-    static var isLandscape: Bool {
-        UIApplication.shared.windows.first?.windowScene?.interfaceOrientation.isLandscape ?? false
     }
 }
 

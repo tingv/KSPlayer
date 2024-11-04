@@ -32,6 +32,12 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
     }
 
     public func play() {
+        if currentRender == nil {
+            currentRender = renderSource?.getAudioOutputRender()
+        }
+        if let currentRender {
+            renderSource?.setAudio(time: currentRender.cmtime, position: -1)
+        }
         AUGraphStart(graph)
     }
 
@@ -165,8 +171,8 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
         var audioStreamBasicDescription = audioFormat.formatDescription.audioStreamBasicDescription
         let audioStreamBasicDescriptionSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
         let channelLayout = audioFormat.channelLayout?.layout
-        [audioUnitForTimePitch, audioUnitForDynamicsProcessor, audioUnitForMixer, audioUnitForOutput].forEach { unit in
-            guard let unit else { return }
+        for unit in [audioUnitForTimePitch, audioUnitForDynamicsProcessor, audioUnitForMixer, audioUnitForOutput] {
+            guard let unit else { continue }
             AudioUnitSetProperty(unit,
                                  kAudioUnitProperty_StreamFormat,
                                  kAudioUnitScope_Input, 0,
@@ -208,7 +214,7 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
         #endif
     }
 
-    deinit {
+    public func invalidate() {
         AUGraphStop(graph)
         AUGraphUninitialize(graph)
         AUGraphClose(graph)

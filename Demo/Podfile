@@ -4,12 +4,13 @@ install! 'cocoapods', :generate_multiple_pod_projects => true
 def common
   pod 'KSPlayer', :path => '../', :testspecs => ['Tests']
   pod 'DisplayCriteria', :path => '../'
-  pod 'Libass', :path => '../FFmpegKit'
-  pod 'FFmpegKit', :path => '../FFmpegKit'
-  pod 'Libmpv', :path => '../FFmpegKit'
   pod 'MPVPlayer', :path => '../'
-#  pod 'Libass',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
-#  pod 'FFmpegKit',:git => 'https://github.com/kingslay/FFmpegKit.git', :branch => 'main'
+#  pod 'Libass', :path => '../../FFmpegKit'
+#  pod 'FFmpegKit', :path => '../../FFmpegKit'
+#  pod 'Libmpv', :path => '../../FFmpegKit'
+  pod 'Libass',:git => 'git@github.com:TracyPlayer/FFmpegKit.git', :branch => 'lgpl'
+  pod 'FFmpegKit',:git => 'git@github.com:TracyPlayer/FFmpegKit.git', :branch => 'lgpl'
+  pod 'Libmpv',:git => 'git@github.com:TracyPlayer/FFmpegKit.git', :branch => 'lgpl'
 end
 target 'demo-iOS' do
   project 'demo-iOS/demo-iOS.xcodeproj'

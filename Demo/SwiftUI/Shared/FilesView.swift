@@ -168,5 +168,8 @@ struct AddM3UView: View {
                 #endif
             }
         }.padding()
+        #if os(vrOS)
+            .frame(width: 500, height: 500)
+        #endif
     }
 }

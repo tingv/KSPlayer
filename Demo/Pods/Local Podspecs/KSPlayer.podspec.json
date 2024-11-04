@@ -30,7 +30,7 @@
   "subspecs": [
     {
       "name": "Subtitle",
-      "source_files": "Sources/KSPlayer/Subtitle/*.{swift}",
+      "source_files": "Sources/KSPlayer/Subtitle/**/*.{swift}",
       "frameworks": "Foundation"
     },
     {
@@ -89,7 +89,7 @@
     },
     {
       "name": "Core",
-      "source_files": "Sources/KSPlayer/Core/*",
+      "source_files": "Sources/KSPlayer/Core/**/*.{swift}",
       "dependencies": {
         "KSPlayer/AVPlayer": [
 

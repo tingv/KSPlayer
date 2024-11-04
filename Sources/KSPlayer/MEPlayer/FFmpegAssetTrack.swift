@@ -32,7 +32,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     public let isImageSubtitle: Bool
     public var delay: TimeInterval = 0
     var subtitle: SyncPlayerItemTrack<SubtitleFrame>?
-    var sutitleRender: KSSubtitleProtocol?
+    var subtitleRender: KSSubtitleProtocol?
     // video
     public private(set) var rotation: Int16 = 0
     public var dovi: DOVIDecoderConfigurationRecord?
@@ -41,6 +41,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     var closedCaptionsTrack: FFmpegAssetTrack?
     var bitStreamFilter: BitStreamFilter.Type?
     var seekByBytes = false
+//    video stream is an image
+    var image = false
+    // video consists of multiple sparse still images
+    var stillImage = false
     public var description: String {
         var description = codecName
         if let formatName {
@@ -73,6 +77,12 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         let codecpar = stream.pointee.codecpar.pointee
         self.init(codecpar: codecpar)
         self.stream = stream
+        if stream.pointee.disposition & AV_DISPOSITION_STILL_IMAGE != 0 {
+            stillImage = true
+        }
+        if stream.pointee.nb_frames == 1 || codecpar.codec_id == AV_CODEC_ID_MJPEG || codecpar.codec_id == AV_CODEC_ID_PNG {
+            image = true
+        }
         let metadata = toDictionary(stream.pointee.metadata)
         if let value = metadata["variant_bitrate"] ?? metadata["BPS"], let bitRate = Int64(value) {
             self.bitRate = bitRate
@@ -168,7 +178,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                         dovi = sideData.data.withMemoryRebound(to: DOVIDecoderConfigurationRecord.self, capacity: 1) { $0 }.pointee
                     } else if sideData.type == AV_PKT_DATA_DISPLAYMATRIX {
                         let matrix = sideData.data.withMemoryRebound(to: Int32.self, capacity: 1) { $0 }
-                        rotation = Int16(Int(-av_display_rotation_get(matrix)) % 360)
+                        let displayRotation = av_display_rotation_get(matrix)
+                        if displayRotation.isNormal {
+                            rotation = Int16(Int(-displayRotation) % 360)
+                        }
                     }
                 }
             }
@@ -205,6 +218,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                         return nil
                     }
                     atomsData = Data(bytes: extradata, count: Int(extradataSize))
+                    extradata.deallocate()
                     if codecpar.codec_id != AV_CODEC_ID_AV1 {
                         bitStreamFilter = AnnexbToCCBitStreamFilter.self
                     }
@@ -226,6 +240,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                     data.append(&array, count: 4)
                     data.append(extradata, count: Int(extradataSize))
                     atomsData = data
+                    extradata.deallocate()
                 } else {
                     atomsData = nil
                 }
@@ -262,11 +277,6 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             audioDescriptor = nil
             formatName = nil
             bitDepth = 0
-            let dic: NSMutableDictionary = [
-                kCVImageBufferDisplayWidthKey: codecpar.width,
-                kCVImageBufferDisplayHeightKey: codecpar.height,
-            ]
-            _ = CMFormatDescriptionCreate(allocator: kCFAllocatorDefault, mediaType: kCMMediaType_Subtitle, mediaSubType: codecType.rawValue, extensions: dic, formatDescriptionOut: &formatDescriptionOut)
         } else {
             bitDepth = 0
             return nil
@@ -287,12 +297,24 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         }
         set {
             var discard = newValue ? AVDISCARD_DEFAULT : AVDISCARD_ALL
-            if mediaType == .subtitle, !isImageSubtitle {
-                discard = AVDISCARD_DEFAULT
+            if mediaType == .subtitle {
+                if isImageSubtitle {
+                    if !isEnabled {
+                        subtitle?.outputRenderQueue.flush()
+                    }
+                } else {
+                    discard = AVDISCARD_DEFAULT
+                }
             }
             stream?.pointee.discard = discard
         }
     }
+
+    public var isDVBTeletext: Bool {
+        codecpar.codec_id == AV_CODEC_ID_DVB_TELETEXT
+    }
+
+    deinit {}
 }
 
 extension FFmpegAssetTrack {

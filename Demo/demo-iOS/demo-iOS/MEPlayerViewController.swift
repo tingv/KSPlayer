@@ -17,11 +17,11 @@ class MEPlayerViewController: UIViewController {
         let definition = testObjects[0].definitions[0]
         player = KSMEPlayer(url: definition.url, options: definition.options)
         player.delegate = self
-        player.view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        player.view?.frame = view.bounds
+        player.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        player.view.frame = view.bounds
         player.contentMode = .scaleAspectFill
         player.prepareToPlay()
-        view.addSubview(player.view!)
+        view.addSubview(player.view)
     }
 }
 

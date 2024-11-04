@@ -207,4 +207,23 @@ extension UIView {
         transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi * byDegrees / 180.0))
     }
 }
+
+#if !os(tvOS)
+public extension KSOptions {
+    /**
+     在AppDelegate重载这个方法就可以实现视频转屏了
+     func application(_: UIApplication, supportedInterfaceOrientationsFor _: UIWindow?) -> UIInterfaceOrientationMask {
+        KSOptions.supportedInterfaceOrientations ?? .all
+     }
+     */
+    static var supportedInterfaceOrientations: UIInterfaceOrientationMask?
+}
+
+extension UIApplication {
+    static var isLandscape: Bool {
+        UIApplication.shared.windows.first?.windowScene?.interfaceOrientation.isLandscape ?? false
+    }
+}
+#endif
+
 #endif

@@ -29,7 +29,7 @@ variant_for_slice()
   "libmpv.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libmpv.xcframework/tvos-arm64_arm64e")
+  "libmpv.xcframework/tvos-arm64")
     echo ""
     ;;
   "libmpv.xcframework/tvos-arm64_x86_64-simulator")
@@ -59,8 +59,8 @@ archs_for_slice()
   "libmpv.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libmpv.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libmpv.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libmpv.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -153,5 +153,5 @@ install_xcframework() {
   echo "Copied $source to $destination"
 }
 
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libmpv.xcframework" "Libmpv/Libmpv" "framework" "tvos-arm64_arm64e" "tvos-arm64_x86_64-simulator"
+install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libmpv.xcframework" "Libmpv/Libmpv" "framework" "tvos-arm64" "tvos-arm64_x86_64-simulator"
 

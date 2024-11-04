@@ -18,7 +18,7 @@ public class KSPlayerResource: Equatable, Hashable {
     public let name: String
     public let definitions: [KSPlayerResourceDefinition]
     public let cover: URL?
-    public let subtitleDataSouce: SubtitleDataSouce?
+    public let subtitleDataSource: SubtitleDataSource?
     public var nowPlayingInfo: KSNowPlayableMetadata?
     public let extinf: [String: String]?
     /**
@@ -29,30 +29,31 @@ public class KSPlayerResource: Equatable, Hashable {
      - parameter cover:     video cover, will show before playing, and hide when play
      - parameter subtitleURLs: video subtitles
      */
-    public convenience init(url: URL, options: KSOptions = KSOptions(), name: String = "", cover: URL? = nil, subtitleURLs: [URL]? = nil, extinf: [String: String]? = nil) {
+    @MainActor
+    public convenience init(url: URL, options: KSOptions, name: String = "", cover: URL? = nil, subtitleURLs: [URL]? = nil, extinf: [String: String]? = nil) {
         let definition = KSPlayerResourceDefinition(url: url, definition: "", options: options)
-        let subtitleDataSouce: SubtitleDataSouce?
+        let subtitleDataSource: SubtitleDataSource?
         if let subtitleURLs {
-            subtitleDataSouce = ConstantURLSubtitleDataSouce(url: url, subtitleURLs: subtitleURLs)
+            subtitleDataSource = ConstantURLSubtitleDataSource(url: url, subtitleURLs: subtitleURLs)
         } else {
-            subtitleDataSouce = nil
+            subtitleDataSource = nil
         }
 
-        self.init(name: name, definitions: [definition], cover: cover, subtitleDataSouce: subtitleDataSouce, extinf: extinf)
+        self.init(name: name, definitions: [definition], cover: cover, subtitleDataSource: subtitleDataSource, extinf: extinf)
     }
 
     /**
-     Play resouce with multi definitions
+     Play resource with multi definitions
 
      - parameter name:        video name
      - parameter definitions: video definitions
      - parameter cover:       video cover
      - parameter subtitle:   video subtitle
      */
-    public init(name: String, definitions: [KSPlayerResourceDefinition], cover: URL? = nil, subtitleDataSouce: SubtitleDataSouce? = nil, extinf: [String: String]? = nil) {
+    public init(name: String, definitions: [KSPlayerResourceDefinition], cover: URL? = nil, subtitleDataSource: SubtitleDataSource? = nil, extinf: [String: String]? = nil) {
         self.name = name
         self.cover = cover
-        self.subtitleDataSouce = subtitleDataSouce
+        self.subtitleDataSource = subtitleDataSource
         self.definitions = definitions
         self.extinf = extinf
         nowPlayingInfo = KSNowPlayableMetadata(title: name)
@@ -75,8 +76,9 @@ public struct KSPlayerResourceDefinition: Hashable {
     public let url: URL
     public let definition: String
     public let options: KSOptions
+    @MainActor
     public init(url: URL) {
-        self.init(url: url, definition: url.lastPathComponent)
+        self.init(url: url, definition: url.lastPathComponent, options: KSOptions())
     }
 
     /**
@@ -86,7 +88,8 @@ public struct KSPlayerResourceDefinition: Hashable {
      - parameter definition: url deifination
      - parameter options:    specifying options for the initialization of the AVURLAsset
      */
-    public init(url: URL, definition: String, options: KSOptions = KSOptions()) {
+    @MainActor
+    public init(url: URL, definition: String, options: KSOptions) {
         self.url = url
         self.definition = definition
         self.options = options
@@ -109,7 +112,7 @@ public struct KSNowPlayableMetadata {
     private let artwork: MPMediaItemArtwork?
     private let albumArtist: String?
     private let albumTitle: String?
-    var nowPlayingInfo: [String: Any] {
+    public var nowPlayingInfo: [String: Any] {
         var nowPlayingInfo = [String: Any]()
         nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = mediaType?.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = isLiveStream

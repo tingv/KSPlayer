@@ -2,6 +2,10 @@ import KSPlayer
 import SwiftUI
 
 struct HomeView: View {
+    #if os(visionOS)
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    #endif
+
     @EnvironmentObject
     private var appModel: APPModel
     @State
@@ -60,7 +64,17 @@ struct HomeView: View {
                         return isIncluded
                     }
                     ForEach(playlist) { model in
+                        #if os(visionOS)
+                        Button {
+                            Task { @MainActor in
+                                await openImmersiveSpace(id: "ImmersiveView", value: model.url?.absoluteString ?? "")
+                            }
+                        } label: {
+                            MoiveView(model: model)
+                        }
+                        #else
                         appModel.content(model: model)
+                        #endif
                     }
                 }
 

@@ -5,6 +5,7 @@
 //  Created by kintan on 2023/5/4.
 //
 
+import Foundation
 import SwiftUI
 
 #if os(tvOS)
@@ -24,8 +25,11 @@ public struct Slider: View {
     }
 
     public var body: some View {
-        TVOSSlide(value: value, bounds: bounds, isFocused: _isFocused, onEditingChanged: onEditingChanged)
-            .focused($isFocused)
+        ZStack {
+            TVOSSlide(value: value, bounds: bounds, isFocused: _isFocused, onEditingChanged: onEditingChanged)
+                .focused($isFocused)
+            ProgressView(value: value.wrappedValue, total: bounds.upperBound)
+        }
     }
 }
 
@@ -37,29 +41,25 @@ public struct TVOSSlide: UIViewRepresentable {
     public var isFocused: Bool
     public let onEditingChanged: (Bool) -> Void
     public typealias UIViewType = TVSlide
+    public init(value: Binding<Float>, bounds: ClosedRange<Float>, isFocused: FocusState<Bool>, onEditingChanged: @escaping (Bool) -> Void) {
+        self.value = value
+        self.bounds = bounds
+        _isFocused = isFocused
+        self.onEditingChanged = onEditingChanged
+    }
+
     public func makeUIView(context _: Context) -> UIViewType {
         TVSlide(value: value, bounds: bounds, onEditingChanged: onEditingChanged)
     }
 
     public func updateUIView(_ view: UIViewType, context _: Context) {
-        if isFocused {
-            if view.processView.tintColor == .white {
-                view.processView.tintColor = .red
-            }
-        } else {
-            view.processView.tintColor = .white
+        if !isFocused {
             view.cancle()
-        }
-        // 要加这个才会触发进度条更新
-        let process = (value.wrappedValue - bounds.lowerBound) / (bounds.upperBound - bounds.lowerBound)
-        if process != view.processView.progress {
-            view.processView.progress = process
         }
     }
 }
 
 public class TVSlide: UIControl {
-    fileprivate let processView = UIProgressView()
     private var beganValue: Float
     private let onEditingChanged: (Bool) -> Void
     fileprivate var value: Binding<Float>
@@ -84,15 +84,6 @@ public class TVSlide: UIControl {
         ranges = bounds
         self.onEditingChanged = onEditingChanged
         super.init(frame: .zero)
-        processView.translatesAutoresizingMaskIntoConstraints = false
-        processView.tintColor = .white
-        addSubview(processView)
-        NSLayoutConstraint.activate([
-            processView.topAnchor.constraint(equalTo: topAnchor),
-            processView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            processView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            processView.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(actionPanGesture(sender:)))
         addGestureRecognizer(panGestureRecognizer)
     }
@@ -103,7 +94,9 @@ public class TVSlide: UIControl {
     }
 
     public func cancle() {
-        timer.fireDate = Date.distantFuture
+        if timer.fireDate == .distantPast {
+            timer.fireDate = .distantFuture
+        }
     }
 
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -115,40 +108,44 @@ public class TVSlide: UIControl {
             moveDirection = .left
             pressTime = CACurrentMediaTime()
             onEditingChanged(true)
-            timer.fireDate = Date.distantPast
+            timer.fireDate = .distantPast
         case .rightArrow:
             moveDirection = .right
             pressTime = CACurrentMediaTime()
             onEditingChanged(true)
-            timer.fireDate = Date.distantPast
+            timer.fireDate = .distantPast
         case .select:
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
             onEditingChanged(false)
         default:
-            timer.fireDate = Date.distantFuture
-            onEditingChanged(false)
+            timer.fireDate = .distantFuture
+            if moveDirection != nil, !KSOptions.seekRequireConfirmation {
+                onEditingChanged(false)
+            }
             super.pressesBegan(presses, with: event)
         }
     }
 
     @objc private func actionPanGesture(sender: UIPanGestureRecognizer) {
-        let translation = sender.translation(in: self)
-        if abs(translation.y) > abs(translation.x) {
-            return
-        }
         switch sender.state {
         case .began, .possible:
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
             beganValue = value.wrappedValue
             onEditingChanged(true)
         case .changed:
+            let translation = sender.translation(in: self)
+            if abs(translation.y) > abs(translation.x) {
+                return
+            }
             let wrappedValue = beganValue + Float(translation.x) / Float(frame.size.width) * (ranges.upperBound - ranges.lowerBound) / 5
             if wrappedValue <= ranges.upperBound, wrappedValue >= ranges.lowerBound {
                 value.wrappedValue = wrappedValue
             }
         case .ended:
             beganValue = value.wrappedValue
-            onEditingChanged(false)
+            if !KSOptions.seekRequireConfirmation {
+                onEditingChanged(false)
+            }
         case .cancelled, .failed:
 //            value.wrappedValue = beganValue
             break

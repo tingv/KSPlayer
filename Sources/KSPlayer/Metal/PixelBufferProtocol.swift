@@ -30,7 +30,8 @@ public protocol PixelBufferProtocol: AnyObject {
     var colorspace: CGColorSpace? { get set }
     var cvPixelBuffer: CVPixelBuffer? { get }
     var isFullRangeVideo: Bool { get }
-    func cgImage() -> CGImage?
+    func cgImage(isHDR: Bool) -> CGImage?
+    @MainActor
     func textures() -> [MTLTexture]
     func widthOfPlane(at planeIndex: Int) -> Int
     func heightOfPlane(at planeIndex: Int) -> Int
@@ -39,8 +40,8 @@ public protocol PixelBufferProtocol: AnyObject {
 
 extension PixelBufferProtocol {
     var size: CGSize { CGSize(width: width, height: height) }
-    func updateColorspace() {
-        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction)
+    func updateColorspace(isDovi: Bool) {
+        colorspace = KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix, transferFunction: transferFunction, isDovi: isDovi)
     }
 }
 
@@ -135,8 +136,11 @@ extension CVPixelBuffer: PixelBufferProtocol {
         CVPixelBufferGetPixelFormatType(self).bitDepth
     }
 
-    public func cgImage() -> CGImage? {
+    public func cgImage(isHDR: Bool) -> CGImage? {
         var cgImage: CGImage?
+        if isHDR {
+            colorspace = KSOptions.colorSpace2020PQ
+        }
         VTCreateCGImageFromCVPixelBuffer(self, options: nil, imageOut: &cgImage)
         return cgImage
     }
@@ -252,13 +256,20 @@ class PixelBuffer: PixelBufferProtocol {
         heights[planeIndex]
     }
 
-    func cgImage() -> CGImage? {
+    func cgImage(isHDR: Bool) -> CGImage? {
         let image: CGImage?
         if format == AV_PIX_FMT_RGB24 {
-            image = CGImage.make(rgbData: buffers[0]!.contents().assumingMemoryBound(to: UInt8.self), linesize: Int(lineSize[0]), width: width, height: height)
+            image = PointerImagePipeline(rgbData: buffers[0]!.contents().assumingMemoryBound(to: UInt8.self), stride: Int(lineSize[0]), width: width, height: height).cgImage(isHDR: isHDR, alphaInfo: .none)
         } else {
-            let scale = VideoSwresample(isDovi: false)
-            image = scale.transfer(format: format, width: Int32(width), height: Int32(height), data: buffers.map { $0?.contents().assumingMemoryBound(to: UInt8.self) }, linesize: lineSize.map { Int32($0) })?.cgImage()
+            let scale = VideoSwresample(dstFormat: bitDepth > 8 ? AV_PIX_FMT_RGBA64LE : AV_PIX_FMT_ARGB, isDovi: false)
+            let pbuf = scale.transfer(format: format, width: Int32(width), height: Int32(height), data: buffers.map { $0?.contents().assumingMemoryBound(to: UInt8.self) }, linesize: lineSize.map { Int32($0) })
+            if let pbuf {
+                pbuf.aspectRatio = aspectRatio
+                pbuf.yCbCrMatrix = yCbCrMatrix
+                pbuf.colorPrimaries = colorPrimaries
+                pbuf.transferFunction = transferFunction
+            }
+            image = pbuf?.cgImage(isHDR: isHDR)
             scale.shutdown()
         }
         return image

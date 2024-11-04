@@ -8,6 +8,7 @@
 import AVFoundation
 import CryptoKit
 import SwiftUI
+import SystemConfiguration
 
 #if canImport(UIKit)
 import UIKit
@@ -160,7 +161,7 @@ extension AVAsset {
     public func generateGIF(beginTime: TimeInterval, endTime: TimeInterval, interval: Double = 0.2, savePath: URL, progress: @escaping (Double) -> Void, completion: @escaping (Error?) -> Void) {
         let count = Int(ceil((endTime - beginTime) / interval))
         let timesM = (0 ..< count).map { NSValue(time: CMTime(seconds: beginTime + Double($0) * interval)) }
-        let imageGenerator = ceateImageGenerator()
+        let imageGenerator = createImageGenerator()
         let gifCreator = GIFCreator(savePath: savePath, imagesCount: count)
         var i = 0
         imageGenerator.generateCGImagesAsynchronously(forTimes: timesM) { _, imageRef, _, result, error in
@@ -189,7 +190,7 @@ extension AVAsset {
         }
     }
 
-    private func ceateComposition(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVMutableComposition {
+    private func createComposition(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVMutableComposition {
         let compositionM = AVMutableComposition()
         let audioTrackM = compositionM.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         let videoTrackM = compositionM.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
@@ -214,8 +215,8 @@ extension AVAsset {
 
     // todo 先注释掉。等到xcode16出正式版本了，在处理，不然老版本会找不到符号。
     #if !os(xrOS)
-    func ceateExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
-        let compositionM = try await ceateComposition(beginTime: beginTime, endTime: endTime)
+    func createExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
+        let compositionM = try await createComposition(beginTime: beginTime, endTime: endTime)
         guard let exportSession = AVAssetExportSession(asset: compositionM, presetName: "") else {
             return nil
         }
@@ -227,7 +228,7 @@ extension AVAsset {
     func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, outputURL: URL, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
         try FileManager.default.removeItem(at: outputURL)
         Task {
-            guard let exportSession = try await ceateExportSession(beginTime: beginTime, endTime: endTime) else { return }
+            guard let exportSession = try await createExportSession(beginTime: beginTime, endTime: endTime) else { return }
             exportSession.outputURL = outputURL
             await exportSession.export()
             switch exportSession.status {
@@ -292,12 +293,13 @@ extension AVPlayer.HDRMode {
 #endif
 
 public extension FourCharCode {
+    // proRes的值是147，使用CChar会越界。FourCharCode是UInt32，每个字符是UInt8才对。
     var string: String {
-        let cString: [CChar] = [
-            CChar(self >> 24 & 0xFF),
-            CChar(self >> 16 & 0xFF),
-            CChar(self >> 8 & 0xFF),
-            CChar(self & 0xFF),
+        let cString: [UInt8] = [
+            UInt8(self >> 24 & 0xFF),
+            UInt8(self >> 16 & 0xFF),
+            UInt8(self >> 8 & 0xFF),
+            UInt8(self & 0xFF),
             0,
         ]
         return String(cString: cString)
@@ -320,6 +322,10 @@ extension CGPoint {
     var reverse: CGPoint {
         CGPoint(x: y, y: x)
     }
+
+    func relative(to point: CGPoint) -> CGPoint {
+        CGPoint(x: x - point.x, y: y - point.y)
+    }
 }
 
 public extension CGSize {
@@ -340,12 +346,12 @@ public extension CGSize {
     }
 
     // 维持原有的比率。但是宽高不能超过size
-    func within(size: CGSize?) -> CGSize {
-        guard let size, height != 0, width != 0 else {
-            return self
+    func within(size: CGSize) -> CGSize {
+        guard height != 0, width != 0 else {
+            return size
         }
         let aspectRatio = width / height
-        return size.height * aspectRatio < size.width ? CGSize(width: Int(size.width), height: Int(size.width / aspectRatio)) : CGSize(width: Int(size.height * aspectRatio), height: Int(size.height))
+        return size.width / size.height < aspectRatio ? CGSize(width: Int(size.width), height: Int(size.width / aspectRatio)) : CGSize(width: Int(size.height * aspectRatio), height: Int(size.height))
     }
 
     func convert(rect: CGRect, toSize: CGSize) -> CGRect {
@@ -367,6 +373,10 @@ func * (left: CGSize, right: CGFloat) -> CGSize {
     CGSize(width: left.width * right, height: left.height * right)
 }
 
+func * (left: CGSize, right: (CGFloat, CGFloat)) -> CGSize {
+    CGSize(width: left.width * right.0, height: left.height * right.1)
+}
+
 func / (left: CGSize, right: CGFloat) -> CGSize {
     CGSize(width: left.width / right, height: left.height / right)
 }
@@ -375,11 +385,19 @@ func * (left: CGPoint, right: CGFloat) -> CGPoint {
     CGPoint(x: left.x * right, y: left.y * right)
 }
 
+func * (left: CGPoint, right: (CGFloat, CGFloat)) -> CGPoint {
+    CGPoint(x: left.x * right.0, y: left.y * right.1)
+}
+
 func / (left: CGPoint, right: CGFloat) -> CGPoint {
     CGPoint(x: left.x / right, y: left.y / right)
 }
 
 func * (left: CGRect, right: CGFloat) -> CGRect {
+    CGRect(origin: left.origin * right, size: left.size * right)
+}
+
+func * (left: CGRect, right: (CGFloat, CGFloat)) -> CGRect {
     CGRect(origin: left.origin * right, size: left.size * right)
 }
 
@@ -392,11 +410,9 @@ func - (left: CGSize, right: CGSize) -> CGSize {
 }
 
 @inline(__always)
-@preconcurrency
-// @MainActor
-public func runOnMainThread(block: @escaping () -> Void) {
+public func runOnMainThread(block: @MainActor @Sendable @escaping () -> Void) {
     if Thread.isMainThread {
-        block()
+        MainActor.assumeIsolated(block)
     } else {
         Task {
             await MainActor.run(body: block)
@@ -822,13 +838,13 @@ extension CGImage {
         // RGBA(的bytes) * bitsPerComponent *width
         let bytesPerRow = 4 * 8 * bitsPerComponent * Int(boundingRect.width)
         let image: CGImage? = autoreleasepool {
-            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            let context = CGContext(data: nil, width: Int(boundingRect.width), height: Int(boundingRect.height), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             guard let context else {
                 return nil
             }
             //            context.clear(CGRect(origin: .zero, size: CGSize(width: width, height: height)))
             for (rect, cgImage) in images {
-                context.draw(cgImage, in: rect.relativeRect(to: boundingRect))
+                context.draw(cgImage, in: rect.relative(to: boundingRect))
             }
             let cgImage = context.makeImage()
             return cgImage
@@ -855,22 +871,12 @@ extension CGImage {
         }
     }
 
+    // 因为图片字幕需要有透明度,所以不能用jpg；tif在iOS支持没有那么好，会有绿色背景； 用heic格式，展示的时候会卡主线程；所以最终用png。
     func image(type: AVFileType = .png, quality: CGFloat = 0.2) -> UIImage? {
         if let data = data(type: type, quality: quality) {
             return UIImage(data: data)
         }
         return nil
-    }
-
-    static func make(rgbData: UnsafePointer<UInt8>, linesize: Int, width: Int, height: Int, isAlpha: Bool = false) -> CGImage? {
-        let colorSpace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF) ?? CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo: CGBitmapInfo = isAlpha ? CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue) : CGBitmapInfo.byteOrderMask
-        guard let data = CFDataCreate(kCFAllocatorDefault, rgbData, linesize * height), let provider = CGDataProvider(data: data) else {
-            return nil
-        }
-        // swiftlint:disable line_length
-        return CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: isAlpha ? 32 : 24, bytesPerRow: linesize, space: colorSpace, bitmapInfo: bitmapInfo, provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
-        // swiftlint:enable line_length
     }
 }
 
@@ -1051,13 +1057,12 @@ extension CGRect {
         set { origin.y = newValue - height / 2 }
     }
 
-    func relativeRect(to boundingRect: CGRect) -> CGRect {
-        let origin = CGPoint(x: minX - boundingRect.minX, y: minY - boundingRect.minY)
-        return CGRect(origin: origin, size: size)
+    func relative(to rect: CGRect) -> CGRect {
+        CGRect(origin: origin.relative(to: rect.origin), size: size)
     }
 }
 
-// 性能 while > stride(from:to:by:) > for in
+// 在debug下 性能 while > stride(from:to:by:) > for in 。但是在release下差别不大
 @inline(__always)
 func loop(iterations: Int, stride: Int = 1, body: (Int) -> Void) {
     var index = 0
@@ -1065,4 +1070,24 @@ func loop(iterations: Int, stride: Int = 1, body: (Int) -> Void) {
         body(index)
         index += stride
     }
+}
+
+func connectedToNetwork() -> Bool {
+    var zeroAddress = sockaddr_in()
+    zeroAddress.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+    zeroAddress.sin_family = sa_family_t(AF_INET)
+    guard let defaultRouteReachability = withUnsafePointer(to: &zeroAddress, {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+            SCNetworkReachabilityCreateWithAddress(nil, $0)
+        }
+    }) else {
+        return false
+    }
+    var flags: SCNetworkReachabilityFlags = []
+    if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
+        return false
+    }
+    let isReachable = flags.contains(.reachable)
+    let needsConnection = flags.contains(.connectionRequired)
+    return isReachable && !needsConnection
 }

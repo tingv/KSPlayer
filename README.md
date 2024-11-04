@@ -7,30 +7,60 @@ KSPlayer is a powerful media play framework for iOS, tvOS, macOS, xrOS, visionOS
 
 English | [简体中文](./README_CN.md)
 
-## Based On
-
-- FFmpeg
-- Metal
-- AVAudioEngine
-
 ## Features
+Feature       | Free      |
+| ----------- | ----------- |
+|AV1 hardware decoding|✅|
+|All demuxers, All decoders|✅|
+|Smoothly Play 120 FPS Video|✅|
+|Record video clips at any time|✅|
+|Dovi P5 displays HDR (not overheating)|❌|
+|Picture in Picture supports subtitle display|✅|
+|Annex-B async hardware decoding(Live Stream)|✅|
+|Use the fonts in the video to render subtitles|✅|
+|Use memory cache for fast seek in short time range|✅|
+|Cache data to Hard Drive,Preload data to Hard Drive|❌|
+|Full display of ass subtitles effect(Render as image using libass)|✅|
+|FFmpeg version|7.0.2|
+|Record video|✅|✅|
+|360° panorama video|✅|✅|
+|Picture in Picture|✅|✅|
+|Hardware accelerator|✅|✅|
+|Seamless loop playback|✅|✅|
+|De-interlace auto detect|✅|✅|
+|4k/HDR/HDR10/HDR10+/Dolby Vision|✅|✅|
+|Custom url protocols such as nfs/smb/UPnP |✅|✅|
+|Multichannel Audio/Dolby Atmos/Spatial Audio|✅|✅|
+|Text subtitle/Image subtitle/Closed Captions|✅|✅|
+|Search Online Subtitles(shooter/assrt/opensubtitles)|✅|✅|
+|Low latency 4K live video streaming (less than 200ms on LAN)|✅|✅|
+|Automatically switch to multi-bitrate streams based on network|✅|✅|
 
-- [x] iOS, tvOS, macOS, visionOS, Mac Catalyst, Apple Silicon M1, SwiftUI.
-- [x] Multiple audio/video tracks.
-- [x] hardware accelerator.
-- [x] 4k/HDR/HDR10/HDR10+/Dolby Vision
-- [x] show local and online subtitles(shooter/assrt/opensubtitles).
-- [x] text subtitle(srt/vtt/ass)/Closed Captions/image subtitle(dvbsub/dvdsub/pgssub/ass)
-- [x] Picture in Picture
-- [x] Record video
-- [x] De-interlace auto detect
-- [x] Dolby Atmos/Spatial Audio 
-- [x] 360° panorama video.
-- [x] Custom url protocols such as smb nfs.
+## The list of App using this SDK
+App Store Link| TestFlight Link |
+| ----------- | ----------- |
+|[Alplayer](https://apps.apple.com/us/app/alplayer/id1660917007)||
+|[APTV](https://apps.apple.com/app/aptv/id1630403500)||
+|[homeTV IPTV Player](https://apps.apple.com/app/hometv-iptv-player/id1636701357)||
+|[LillyPlayer Video Player](https://apps.apple.com/app/lillyplayer-video-player/id1446967273)||
+|[SenPlayer](https://apps.apple.com/app/senplayer-hdr-media-player/id6443975850)||
+|[Smart IPTV](https://apps.apple.com/app/smart-iptv-tv-and-movies-ott/id1492738910)||
+|[Snappier IPTV](https://apps.apple.com/app/snappier-iptv/id1579702567)||
+|[TracyPlayer](https://apps.apple.com/app/tracyplayer/id6450770064)|[TracyPlayer](https://testflight.apple.com/join/eNmYbmZN)|
+|[UHF - Love your IPTV](https://apps.apple.com/app/uhf-love-your-iptv/id6443751726)||
+|[Zen IPTV](https://apps.apple.com/fr/app/zen-iptv/id6458223193)||
+
+
+
+## License
+KSPlayer defaults to the GPL license (requires open-sourcing your own project code), and we hope everyone will consciously respect the licensing agreement of the KSPlayer project. Additionally, there is a paid version that adopts the LGPL license (contact us). 
+
+If due to commercial reasons, you prefer not to adhere to the GPL license  or the LGPL license, you can contact us. Through our authorization, you can obtain a more flexible licensing agreement. Email: kingslay@icloud.com
+
 
 ## Requirements
 
-- iOS 13 +,  macOS 10.15 +, tvOS 13 +, xrOS 1 +
+- iOS 13+, macOS 10.15+, tvOS 13+, xrOS 1+
 
 ## Demo
 
@@ -39,19 +69,6 @@ cd Demo
 pod install
 ```
 - Open Demo/Demo.xcworkspace with Xcode.
-
-
-## TestFlight
-
-[APPStore](https://apps.apple.com/app/tracyplayer/id6450770064)
-
-[TestFlight](https://testflight.apple.com/join/eNmYbmZN)
-
-## License
-KSPlayer defaults to the GPL license (requires open-sourcing your own project code), and we hope everyone will consciously respect the licensing agreement of the KSPlayer project. Additionally, there is a paid version that adopts the LGPL license (contact us). 
-
-If due to commercial reasons, you prefer not to adhere to the GPL license  or the LGPL license, you can contact us. Through our authorization, you can obtain a more flexible licensing agreement.
-
 
 ## Quick Start
 
@@ -76,8 +93,6 @@ dependencies: [
     .package(url: "https://github.com/kingslay/KSPlayer.git", .branch("main"))
 ]
 ```
-
-
 
 ## Usage
 
@@ -248,6 +263,7 @@ public protocol PlayerControllerDelegate: class {
     public var isSeekImageSubtitle = false
     // video
     public var videoDelay = 0.0 // s
+    public var autoDeInterlace = false
     public var autoRotate = true
     public var destinationDynamicRange: DynamicRange?
     public var videoAdaptable = true
@@ -302,5 +318,5 @@ If you have a business cooperation project or want to initiate a paid consultati
 
 - Email : kingslay@icloud.com
 
-![1](https://github.com/kingslay/KSPlayer/raw/develop/Documents/Sponsors.jpg)
+![1](./Documents/Sponsors.jpg)
 

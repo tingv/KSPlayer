@@ -84,6 +84,9 @@ extension AVCodecParameters {
             if lowres > 0 {
                 av_dict_set_int(&avOptions, "lowres", Int64(lowres), 0)
             }
+            if codec_type == AVMEDIA_TYPE_VIDEO {
+                codecContext.pointee.thread_count = Int32(options.videoSoftDecodeThreadCount)
+            }
         }
         if codec_type == AVMEDIA_TYPE_VIDEO, options?.hardwareDecode ?? false {
             //        "videotoolbox" "vulkan"
@@ -269,19 +272,24 @@ extension AVPixelFormat {
         case AV_PIX_FMT_RGB565LE: return kCVPixelFormatType_16LE565
 //             PixelBufferPool 无法支持24BGR
 //        case AV_PIX_FMT_BGR24: return kCVPixelFormatType_24BGR
-        case AV_PIX_FMT_RGB24: return kCVPixelFormatType_24RGB
+        // metal不支持24RGB, ios 18以下AVSampleBufferDisplayLayer也不支持24RGB，所以不能转为24RGB
+//        case AV_PIX_FMT_RGB24: return kCVPixelFormatType_24RGB
         case AV_PIX_FMT_0RGB: return kCVPixelFormatType_32ARGB
         case AV_PIX_FMT_ARGB: return kCVPixelFormatType_32ARGB
         case AV_PIX_FMT_BGR0: return kCVPixelFormatType_32BGRA
         case AV_PIX_FMT_BGRA: return kCVPixelFormatType_32BGRA
         case AV_PIX_FMT_0BGR: return kCVPixelFormatType_32ABGR
-        case AV_PIX_FMT_RGB0: return kCVPixelFormatType_32RGBA
-        case AV_PIX_FMT_RGBA: return kCVPixelFormatType_32RGBA
+//        case AV_PIX_FMT_RGB0: return kCVPixelFormatType_32RGBA
+        // CVPixelBufferPoolCreatePixelBuffer 不支持32RGBA
+//        case AV_PIX_FMT_RGBA: return kCVPixelFormatType_32RGBA
+        case AV_PIX_FMT_RGBA64LE: return kCVPixelFormatType_64RGBALE
         case AV_PIX_FMT_BGR48BE, AV_PIX_FMT_BGR48LE: return kCVPixelFormatType_48RGB
         case AV_PIX_FMT_NV12: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         //  AVSampleBufferDisplayLayer不能显示 kCVPixelFormatType_420YpCbCr8PlanarFullRange,所以换成是kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
         case AV_PIX_FMT_YUV420P, AV_PIX_FMT_YUVJ420P: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8Planar
-        case AV_PIX_FMT_P010BE, AV_PIX_FMT_P010LE, AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_YUV420P10LE: return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+        case AV_PIX_FMT_P010BE, AV_PIX_FMT_P010LE:
+            return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+        case AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_YUV420P10LE: return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
         case AV_PIX_FMT_UYVY422: return kCVPixelFormatType_422YpCbCr8
         case AV_PIX_FMT_YUYV422: return kCVPixelFormatType_422YpCbCr8_yuvs
         case AV_PIX_FMT_NV16: return fullRange ? kCVPixelFormatType_422YpCbCr8BiPlanarFullRange : kCVPixelFormatType_422YpCbCr8BiPlanarVideoRange
@@ -352,7 +360,7 @@ extension AVCodecID {
         case AV_CODEC_ID_QDM2:
             return .qDesign2
         default:
-            return CMFormatDescription.MediaSubType(rawValue: 0)
+            return CMFormatDescription.MediaSubType(rawValue: rawValue)
         }
     }
 }

@@ -8,8 +8,9 @@
 import SwiftUI
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+@MainActor
 public enum KSVideoPlayerViewBuilder {
-    @MainActor
+    @ViewBuilder
     static func contentModeButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             config.isScaleAspectFill.toggle()
@@ -18,17 +19,18 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func subtitleButton(config: KSVideoPlayer.Coordinator) -> some View {
         MenuView(selection: Binding {
             config.playerLayer?.subtitleModel.selectedSubtitleInfo?.subtitleID
         } set: { value in
             let info = config.playerLayer?.subtitleModel.subtitleInfos.first { $0.subtitleID == value }
-            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
+            // 需要先调用select(track。 因为里面判断了isEnabled
             if let info = info as? MediaPlayerTrack {
                 // 因为图片字幕想要实时的显示，那就需要seek。所以需要走select track
                 config.playerLayer?.player.select(track: info)
             }
+            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
         }) {
             Text("Off").tag(nil as String?)
             ForEach(config.playerLayer?.subtitleModel.subtitleInfos ?? [], id: \.subtitleID) { track in
@@ -39,7 +41,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func playbackRateButton(playbackRate: Binding<Float>) -> some View {
         MenuView(selection: playbackRate) {
             ForEach([0.5, 1.0, 1.25, 1.5, 2.0] as [Float]) { value in
@@ -52,17 +54,17 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func titleView(title: String, config: KSVideoPlayer.Coordinator) -> some View {
         Group {
             Text(title)
                 .font(.headline)
             ProgressView()
-                .opacity(config.state == .buffering ? 1 : 0)
+                .opacity((config.state == .buffering || config.playerLayer?.player.playbackState == .seeking) ? 1 : 0)
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func muteButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             config.isMuted.toggle()
@@ -71,6 +73,7 @@ public enum KSVideoPlayerViewBuilder {
         }
     }
 
+    @ViewBuilder
     static func infoButton(showVideoSetting: Binding<Bool>) -> some View {
         Button {
             showVideoSetting.wrappedValue.toggle()
@@ -83,7 +86,7 @@ public enum KSVideoPlayerViewBuilder {
         #endif
     }
 
-    @MainActor
+    @ViewBuilder
     static func recordButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             config.isRecord.toggle()
@@ -96,22 +99,6 @@ public enum KSVideoPlayerViewBuilder {
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public extension KSVideoPlayerViewBuilder {
-    static var playSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "play.fill"
-        #else
-        "play.circle.fill"
-        #endif
-    }
-
-    static var pauseSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "pause.fill"
-        #else
-        "pause.circle.fill"
-        #endif
-    }
-
     static var speakerSystemName: String {
         #if os(xrOS) || os(macOS)
         "speaker.fill"
@@ -128,7 +115,6 @@ public extension KSVideoPlayerViewBuilder {
         #endif
     }
 
-    @MainActor
     @ViewBuilder
     static func backwardButton(config: KSVideoPlayer.Coordinator) -> some View {
         if config.playerLayer?.player.seekable ?? false {
@@ -143,7 +129,6 @@ public extension KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
     @ViewBuilder
     static func forwardButton(config: KSVideoPlayer.Coordinator) -> some View {
         if config.playerLayer?.player.seekable ?? false {
@@ -158,7 +143,7 @@ public extension KSVideoPlayerViewBuilder {
         }
     }
 
-    @MainActor
+    @ViewBuilder
     static func playButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
             if config.state.isPlaying {
@@ -167,7 +152,7 @@ public extension KSVideoPlayerViewBuilder {
                 config.playerLayer?.play()
             }
         } label: {
-            Image(systemName: config.state == .error ? "play.slash.fill" : (config.state.isPlaying ? pauseSystemName : playSystemName))
+            Image(systemName: config.state.systemName)
         }
         #if os(xrOS)
         .contentTransition(.symbolEffect(.replace))
@@ -175,6 +160,32 @@ public extension KSVideoPlayerViewBuilder {
         #if !os(tvOS)
         .keyboardShortcut(.space, modifiers: .none)
         #endif
+    }
+}
+
+extension KSPlayerState {
+    var systemName: String {
+        if self == .error {
+            return "play.slash.fill"
+        } else if self == .playedToTheEnd {
+            #if os(xrOS) || os(macOS)
+            return "restart.circle"
+            #else
+            return "restart.circle.fill"
+            #endif
+        } else if isPlaying {
+            #if os(xrOS) || os(macOS)
+            return "pause.fill"
+            #else
+            return "pause.circle.fill"
+            #endif
+        } else {
+            #if os(xrOS) || os(macOS)
+            return "play.fill"
+            #else
+            return "play.circle.fill"
+            #endif
+        }
     }
 }
 
@@ -214,7 +225,7 @@ extension View {
 
     func allowedDynamicRange() -> some View {
         if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return self.allowedDynamicRange(KSOptions.sutitleDynamicRange)
+            return self.allowedDynamicRange(KSOptions.subtitleDynamicRange)
         } else {
             return self
         }

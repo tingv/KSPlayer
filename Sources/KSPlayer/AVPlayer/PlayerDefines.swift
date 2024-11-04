@@ -32,6 +32,7 @@ public extension KSOptions {
 #else
 import AppKit
 
+public typealias UIImage = NSImage
 public typealias UIView = NSView
 public typealias UIPasteboard = NSPasteboard
 public extension KSOptions {
@@ -97,7 +98,7 @@ public enum DynamicRange: Int32 {
         #endif
     }
 
-    var isHDR: Bool {
+    public var isHDR: Bool {
         rawValue > 0
     }
 }
@@ -150,6 +151,7 @@ extension DynamicRange {
 
 public protocol DisplayEnum: AnyObject {
     var isSphere: Bool { get }
+    @MainActor
     func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder)
     func touchesMoved(touch: UITouch)
 }
@@ -172,7 +174,7 @@ public struct VideoAdaptationState {
 public enum ClockProcessType {
     case remain
     case next
-    case dropNextFrame
+    case dropFrame(count: Int)
     case dropNextPacket
     case dropGOPPacket
     case flush
@@ -196,7 +198,8 @@ extension CapacityProtocol {
 }
 
 public struct LoadingState {
-    public let loadedTime: TimeInterval
+    // 预先加载了多少秒
+    public internal(set) var loadedTime: TimeInterval
     public let progress: TimeInterval
     public let packetCount: Int
     public let frameCount: Int
@@ -286,7 +289,7 @@ extension NSError {
         self.init(domain: KSPlayerErrorDomain, code: errorCode.rawValue, userInfo: userInfo)
     }
 
-    convenience init(description: String) {
+    public convenience init(description: String) {
         var userInfo = [String: Any]()
         userInfo[NSLocalizedDescriptionKey] = description
         self.init(domain: KSPlayerErrorDomain, code: 0, userInfo: userInfo)
@@ -357,13 +360,8 @@ public extension FixedWidthInteger {
 }
 
 open class AbstractAVIOContext {
-    public let bufferSize: Int32
-    public let writable: Bool
-    public init(bufferSize: Int32 = 32 * 1024, writable: Bool = false) {
-        self.bufferSize = bufferSize
-        self.writable = writable
-    }
-
+    public static let bufferSize = Int32(32 * 1024)
+    public init() {}
     open func read(buffer _: UnsafeMutablePointer<UInt8>?, size: Int32) -> Int32 {
         size
     }
@@ -386,11 +384,14 @@ open class AbstractAVIOContext {
     }
 
     open func close() {}
+    open func addSub(url _: URL, flags _: Int32, options _: UnsafeMutablePointer<OpaquePointer?>?, interrupt _: AVIOInterruptCB) -> UnsafeMutablePointer<AVIOContext>? { nil }
     deinit {}
 }
 
 public protocol PreLoadProtocol {
+    // 预先加载了多少Byte
     var loadedSize: Int64 { get }
+    var urlPos: Int64 { get }
     func more() -> Int32
 }
 
@@ -524,6 +525,7 @@ public struct KSClock {
 
 public enum DecodeType: String {
     case soft
-    case videotoolbox
+    case hardware
+    case asynchronousHardware
     case vulka
 }

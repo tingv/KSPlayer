@@ -4,8 +4,6 @@ import AVKit
 import UIKit
 #else
 import AppKit
-
-public typealias UIImage = NSImage
 #endif
 import Combine
 import CoreGraphics
@@ -98,27 +96,8 @@ public class KSAVPlayer {
         }
     }
 
-    #if os(tvOS)
-    // 在visionOS，这样的代码会crash，所以只能区分下系统
-    private lazy var _pipController: Any? = {
-        if #available(tvOS 14.0, *) {
-            let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
-            return pip
-        } else {
-            return nil
-        }
-    }()
-
-    @available(tvOS 14.0, *)
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        _pipController as? any AVPictureInPictureController & KSPictureInPictureProtocol
-    }
-    #else
-    public lazy var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? = {
-        let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
-        return pip
-    }()
-    #endif
+    @MainActor
+    public var pipController: KSPictureInPictureProtocol? = nil
 
     public var naturalSize: CGSize = .zero
     public let dynamicInfo: DynamicInfo? = nil
@@ -135,7 +114,7 @@ public class KSAVPlayer {
 
     public weak var delegate: MediaPlayerDelegate?
     public private(set) var duration: TimeInterval = 0
-    public private(set) var fileSize: Double = 0
+    public private(set) var fileSize: Int64 = 0
     public private(set) var playableTime: TimeInterval = 0
     public let chapters: [Chapter] = []
     public var playbackRate: Float = 1 {
@@ -272,7 +251,10 @@ extension KSAVPlayer {
             item.tracks.filter { $0.assetTrack?.mediaType.rawValue == AVMediaType.audio.rawValue }.dropFirst().forEach { $0.isEnabled = false }
             duration = item.duration.seconds
             let estimatedDataRates = item.tracks.compactMap { $0.assetTrack?.estimatedDataRate }
-            fileSize = Double(estimatedDataRates.reduce(0, +)) * duration / 8
+            let size = estimatedDataRates.reduce(0, +) * Float(duration) / 8.0
+            if !size.isNaN, !size.isInfinite {
+                fileSize = Int64(size)
+            }
             isReadyToPlay = true
         } else if item.status == .failed {
             error = item.error
@@ -372,9 +354,9 @@ extension KSAVPlayer: MediaPlayerProtocol {
 
     public func stopRecord() {}
 
-    public var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { nil }
+    public var subtitleDataSource: (any EmbedSubtitleDataSource)? { nil }
     public var isPlaying: Bool { player.rate > 0 ? true : playbackState == .playing }
-    public var view: UIView? { playerView }
+    public var view: UIView { playerView }
     public var currentPlaybackTime: TimeInterval {
         get {
             if shouldSeekTo > 0 {
@@ -416,9 +398,8 @@ extension KSAVPlayer: MediaPlayerProtocol {
             self?.bufferingProgress = 0
         }
         let tolerance: CMTime = options.isAccurateSeek ? .zero : .positiveInfinity
-        player.seek(to: CMTime(seconds: time), toleranceBefore: tolerance, toleranceAfter: tolerance) {
-            [weak self] finished in
-            guard let self else { return }
+        Task { @MainActor in
+            let finished = await player.seek(to: CMTime(seconds: time), toleranceBefore: tolerance, toleranceAfter: tolerance)
             self.shouldSeekTo = 0
             completion(finished)
         }
@@ -448,8 +429,12 @@ extension KSAVPlayer: MediaPlayerProtocol {
         playbackState = .paused
     }
 
-    public func shutdown() {
-        KSLog("shutdown \(self)")
+    public func stop() {
+        KSLog("stop \(self)")
+        reset()
+    }
+
+    public func reset() {
         isReadyToPlay = false
         playbackState = .stopped
         loadState = .idle
@@ -492,6 +477,13 @@ extension KSAVPlayer: MediaPlayerProtocol {
     public func select(track: some MediaPlayerTrack) {
         player.currentItem?.tracks.filter { $0.assetTrack?.mediaType == track.mediaType }.forEach { $0.isEnabled = false }
         track.isEnabled = true
+    }
+
+    public func configPIP() {
+        if #available(tvOS 14.0, *) {
+            let pip = KSOptions.pictureInPictureType.init(playerLayer: playerView.playerLayer)
+            pipController = pip
+        }
     }
 }
 
@@ -542,12 +534,22 @@ class AVMediaPlayerTrack: MediaPlayerTrack {
 
     init(track: AVPlayerItemTrack) {
         self.track = track
-        trackID = track.assetTrack?.trackID ?? 0
-        mediaType = track.assetTrack?.mediaType ?? .video
-        name = track.assetTrack?.languageCode ?? ""
-        languageCode = track.assetTrack?.languageCode
-        nominalFrameRate = track.assetTrack?.nominalFrameRate ?? 24.0
-        bitRate = Int64(track.assetTrack?.estimatedDataRate ?? 0)
+        if let assetTrack = track.assetTrack {
+            trackID = assetTrack.trackID
+            mediaType = assetTrack.mediaType
+            name = assetTrack.languageCode ?? ""
+            languageCode = assetTrack.languageCode ?? ""
+            nominalFrameRate = assetTrack.nominalFrameRate
+            bitRate = assetTrack.estimatedDataRate.isNormal ? Int64(assetTrack.estimatedDataRate) : 0
+        } else {
+            trackID = 0
+            mediaType = .video
+            name = ""
+            languageCode = ""
+            nominalFrameRate = 24.0
+            bitRate = 0
+        }
+
         #if os(xrOS)
         isPlayable = false
         #else
@@ -573,7 +575,7 @@ class AVMediaPlayerTrack: MediaPlayerTrack {
 }
 
 public extension AVAsset {
-    func ceateImageGenerator() -> AVAssetImageGenerator {
+    func createImageGenerator() -> AVAssetImageGenerator {
         let imageGenerator = AVAssetImageGenerator(asset: self)
         imageGenerator.requestedTimeToleranceBefore = .zero
         imageGenerator.requestedTimeToleranceAfter = .zero
@@ -581,7 +583,7 @@ public extension AVAsset {
     }
 
     func thumbnailImage(currentTime: CMTime, handler: @escaping (CGImage?) -> Void) {
-        let imageGenerator = ceateImageGenerator()
+        let imageGenerator = createImageGenerator()
         imageGenerator.requestedTimeToleranceBefore = .zero
         imageGenerator.requestedTimeToleranceAfter = .zero
         imageGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: currentTime)]) { _, cgImage, _, _, _ in

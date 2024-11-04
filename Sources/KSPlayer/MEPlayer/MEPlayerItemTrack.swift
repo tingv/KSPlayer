@@ -16,7 +16,7 @@ protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
     var delegate: CodecCapacityDelegate? { get set }
     func decode()
     func seek(time: TimeInterval)
-    func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt?
+    func seekCache(time: TimeInterval, needKeyFrame: Bool) -> (UInt, TimeInterval)?
     func updateCache(headIndex: UInt, time: TimeInterval)
     func putPacket(packet: Packet)
 //    func getOutputRender<Frame: ObjectQueueItem>(where predicate: ((Frame) -> Bool)?) -> Frame?
@@ -103,7 +103,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         return outputFecthRender
     }
 
-    func seekCache(time _: TimeInterval, needKeyFrame _: Bool) -> UInt? {
+    func seekCache(time _: TimeInterval, needKeyFrame _: Bool) -> (UInt, TimeInterval)? {
         nil
     }
 
@@ -115,9 +115,11 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         state = .closed
         outputRenderQueue.shutdown()
+        decoderMap.values.forEach { $0.shutdown() }
+        decoderMap.removeAll()
     }
 
-    private var lastPacketBytes = Int32(0)
+    private var lastPacketBytes = Int64(0)
     private var lastPacketSeconds = Double(-1)
     var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
@@ -137,7 +139,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
                 lastPacketSeconds = seconds
             }
         }
-        lastPacketBytes += packet.size
+        lastPacketBytes += Int64(packet.size)
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
@@ -251,7 +253,7 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         operationQueue.addOperation(decodeOperation)
     }
 
-    override func seekCache(time: TimeInterval, needKeyFrame: Bool) -> UInt? {
+    override func seekCache(time: TimeInterval, needKeyFrame: Bool) -> (UInt, TimeInterval)? {
         packetQueue.seek(seconds: time, needKeyFrame: needKeyFrame)
     }
 
@@ -311,7 +313,8 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         if state == .idle {
             return
         }
-        super.shutdown()
+        state = .closed
+        outputRenderQueue.shutdown()
         packetQueue.shutdown()
     }
 }

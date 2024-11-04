@@ -26,7 +26,7 @@ public class KSMPVPlayer: MPVHandle {
     public private(set) var loadState = MediaLoadState.idle
     public var seekable: Bool = false
     public var duration: TimeInterval = 0
-    public var fileSize: Double = 0
+    public var fileSize: Int64 = 0
     public var naturalSize: CGSize = .zero
     private lazy var _playbackCoordinator: Any? = {
         if #available(macOS 12.0, iOS 15.0, tvOS 15.0, *) {
@@ -41,6 +41,8 @@ public class KSMPVPlayer: MPVHandle {
     private var tracks = [MPVTrack]()
     private var bufferingCountDownTimer: Timer?
     private var url: URL
+    @MainActor
+    public var pipController: KSPictureInPictureProtocol? = nil
     @MainActor
     public required init(url: URL, options: KSOptions) {
         self.url = url
@@ -79,7 +81,7 @@ public class KSMPVPlayer: MPVHandle {
         isReadyToPlay = true
         seekable = getFlag(MPVProperty.seekable)
         duration = getDouble(MPVProperty.duration)
-        fileSize = getDouble(MPVProperty.fileSize)
+        fileSize = Int64(getInt(MPVProperty.fileSize))
         naturalSize = CGSize(width: getInt(MPVProperty.width), height: getInt(MPVProperty.height))
         let trackCount = getInt(MPVProperty.trackListCount)
         tracks = (0 ..< trackCount).compactMap { index in
@@ -104,7 +106,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
 
     public func stopRecord() {}
 
-    public var view: UIView? {
+    public var view: UIView {
         metalView
     }
 
@@ -139,7 +141,7 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         }
     }
 
-    public var subtitleDataSouce: (any KSPlayer.EmbedSubtitleDataSouce)? {
+    public var subtitleDataSource: (any KSPlayer.EmbedSubtitleDataSource)? {
         nil
     }
 
@@ -148,11 +150,6 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         // swiftlint:disable force_cast
         _playbackCoordinator as! AVPlaybackCoordinator
         // swiftlint:enable force_cast
-    }
-
-    @available(tvOS 14.0, *)
-    public var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? {
-        nil
     }
 
     public var dynamicInfo: KSPlayer.DynamicInfo? {
@@ -200,9 +197,18 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         loadFile(url: url)
     }
 
-    public func shutdown() {
+    public func stop() {
+        if let mpv {
+            mpv_set_wakeup_callback(mpv, nil, nil)
+        }
         command(.stop)
-        mpv_set_wakeup_callback(mpv, nil, nil)
+    }
+
+    public func reset() {
+        if let mpv {
+            mpv_set_wakeup_callback(mpv, nil, nil)
+        }
+        command(.stop)
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
@@ -211,6 +217,8 @@ extension KSMPVPlayer: MediaPlayerProtocol {
             completion(code == 0)
         }
     }
+
+    public func configPIP() {}
 }
 
 extension KSMPVPlayer {
@@ -230,6 +238,7 @@ extension KSMPVPlayer {
 }
 
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
+@MainActor
 extension KSMPVPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue playCommand: AVDelegatingPlaybackCoordinatorPlayCommand, completionHandler: @escaping () -> Void) {
         guard playCommand.expectedCurrentItemIdentifier == (playbackCoordinator as? AVDelegatingPlaybackCoordinator)?.currentItemIdentifier else {

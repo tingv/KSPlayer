@@ -9,18 +9,21 @@ import AVFoundation
 import Combine
 import CoreMedia
 import FFmpegKit
-#if canImport(MetalKit)
-import MetalKit
+import QuartzCore
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
 #endif
-
+@MainActor
 public protocol VideoOutput: FrameOutput {
     var options: KSOptions { get set }
 //    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。
     var displayLayer: AVSampleBufferDisplayLayer { get }
-    var pixelBuffer: PixelBufferProtocol? { get }
+    var pixelBuffer: PixelBufferProtocol? { get set }
     init(options: KSOptions)
-    func invalidate()
     func readNextFrame()
+    func enterForeground()
 }
 
 public final class MetalPlayView: UIView, VideoOutput {
@@ -31,27 +34,33 @@ public final class MetalPlayView: UIView, VideoOutput {
     private var isDovi: Bool = false
     private var formatDescription: CMFormatDescription? {
         didSet {
-            options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+            if let formatDescription {
+                options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+            }
         }
     }
 
     private var fps = Float(60) {
         didSet {
             if fps != oldValue {
-                if KSOptions.preferredFrame {
+                if options.preferredFrame(fps: fps) {
                     let preferredFramesPerSecond = ceil(fps)
                     if #available(iOS 15.0, tvOS 15.0, macOS 14.0, *) {
-                        displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: preferredFramesPerSecond, maximum: 2 * preferredFramesPerSecond, __preferred: preferredFramesPerSecond)
+                        /// 一定要用preferredFrameRateRange，并且maximum不能两倍。
+                        /// 不然在60fps的tvos播放25fps的视频无法很丝滑
+                        displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: preferredFramesPerSecond, maximum: preferredFramesPerSecond, __preferred: preferredFramesPerSecond)
                     } else {
-                        displayLink.preferredFramesPerSecond = Int(preferredFramesPerSecond) << 1
+                        displayLink.preferredFramesPerSecond = Int(preferredFramesPerSecond)
                     }
                 }
-                options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+                if let formatDescription {
+                    options.updateVideo(refreshRate: fps, isDovi: isDovi, formatDescription: formatDescription)
+                }
             }
         }
     }
 
-    public private(set) var pixelBuffer: PixelBufferProtocol?
+    public var pixelBuffer: PixelBufferProtocol?
     /// 用displayLink会导致锁屏无法draw，
     /// 用DispatchSourceTimer的话，在播放4k视频的时候repeat的时间会变长,
     /// 用MTKView的draw(in:)也是不行，会卡顿
@@ -61,10 +70,11 @@ public final class MetalPlayView: UIView, VideoOutput {
     public weak var renderSource: OutputRenderSourceDelegate?
     // AVSampleBufferAudioRenderer AVSampleBufferRenderSynchronizer AVSampleBufferDisplayLayer
     private let displayView = AVSampleBufferDisplayView()
-
+    public var drawable: Drawable
     private let metalView = MetalView()
     public init(options: KSOptions) {
         self.options = options
+        drawable = metalView.metalLayer
         super.init(frame: .zero)
         addSub(view: displayView)
         addSub(view: metalView)
@@ -126,18 +136,32 @@ public final class MetalPlayView: UIView, VideoOutput {
     public func flush() {
         pixelBuffer = nil
         if displayView.isHidden {
-            metalView.clear()
+            drawable.clear()
+            // 一定要延迟1s才能清空metal缓存，0.5s不行
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                if let mtlTextureCache = MetalRender.mtlTextureCache {
+                    CVMetalTextureCacheFlush(mtlTextureCache, 0)
+                }
+            }
         } else {
             displayView.displayLayer.flushAndRemoveImage()
         }
     }
 
     public func invalidate() {
+        flush()
         displayLink.invalidate()
     }
 
     public func readNextFrame() {
         draw(force: true)
+    }
+
+    public func enterForeground() {
+        // 解决从后台一会儿在进入到前台的时候，displayView黑屏的问题
+        if !displayView.isHidden, let pixelBuffer = pixelBuffer?.cvPixelBuffer {
+            set(pixelBuffer: pixelBuffer)
+        }
     }
 
     private func addSub(view: UIView) {
@@ -151,9 +175,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         ])
     }
 
-//    deinit {
-//        print()
-//    }
+    deinit {}
 }
 
 extension MetalPlayView {
@@ -175,41 +197,28 @@ extension MetalPlayView {
             let cmtime = frame.cmtime
             let par = pixelBuffer.size
             let sar = pixelBuffer.aspectRatio
-            if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer() {
+            if let dar = options.customizeDar(sar: sar, par: par) {
+                pixelBuffer.aspectRatio = CGSize(width: dar.width, height: dar.height * par.width / par.height)
+            }
+            checkFormatDescription(pixelBuffer: pixelBuffer)
+            // 高度太高用AVSampleBufferDisplayLayer在macos播放会导致电脑重启，所以做一下判断
+            if let pixelBuffer = pixelBuffer.cvPixelBuffer, options.isUseDisplayLayer(), par.height < 6000 {
                 if displayView.isHidden {
                     displayView.isHidden = false
                     metalView.isHidden = true
-                    metalView.clear()
+                    drawable.clear()
                 }
-                if let dar = options.customizeDar(sar: sar, par: par) {
-                    pixelBuffer.aspectRatio = CGSize(width: dar.width, height: dar.height * par.width / par.height)
-                }
-                checkFormatDescription(pixelBuffer: pixelBuffer)
-                set(pixelBuffer: pixelBuffer, time: cmtime)
+                set(pixelBuffer: pixelBuffer)
             } else {
                 if !displayView.isHidden {
                     displayView.isHidden = true
                     metalView.isHidden = false
                     displayView.displayLayer.flushAndRemoveImage()
                 }
-                let size: CGSize
-                if options.display.isSphere {
-                    size = KSOptions.sceneSize
-                } else {
-                    if let dar = options.customizeDar(sar: sar, par: par) {
-                        size = CGSize(width: par.width, height: par.width * dar.height / dar.width)
-                    } else {
-                        size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
-                    }
+                if frame.doviData != nil, options.display === KSOptions.displayEnumDovi {
+                    frame.pixelBuffer.colorspace = KSOptions.colorSpace2020PQ
                 }
-                checkFormatDescription(pixelBuffer: pixelBuffer)
-                #if !os(tvOS)
-                // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
-                if #available(iOS 16, *) {
-                    metalView.metalLayer.edrMetadata = frame.edrMetadata
-                }
-                #endif
-                metalView.draw(frame: frame, display: options.display, size: size)
+                drawable.draw(frame: frame, display: options.display)
             }
             renderSource?.setVideo(time: cmtime, position: frame.position)
         }
@@ -230,9 +239,9 @@ extension MetalPlayView {
         }
     }
 
-    private func set(pixelBuffer: CVPixelBuffer, time: CMTime) {
+    private func set(pixelBuffer: CVPixelBuffer) {
         guard let formatDescription else { return }
-        displayView.enqueue(imageBuffer: pixelBuffer, formatDescription: formatDescription, time: time)
+        displayView.enqueue(imageBuffer: pixelBuffer, formatDescription: formatDescription)
     }
 }
 
@@ -253,52 +262,17 @@ public class MetalView: UIView {
         #endif
         metalLayer.device = MetalRender.device
         metalLayer.framebufferOnly = true
+        #if os(tvOS)
+        if #available(macOS 15.0, tvOS 18.0, iOS 18.0, visionOS 2.0, *) {
+            metalLayer.toneMapMode = .ifSupported
+        }
+        #endif
 //        metalLayer.displaySyncEnabled = false
     }
 
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    func clear() {
-        #if !os(tvOS)
-        if #available(iOS 16, *) {
-            metalLayer.edrMetadata = nil
-        }
-        #endif
-        if let drawable = metalLayer.nextDrawable() {
-            MetalRender.clear(drawable: drawable)
-        }
-    }
-
-    func draw(frame: VideoVTBFrame, display: DisplayEnum, size: CGSize) {
-        metalLayer.drawableSize = size
-        metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth)
-        let colorspace = frame.pixelBuffer.colorspace
-        if colorspace != nil, metalLayer.colorspace != colorspace {
-            metalLayer.colorspace = colorspace
-            KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
-            #if !os(tvOS)
-            if #available(iOS 16.0, *) {
-                if let name = colorspace?.name, name != CGColorSpace.sRGB {
-                    #if os(macOS)
-                    metalLayer.wantsExtendedDynamicRangeContent = window?.screen?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1.0 > 1.0
-                    #else
-                    metalLayer.wantsExtendedDynamicRangeContent = true
-                    #endif
-                } else {
-                    metalLayer.wantsExtendedDynamicRangeContent = false
-                }
-                KSLog("[video] CAMetalLayer wantsExtendedDynamicRangeContent \(metalLayer.wantsExtendedDynamicRangeContent)")
-            }
-            #endif
-        }
-        guard let drawable = metalLayer.nextDrawable() else {
-            KSLog("[video] CAMetalLayer not readyForMoreMediaData")
-            return
-        }
-        MetalRender.draw(frame: frame, display: display, drawable: drawable)
     }
 }
 
@@ -331,7 +305,7 @@ private class AVSampleBufferDisplayView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func enqueue(imageBuffer: CVPixelBuffer, formatDescription: CMVideoFormatDescription, time: CMTime) {
+    func enqueue(imageBuffer: CVPixelBuffer, formatDescription: CMVideoFormatDescription) {
         let timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: .zero, decodeTimeStamp: .invalid)
         //        var timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: time, decodeTimeStamp: .invalid)
         var sampleBuffer: CMSampleBuffer?
@@ -340,17 +314,18 @@ private class AVSampleBufferDisplayView: UIView {
             if let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: true) as? [NSMutableDictionary], let dic = attachmentsArray.first {
                 dic[kCMSampleAttachmentKey_DisplayImmediately] = true
             }
-            if displayLayer.isReadyForMoreMediaData {
-                displayLayer.enqueue(sampleBuffer)
-            } else {
-                KSLog("[video] AVSampleBufferDisplayLayer not readyForMoreMediaData. video time \(time), controlTime \(displayLayer.timebase.time) ")
-                displayLayer.enqueue(sampleBuffer)
-            }
             if #available(macOS 11.0, iOS 14, tvOS 14, *) {
+                // 需要先flush在进行enqueue
                 if displayLayer.requiresFlushToResumeDecoding {
                     KSLog("[video] AVSampleBufferDisplayLayer requiresFlushToResumeDecoding so flush")
                     displayLayer.flush()
                 }
+            }
+            if displayLayer.isReadyForMoreMediaData {
+                displayLayer.enqueue(sampleBuffer)
+            } else {
+                KSLog("[video] AVSampleBufferDisplayLayer not readyForMoreMediaData. controlTime \(displayLayer.timebase.time) ")
+                displayLayer.enqueue(sampleBuffer)
             }
             if displayLayer.status == .failed {
                 KSLog("[video] AVSampleBufferDisplayLayer status failed so flush")
@@ -365,6 +340,7 @@ private class AVSampleBufferDisplayView: UIView {
 
 #if os(macOS)
 import CoreVideo
+import RealityFoundation
 
 class CADisplayLink {
     private let displayLink: CVDisplayLink

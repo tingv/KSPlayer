@@ -197,7 +197,7 @@ variant_for_slice()
   "libshaderc_combined.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libshaderc_combined.xcframework/tvos-arm64_arm64e")
+  "libshaderc_combined.xcframework/tvos-arm64")
     echo ""
     ;;
   "libshaderc_combined.xcframework/tvos-arm64_x86_64-simulator")
@@ -245,7 +245,7 @@ variant_for_slice()
   "lcms2.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "lcms2.xcframework/tvos-arm64_arm64e")
+  "lcms2.xcframework/tvos-arm64")
     echo ""
     ;;
   "lcms2.xcframework/tvos-arm64_x86_64-simulator")
@@ -293,7 +293,7 @@ variant_for_slice()
   "libplacebo.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libplacebo.xcframework/tvos-arm64_arm64e")
+  "libplacebo.xcframework/tvos-arm64")
     echo ""
     ;;
   "libplacebo.xcframework/tvos-arm64_x86_64-simulator")
@@ -317,7 +317,7 @@ variant_for_slice()
   "libfontconfig.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libfontconfig.xcframework/tvos-arm64_arm64e")
+  "libfontconfig.xcframework/tvos-arm64")
     echo ""
     ;;
   "libfontconfig.xcframework/tvos-arm64_x86_64-simulator")
@@ -341,7 +341,7 @@ variant_for_slice()
   "gmp.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "gmp.xcframework/tvos-arm64_arm64e")
+  "gmp.xcframework/tvos-arm64")
     echo ""
     ;;
   "gmp.xcframework/tvos-arm64_x86_64-simulator")
@@ -365,7 +365,7 @@ variant_for_slice()
   "nettle.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "nettle.xcframework/tvos-arm64_arm64e")
+  "nettle.xcframework/tvos-arm64")
     echo ""
     ;;
   "nettle.xcframework/tvos-arm64_x86_64-simulator")
@@ -389,7 +389,7 @@ variant_for_slice()
   "hogweed.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "hogweed.xcframework/tvos-arm64_arm64e")
+  "hogweed.xcframework/tvos-arm64")
     echo ""
     ;;
   "hogweed.xcframework/tvos-arm64_x86_64-simulator")
@@ -413,7 +413,7 @@ variant_for_slice()
   "gnutls.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "gnutls.xcframework/tvos-arm64_arm64e")
+  "gnutls.xcframework/tvos-arm64")
     echo ""
     ;;
   "gnutls.xcframework/tvos-arm64_x86_64-simulator")
@@ -434,7 +434,7 @@ variant_for_slice()
   "libzvbi.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libzvbi.xcframework/tvos-arm64_arm64e")
+  "libzvbi.xcframework/tvos-arm64")
     echo ""
     ;;
   "libzvbi.xcframework/tvos-arm64_x86_64-simulator")
@@ -458,7 +458,7 @@ variant_for_slice()
   "libsrt.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libsrt.xcframework/tvos-arm64_arm64e")
+  "libsrt.xcframework/tvos-arm64")
     echo ""
     ;;
   "libsrt.xcframework/tvos-arm64_x86_64-simulator")
@@ -659,8 +659,8 @@ archs_for_slice()
   "libshaderc_combined.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libshaderc_combined.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libshaderc_combined.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libshaderc_combined.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -707,8 +707,8 @@ archs_for_slice()
   "lcms2.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "lcms2.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "lcms2.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "lcms2.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -755,8 +755,8 @@ archs_for_slice()
   "libplacebo.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libplacebo.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libplacebo.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libplacebo.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -779,8 +779,8 @@ archs_for_slice()
   "libfontconfig.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libfontconfig.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libfontconfig.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libfontconfig.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -803,8 +803,8 @@ archs_for_slice()
   "gmp.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "gmp.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "gmp.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "gmp.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -827,8 +827,8 @@ archs_for_slice()
   "nettle.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "nettle.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "nettle.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "nettle.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -851,8 +851,8 @@ archs_for_slice()
   "hogweed.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "hogweed.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "hogweed.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "hogweed.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -875,8 +875,8 @@ archs_for_slice()
   "gnutls.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "gnutls.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "gnutls.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "gnutls.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -896,8 +896,8 @@ archs_for_slice()
   "libzvbi.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libzvbi.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libzvbi.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libzvbi.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -920,8 +920,8 @@ archs_for_slice()
   "libsrt.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libsrt.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libsrt.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libsrt.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"

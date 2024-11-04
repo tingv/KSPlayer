@@ -25,8 +25,7 @@ public struct SubtitleImageInfo {
 public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
     public var start: TimeInterval
     public var end: TimeInterval
-    public var textPosition: TextPosition?
-    public var render: Either<SubtitleImageInfo, NSAttributedString>
+    public var render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>
     public var description: String {
         "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
@@ -38,10 +37,10 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         self.init(start, end, attributedString: NSAttributedString(string: text))
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, attributedString: NSAttributedString, textPosition: TextPosition? = nil) {
         self.start = start
         self.end = end
-        render = .right(attributedString)
+        render = .right((attributedString, textPosition))
     }
 
     public init(_ start: TimeInterval, _ end: TimeInterval, image: SubtitleImageInfo) {
@@ -50,7 +49,7 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         render = .left(image)
     }
 
-    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<SubtitleImageInfo, NSAttributedString>) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>) {
         self.start = start
         self.end = end
         self.render = render
@@ -63,6 +62,13 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
     public func isEqual(time: TimeInterval) -> Bool {
         start <= time && end >= time
     }
+
+    public var isEmpty: Bool {
+        if let right = render.right, right.0.string.isEmpty {
+            return true
+        }
+        return false
+    }
 }
 
 public protocol SubtitlePartProtocol: Equatable {
@@ -70,7 +76,7 @@ public protocol SubtitlePartProtocol: Equatable {
     func isEqual(time: TimeInterval) -> Bool
 }
 
-public struct TextPosition {
+public struct TextPosition: Equatable, Hashable {
     public var verticalAlign: VerticalAlignment = .bottom
     public var horizontalAlign: HorizontalAlignment = .center
     public var leftMargin: CGFloat = 0
@@ -129,7 +135,7 @@ public struct TextPosition {
 
 extension SubtitlePart: Comparable {
     public static func == (left: SubtitlePart, right: SubtitlePart) -> Bool {
-        left.start == right.start && left.end == right.end && left.render.right == right.render.right
+        left.start == right.start && left.end == right.end
     }
 
     public static func < (left: SubtitlePart, right: SubtitlePart) -> Bool {
@@ -153,10 +159,10 @@ extension SubtitlePart: NumericComparable {
 }
 
 public protocol KSSubtitleProtocol {
-    func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart]
+    func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart]
 }
 
-public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifiable {
+public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject {
     var subtitleID: String { get }
     var name: String { get }
     var delay: TimeInterval { get set }
@@ -184,8 +190,8 @@ public class KSSubtitle {
 
 extension KSSubtitle: KSSubtitleProtocol {
     /// Search for target group for time
-    public func search(for time: TimeInterval, size: CGSize) async -> [SubtitlePart] {
-        await searchProtocol?.search(for: time, size: size) ?? []
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
+        await searchProtocol?.search(for: time, size: size, isHDR: isHDR) ?? []
     }
 }
 
@@ -234,6 +240,7 @@ extension Collection where Element: NumericComparable {
     }
 }
 
+@MainActor
 open class SubtitleModel: ObservableObject {
     public enum Size {
         case smaller
@@ -281,18 +288,19 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    private var subtitleDataSouces = [SubtitleDataSouce]()
+    private var subtitleDataSources = [SubtitleDataSource]()
     @Published
-    public private(set) var subtitleInfos = [any SubtitleInfo]()
+    public private(set) var subtitleInfos: [any SubtitleInfo] = KSOptions.audioRecognizes
     @Published
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
     public var isHDR = false
+    public var screenSize = CGSize.zero
     public var url: URL {
         didSet {
-            subtitleDataSouces.removeAll()
-            for datasouce in KSOptions.subtitleDataSouces {
-                addSubtitle(dataSouce: datasouce)
+            subtitleDataSources.removeAll()
+            for dataSource in KSOptions.subtitleDataSources {
+                addSubtitle(dataSource: dataSource)
             }
             Task { @MainActor in
                 subtitleInfos.removeAll()
@@ -303,14 +311,13 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    @Published
-    public var selectedSubtitleInfo: (any SubtitleInfo)? {
+    public var selectedSubtitleInfo: SubtitleInfo? {
         didSet {
             oldValue?.isEnabled = false
             if let selectedSubtitleInfo {
                 selectedSubtitleInfo.isEnabled = true
                 addSubtitle(info: selectedSubtitleInfo)
-                if let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSouces.first(where: { $0 is CacheSubtitleDataSouce }) as? CacheSubtitleDataSouce {
+                if let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSources.first(where: { $0 is CacheSubtitleDataSource }) as? CacheSubtitleDataSource {
                     cache.addCache(fileURL: url, downloadURL: info.downloadURL)
                 }
             }
@@ -319,26 +326,35 @@ open class SubtitleModel: ObservableObject {
 
     public init(url: URL) {
         self.url = url
-        for datasouce in KSOptions.subtitleDataSouces {
-            addSubtitle(dataSouce: datasouce)
+        for dataSource in KSOptions.subtitleDataSources {
+            addSubtitle(dataSource: dataSource)
         }
     }
 
-    public func addSubtitle(info: any SubtitleInfo) {
+    public func addSubtitle(info: SubtitleInfo) {
         if subtitleInfos.first(where: { $0.subtitleID == info.subtitleID }) == nil {
             subtitleInfos.append(info)
         }
     }
 
-    public func subtitle(currentTime: TimeInterval, size: CGSize) {
+    public func subtitle(currentTime: TimeInterval, playSize: CGSize, screenSize: CGSize) {
+        self.screenSize = screenSize
+//        KSLog("[subtitle] currentTime \(currentTime)")
         Task { @MainActor in
             var newParts = [SubtitlePart]()
             if let subtile = selectedSubtitleInfo {
                 let currentTime = currentTime - subtile.delay - subtitleDelay
-                newParts = await subtile.search(for: currentTime, size: size)
+                newParts = await subtile.search(for: currentTime, size: playSize, isHDR: isHDR)
                 if newParts.isEmpty {
                     newParts = parts.filter { part in
                         part == currentTime
+                    }
+                } else if newParts.allSatisfy { !$0.isEmpty } {
+                    // 如果当前的字幕里面有空字幕的话，那就不要跟之前的字幕合并了。可以认为空字幕就是一个终止的信号。
+                    for part in parts {
+                        if part == currentTime, part.end != .infinity, newParts.allSatisfy({ $0 != part }) {
+                            newParts.append(part)
+                        }
                     }
                 }
             }
@@ -350,16 +366,16 @@ open class SubtitleModel: ObservableObject {
     }
 
     public func searchSubtitle(query: String, languages: [String]) {
-        for dataSouce in subtitleDataSouces {
-            if let dataSouce = dataSouce as? SearchSubtitleDataSouce {
+        for dataSource in subtitleDataSources {
+            if let dataSource = dataSource as? SearchSubtitleDataSource {
                 subtitleInfos.removeAll { info in
-                    dataSouce.infos.contains {
+                    dataSource.infos.contains {
                         $0 === info
                     }
                 }
                 Task { @MainActor in
                     do {
-                        try await subtitleInfos.append(contentsOf: dataSouce.searchSubtitle(query: query, languages: languages))
+                        try await subtitleInfos.append(contentsOf: dataSource.searchSubtitle(query: query, languages: languages))
                     } catch {
                         KSLog(error)
                     }
@@ -368,18 +384,78 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func addSubtitle(dataSouce: SubtitleDataSouce) {
-        subtitleDataSouces.append(dataSouce)
-        if let dataSouce = dataSouce as? URLSubtitleDataSouce {
+    public func addSubtitle(dataSource: SubtitleDataSource) {
+        subtitleDataSources.append(dataSource)
+        if let dataSource = dataSource as? URLSubtitleDataSource {
             Task { @MainActor in
                 do {
-                    try await subtitleInfos.append(contentsOf: dataSouce.searchSubtitle(fileURL: url))
+                    try await subtitleInfos.append(contentsOf: dataSource.searchSubtitle(fileURL: url))
                 } catch {
                     KSLog(error)
                 }
             }
-        } else if let dataSouce = dataSouce as? (any EmbedSubtitleDataSouce) {
-            subtitleInfos.append(contentsOf: dataSouce.infos)
+        } else if let dataSource = dataSource as? (any EmbedSubtitleDataSource) {
+            subtitleInfos.append(contentsOf: dataSource.infos)
+        }
+    }
+}
+
+extension [SubtitlePart] {
+    func merge() -> [Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>] {
+        // 对于文本字幕，如果是同一时间有多个的话，并且位置一样的话，那就进行合并换行，防止文字重叠。
+        if count > 1 {
+            let textPosition = self[0].render.right?.1
+            var texts = compactMap { part in
+                if let right = part.render.right, right.1 == textPosition {
+                    return right.0
+                } else {
+                    return nil
+                }
+            }
+            if texts.count == count {
+                texts.reverse()
+                let str = NSMutableAttributedString()
+                loop(iterations: texts.count) { i in
+                    if i > 0 {
+                        str.append(NSAttributedString(string: "\n"))
+                    }
+                    str.append(texts[i])
+                }
+                return [Either.right((str, textPosition))]
+            }
+        }
+        return map(\.render)
+    }
+}
+
+extension CGRect: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(origin)
+        hasher.combine(size)
+    }
+}
+
+extension CGPoint: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(x)
+        hasher.combine(y)
+    }
+}
+
+extension CGSize: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(width)
+        hasher.combine(height)
+    }
+}
+
+extension Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>: Identifiable {
+    public var id: Int {
+        switch self {
+        case let .left(info):
+            return info.rect.hashValue
+        case let .right(str, _):
+            return str.hashValue
         }
     }
 }

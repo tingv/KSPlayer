@@ -64,11 +64,13 @@ extension ObjectQueueItem {
     var cmtime: CMTime { timebase.cmtime(for: timestamp) }
 }
 
+@MainActor
 public protocol FrameOutput: AnyObject {
-    var renderSource: OutputRenderSourceDelegate? { get set }
+    nonisolated(unsafe) var renderSource: OutputRenderSourceDelegate? { get set }
+    func play()
     func pause()
     func flush()
-    func play()
+    func invalidate()
 }
 
 protocol MEFrame: ObjectQueueItem {
@@ -82,24 +84,34 @@ public extension KSOptions {
     /*
      CGColorSpaceCreateICCBased
      */
-    static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?) -> CGColorSpace? {
+    static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?, isDovi: Bool) -> CGColorSpace? {
         switch ycbcrMatrix {
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
-            return CGColorSpace(name: CGColorSpace.itur_709)
+            if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
+                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, *) {
+                    return CGColorSpace(name: CGColorSpace.itur_709_PQ)
+                } else {
+                    return CGColorSpace(name: CGColorSpace.itur_709)
+                }
+            } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
+                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, *) {
+                    return CGColorSpace(name: CGColorSpace.itur_709_HLG)
+                } else {
+                    return CGColorSpace(name: CGColorSpace.itur_709)
+                }
+            } else {
+                return CGColorSpace(name: CGColorSpace.itur_709)
+            }
         case kCVImageBufferYCbCrMatrix_ITU_R_601_4:
             return CGColorSpace(name: CGColorSpace.sRGB)
         case kCVImageBufferYCbCrMatrix_ITU_R_2020:
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
-                if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
-                } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
-                } else {
-                    return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
-                }
+                return colorSpace2020PQ
             } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-                if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_2100_HLG)
+                if isDovi {
+                    return colorSpace2020HLG
+                } else if #available(iOS 18.0, *) {
+                    return colorSpace2020HLG
                 } else {
                     return CGColorSpace(name: CGColorSpace.itur_2020)
                 }
@@ -108,6 +120,26 @@ public extension KSOptions {
             }
         default:
             return CGColorSpace(name: CGColorSpace.sRGB)
+        }
+    }
+
+    static var colorSpace2020PQ: CGColorSpace? {
+        if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2100_PQ)
+        } else if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2020_PQ)
+        } else {
+            return CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
+        }
+    }
+
+    static var colorSpace2020HLG: CGColorSpace? {
+        if #available(macOS 11.0, iOS 14.0, tvOS 14.0, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2100_HLG)
+        } else if #available(macOS 10.15.6, *) {
+            return CGColorSpace(name: CGColorSpace.itur_2020_HLG)
+        } else {
+            return CGColorSpace(name: CGColorSpace.itur_2020)
         }
     }
 
@@ -147,7 +179,7 @@ enum MECodecState {
     case finished
 }
 
-public struct Timebase {
+public struct Timebase: Sendable {
     static let defaultValue = Timebase(num: 1, den: 1)
     public let num: Int32
     public let den: Int32
@@ -188,7 +220,13 @@ final class Packet: ObjectQueueItem {
             guard let packet = corePacket?.pointee else {
                 return
             }
-            timestamp = packet.pts == Int64.min ? packet.dts : packet.pts
+            if packet.pts == Int64.min {
+                if packet.dts != Int64.min {
+                    timestamp = packet.dts
+                }
+            } else {
+                timestamp = packet.pts
+            }
             position = packet.pos
             duration = packet.duration
             size = packet.size
@@ -340,6 +378,7 @@ public final class AudioFrame: MEFrame {
         let sampleCount = CMItemCount(numberOfSamples)
         let dataByteSize = sampleCount * sampleSize
         if dataByteSize > dataSize {
+            // 关闭空间音频之后， 在打开空间音频，可能就会遇到这个问题，但是也就一瞬间
             assertionFailure("dataByteSize: \(dataByteSize),render.dataSize: \(dataSize)")
         }
         for i in 0 ..< data.count {
@@ -372,8 +411,9 @@ public final class AudioFrame: MEFrame {
             }
         }
         var sampleBuffer: CMSampleBuffer?
-        // 因为sampleRate跟timescale没有对齐，所以导致杂音。所以要让duration为invalid
-//        let duration = CMTime(value: CMTimeValue(sampleCount), timescale: CMTimeScale(audioFormat.sampleRate))
+        // 因为sampleRate跟timescale没有对齐，所以导致杂音，改成用timebase.cmtime(for: 1)就不会有杂音了。但是 一定要设置为invalid，不然用airpod播放会有问题
+//        let duration = CMTime(value: CMTimeValue(1), timescale: CMTimeScale(audioFormat.sampleRate))
+//        let duration = timebase.cmtime(for: 1)
         let duration = CMTime.invalid
         let timing = CMSampleTimingInfo(duration: duration, presentationTimeStamp: cmtime, decodeTimeStamp: .invalid)
         let sampleSizeEntryCount: CMItemCount
@@ -401,18 +441,11 @@ public final class VideoVTBFrame: MEFrame {
     public let isDovi: Bool
     public var edrMetaData: EDRMetaData? = nil
     public var pixelBuffer: PixelBufferProtocol
-    public var doviData: dovi_metadata? = nil {
-        didSet {
-            if doviData != nil {
-                pixelBuffer.cvPixelBuffer?.colorspace = CGColorSpace(name: CGColorSpace.itur_2020_PQ_EOTF)
-            }
-        }
-    }
-
+    public var doviData: dovi_metadata? = nil
     public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
         self.pixelBuffer = pixelBuffer
-        // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不会，所以统一设置下。
-        pixelBuffer.updateColorspace()
+        // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不对，所以统一设置下。
+        pixelBuffer.updateColorspace(isDovi: isDovi)
         self.fps = fps
         self.isDovi = isDovi
     }
@@ -435,7 +468,11 @@ extension VideoVTBFrame {
         if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
             return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
         } else if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-            return CAEDRMetadata.hlg
+            if DynamicRange.availableHDRModes.contains(.hlg) {
+                return CAEDRMetadata.hlg
+            } else {
+                return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
+            }
         }
         if let doviData {
             return CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance, maxLuminance: doviData.maxLuminance, opticalOutputScale: 10000)

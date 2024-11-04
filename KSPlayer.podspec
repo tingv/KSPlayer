@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
     s.tvos.deployment_target = '13.0'
     s.static_framework = true
     s.subspec 'Subtitle' do |ss|
-        ss.source_files = 'Sources/KSPlayer/Subtitle/*.{swift}'
+        ss.source_files = 'Sources/KSPlayer/Subtitle/**/*.{swift}'
         ss.frameworks = 'Foundation'
     end
     s.subspec 'Metal' do |ss|
@@ -49,7 +49,7 @@ Pod::Spec.new do |s|
     end
   
     s.subspec 'Core' do |ss|
-        ss.source_files = 'Sources/KSPlayer/Core/*'
+        ss.source_files = 'Sources/KSPlayer/Core/**/*.{swift}'
         ss.dependency 'KSPlayer/AVPlayer'
     end
 

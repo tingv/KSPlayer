@@ -43,6 +43,11 @@ public final class MEPlayerItem: Sendable {
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
     private var ioContext: AbstractAVIOContext?
+    private var pbArray = [PBClass]()
+    private var interrupt = false
+    private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
+    private var defaultIOClose: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<AVIOContext>?) -> Int32)? = nil
+
     public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float {
         get {
@@ -60,8 +65,22 @@ public final class MEPlayerItem: Sendable {
 
     private var seekTime = TimeInterval(0)
     private var startTime = CMTime.zero
+    // duration 不用在减去startTime了
+    private var initDuration: TimeInterval = 0 {
+        didSet {
+            duration = initDuration
+        }
+    }
+
+    private var initFileSize: Int64 = 0 {
+        didSet {
+            fileSize = initFileSize
+        }
+    }
+
     public private(set) var duration: TimeInterval = 0
-    public private(set) var fileSize: Double = 0
+    public private(set) var fileSize: Int64 = 0
+
     public private(set) var naturalSize = CGSize.one
     private var error: NSError? {
         didSet {
@@ -77,12 +96,12 @@ public final class MEPlayerItem: Sendable {
             case .opened:
                 delegate?.sourceDidOpened()
             case .reading:
-                timer.fireDate = Date.distantPast
+                timer.fireDate = .distantPast
             case .closed:
                 timer.invalidate()
             case .failed:
                 delegate?.sourceDidFailed(error: error)
-                timer.fireDate = Date.distantFuture
+                timer.fireDate = .distantFuture
             case .idle, .opening, .seeking, .paused, .finished:
                 break
             }
@@ -97,7 +116,12 @@ public final class MEPlayerItem: Sendable {
         // metadata可能会实时变化。所以把它放在DynamicInfo里面
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
-        self?.formatCtx?.pointee.pb?.pointee.bytes_read ?? 0
+        guard let self else { return 0 }
+        if self.state != .opening, let preload = self.ioContext as? PreLoadProtocol, preload.loadedSize > 0 {
+            return preload.urlPos
+        } else {
+            return self.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
+        }
     } audioBitrate: { [weak self] in
         Int(8 * (self?.audioTrack?.bitrate ?? 0))
     } videoBitrate: { [weak self] in
@@ -105,9 +129,9 @@ public final class MEPlayerItem: Sendable {
     }
 
     private static var onceInitial: Void = {
-        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
-            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
-        }
+//        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
+//            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
+//        }
         var result = avformat_network_init()
         av_log_set_callback { ptr, level, format, args in
             guard let format else {
@@ -118,16 +142,22 @@ public final class MEPlayerItem: Sendable {
             if let arguments {
                 log = NSString(format: log, arguments: arguments) as String
             }
-            if let ptr, let namePtr = av_default_item_name(ptr) {
-                let name = String(cString: namePtr)
+            if let ptr {
                 let avclass = ptr.assumingMemoryBound(to: UnsafePointer<AVClass>.self).pointee
-                if name == "URLContext" {
+                if avclass == avfilter_get_class() {
+                    let context = ptr.assumingMemoryBound(to: AVFilterContext.self).pointee
+                    if let opaque = context.graph?.pointee.opaque {
+                        let options = Unmanaged<KSOptions>.fromOpaque(opaque).takeUnretainedValue()
+                        options.filter(log: log)
+                    }
+                } else if avclass != nil, let namePtr = avclass.pointee.class_name, String(cString: namePtr) == "URLContext" {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
-                    // 做下保护防止crash，Setting default whitelist的时候flags还是1.所以专门过滤掉
-                    if context.prot != nil, context.flags == 3, let opaque = context.interrupt_callback.opaque {
-                        // 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
+
+                    /// 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
+                    /// 其他播放内核不设置interrupt_callback的话，那也不会有问题
+                    if let opaque = context.interrupt_callback.opaque, context.interrupt_callback.callback != nil {
                         let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(opaque).takeUnretainedValue()
-                        if playerItem.state != .closed {
+                        if playerItem.state != .closed, playerItem.options != nil {
                             // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
                             playerItem.options.urlIO(log: String(log))
                             if log.starts(with: "Will reconnect at") {
@@ -136,12 +166,6 @@ public final class MEPlayerItem: Sendable {
                                 playerItem.audioTrack?.seekTime = seconds
                             }
                         }
-                    }
-                } else if avclass == avfilter_get_class() {
-                    let context = ptr.assumingMemoryBound(to: AVFilterContext.self).pointee
-                    if let opaque = context.graph?.pointee.opaque {
-                        let options = Unmanaged<KSOptions>.fromOpaque(opaque).takeUnretainedValue()
-                        options.filter(log: log)
                     }
                 }
             }
@@ -157,13 +181,17 @@ public final class MEPlayerItem: Sendable {
     public init(url: URL, options: KSOptions) {
         self.url = url
         self.options = options
-        timer.fireDate = Date.distantFuture
         operationQueue.name = "KSPlayer_" + String(describing: self).components(separatedBy: ".").last!
         operationQueue.maxConcurrentOperationCount = 1
         operationQueue.qualityOfService = .userInteractive
         _ = MEPlayerItem.onceInitial
+        // 一开始要清空字体，不然字体太多用ass加载的话，会内存暴涨
+        try? FileManager.default.removeItem(at: KSOptions.fontsDir)
+        timer.tolerance = 0.02
+        timer.fireDate = .distantFuture
     }
 
+    @MainActor
     func select(track: some MediaPlayerTrack) -> Bool {
         if track.isEnabled {
             return false
@@ -178,17 +206,28 @@ public final class MEPlayerItem: Sendable {
             findBestAudio(videoTrack: assetTrack)
         } else if assetTrack.mediaType == .subtitle {
             if assetTrack.isImageSubtitle {
-                if !options.isSeekImageSubtitle {
+                if options.isSeekImageSubtitle {
+                    assetTracks.filter { $0.mediaType == track.mediaType }.forEach {
+                        $0.subtitle?.outputRenderQueue.flush()
+                    }
+                } else {
                     return false
                 }
             } else {
                 return false
             }
         }
+
+        // 切换轨道的话，要把缓存给清空了，这样seek才不会走缓存
+        for track in allPlayerItemTracks {
+            track.seek(time: currentPlaybackTime)
+        }
         seek(time: currentPlaybackTime) { _ in
         }
         return true
     }
+
+    deinit {}
 }
 
 // MARK: private functions
@@ -197,6 +236,7 @@ extension MEPlayerItem {
     private func openThread() {
         formatCtx?.pointee.interrupt_callback.opaque = nil
         formatCtx?.pointee.interrupt_callback.callback = nil
+        pbArray.removeAll()
         avformat_close_input(&self.formatCtx)
         formatCtx = avformat_alloc_context()
         guard let formatCtx else {
@@ -210,6 +250,9 @@ extension MEPlayerItem {
                 return 0
             }
             let formatContext = Unmanaged<MEPlayerItem>.fromOpaque(ctx).takeUnretainedValue()
+            if formatContext.interrupt {
+                return 1
+            }
             switch formatContext.state {
             case .finished, .closed, .failed:
                 return 1
@@ -218,15 +261,49 @@ extension MEPlayerItem {
             }
         }
         formatCtx.pointee.interrupt_callback = interruptCB
-        // avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
-//        formatCtx.pointee.io_close2 = { _, _ -> Int32 in
-//            0
-//        }
+        formatCtx.pointee.opaque = Unmanaged.passUnretained(self).toOpaque()
         setHttpProxy()
-        ioContext = options.process(url: url)
+        ioContext = options.process(url: url, interrupt: interruptCB)
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
             formatCtx.pointee.pb = ioContext.getContext()
+            pbArray.append(PBClass(pb: formatCtx.pointee.pb))
+            if ioContext is PreLoadProtocol {
+                options.seekUsePacketCache = false
+            }
+        }
+        defaultIOOpen = formatCtx.pointee.io_open
+        // 处理m3u8这种有子url的情况。
+        formatCtx.pointee.io_open = { s, pb, url, flags, options -> Int32 in
+            guard let s, let url else {
+                return -1
+            }
+            let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
+            let result = playerItem.defaultIOOpen?(s, pb, url, flags, options) ?? -1
+            if result >= 0 {
+                playerItem.pbArray.append(PBClass(pb: pb?.pointee))
+            }
+//            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options, s.pointee.interrupt_callback) {
+//                pb?.pointee = subPb
+//                return 0
+//            } else {
+//                return -1
+//            }
+            return result
+        }
+//         avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
+        defaultIOClose = formatCtx.pointee.io_close2
+        formatCtx.pointee.io_close2 = { s, pb -> Int32 in
+            guard let s else {
+                return -1
+            }
+            let playerItem = Unmanaged<MEPlayerItem>.fromOpaque(s.pointee.opaque).takeUnretainedValue()
+            if let index = playerItem.pbArray.firstIndex(where: { $0.pb == pb }) {
+                let pbClass = playerItem.pbArray.remove(at: index)
+                playerItem.pbArray.first?.add(num: pbClass.bytesRead)
+            }
+            let result = playerItem.defaultIOClose?(s, pb) ?? -1
+            return result
         }
         let urlString: String
         if url.isFileURL {
@@ -237,7 +314,7 @@ extension MEPlayerItem {
         var avOptions = options.formatContextOptions.avOptions
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
         av_dict_free(&avOptions)
-        if result == AVError.eof.code {
+        if result == swift_AVERROR_EOF {
             state = .finished
             delegate?.sourceDidFinished()
             return
@@ -275,15 +352,16 @@ extension MEPlayerItem {
         maxFrameDuration = flags & AVFMT_TS_DISCONT == AVFMT_TS_DISCONT ? 10.0 : 3600.0
         options.findTime = CACurrentMediaTime()
         options.formatName = String(cString: formatCtx.pointee.iformat.pointee.name)
-        seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & AVFMT_TS_DISCONT != 0) && options.formatName != "ogg"
+        seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & (AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS) != 0) && options.formatName != "ogg"
         if formatCtx.pointee.start_time != Int64.min {
             startTime = CMTime(value: formatCtx.pointee.start_time, timescale: AV_TIME_BASE)
             videoClock.time = startTime
             audioClock.time = startTime
         }
-        duration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
+        initDuration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
         dynamicInfo.byteRate = formatCtx.pointee.bit_rate / 8
-        fileSize = Double(dynamicInfo.byteRate) * duration
+        // 尽量少调用avio_size，这个会调用fileSize，可能会触发网络请求
+        initFileSize = avio_size(formatCtx.pointee.pb)
         createCodec(formatCtx: formatCtx)
         if formatCtx.pointee.nb_chapters > 0 {
             chapters.removeAll()
@@ -299,9 +377,6 @@ extension MEPlayerItem {
             }
         }
 
-        if let outputURL = options.outputURL {
-            startRecord(url: outputURL)
-        }
         if videoTrack == nil, audioTrack == nil {
             state = .failed
         } else {
@@ -310,6 +385,7 @@ extension MEPlayerItem {
         }
     }
 
+    @MainActor
     public func startRecord(url: URL) {
         stopRecord()
         let filename = url.isFileURL ? url.path : url.absoluteString
@@ -379,6 +455,8 @@ extension MEPlayerItem {
                 coreStream.pointee.discard = AVDISCARD_ALL
                 if let assetTrack = FFmpegAssetTrack(stream: coreStream) {
                     if assetTrack.mediaType == .subtitle {
+                        // 有遇到字幕的startTime不准，需要从formatCtx取，才是准的
+                        assetTrack.startTime = startTime
                         let subtitle = SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 255, options: options)
                         assetTrack.subtitle = subtitle
                         allPlayerItemTracks.append(subtitle)
@@ -386,7 +464,10 @@ extension MEPlayerItem {
                     assetTrack.seekByBytes = seekByBytes
                     return assetTrack
                 } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT {
-                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF {
+                    // 有的字体附件的codec_id 为0
+                    if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF ||
+                        coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_NONE
+                    {
                         let metadata = toDictionary(coreStream.pointee.metadata)
                         if let filename = metadata["filename"], let extradata = coreStream.pointee.codecpar.pointee.extradata {
                             let extradataSize = coreStream.pointee.codecpar.pointee.extradata_size
@@ -394,20 +475,25 @@ extension MEPlayerItem {
                             var fontsDir = KSOptions.fontsDir
                             try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
                             fontsDir.appendPathComponent(filename)
-                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
                             try? data.write(to: fontsDir)
+                            let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
                         }
                     }
                 }
             }
             return nil
         }
+        let subtitles = assetTracks.filter {
+            $0.mediaType == .subtitle
+        }
+        // 因为本地视频加载很快，所以要在这边就把图片字幕给打开。不然前几秒的图片视频可能就无法展示出来了。
+        options.wantedSubtitle(tracks: subtitles)?.isEnabled = true
         var videoIndex: Int32 = -1
         if !options.videoDisable {
             let videos = assetTracks.filter { $0.mediaType == .video }
             let wantedStreamNb: Int32
-            if !videos.isEmpty, let index = options.wantedVideo(tracks: videos) {
-                wantedStreamNb = videos[index].trackID
+            if !videos.isEmpty, let track = options.wantedVideo(tracks: videos) {
+                wantedStreamNb = track.trackID
             } else {
                 wantedStreamNb = -1
             }
@@ -430,12 +516,13 @@ extension MEPlayerItem {
                 }
                 naturalSize = abs(rotation - 90) <= 1 || abs(rotation - 270) <= 1 ? first.naturalSize.reverse : first.naturalSize
                 options.process(assetTrack: first)
-                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: duration == 0)
+                options.dynamicRange = first.dynamicRange ?? .sdr
+                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: initDuration == 0)
                 let track = options.syncDecodeVideo ? SyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options)
                 track.delegate = self
                 allPlayerItemTracks.append(track)
                 videoTrack = track
-                if first.codecpar.codec_id != AV_CODEC_ID_MJPEG {
+                if !first.image {
                     videoAudioTracks.append(track)
                 }
                 let bitRates = videos.map(\.bitRate).filter {
@@ -450,8 +537,8 @@ extension MEPlayerItem {
 
         let audios = assetTracks.filter { $0.mediaType == .audio }
         let wantedStreamNb: Int32
-        if !audios.isEmpty, let index = options.wantedAudio(tracks: audios) {
-            wantedStreamNb = audios[index].trackID
+        if !audios.isEmpty, let track = options.wantedAudio(tracks: audios) {
+            wantedStreamNb = track.trackID
         } else {
             wantedStreamNb = -1
         }
@@ -489,54 +576,57 @@ extension MEPlayerItem {
 
     private func readThread() {
         if state == .opened {
-            if options.startPlayTime > 0 {
-                let timestamp = startTime + CMTime(seconds: options.startPlayTime)
-                let flags = seekByBytes ? AVSEEK_FLAG_BYTE : 0
+            /// File has a CUES element, but we defer parsing until it is needed.
+            /// 因为mkv只会在第一次seek的时候请求index信息，
+            /// 所以为了让预加载不会在第一次seek有缓冲，就手动seek提前请求index。(比较trick，但是没想到更好的方案)
+            if options.formatName.contains("matroska"), ioContext as? PreLoadProtocol != nil, options.startPlayTime == 0 {
+                options.startPlayTime = 0.0001
+//                options.seekFlags |= AVSEEK_FLAG_ANY
+            }
+            if options.startPlayTime > 0, options.startPlayTime < duration {
+                var flags = options.seekFlags
+                let timestamp: Int64
+                let time = startTime + CMTime(seconds: options.startPlayTime)
+                if seekByBytes {
+                    if initFileSize > 0, initDuration > 0 {
+                        flags |= AVSEEK_FLAG_BYTE
+                        timestamp = Int64(Double(initFileSize) * options.startPlayTime / initDuration)
+                    } else {
+                        timestamp = time.value
+                    }
+                } else {
+                    timestamp = time.value
+                }
                 let seekStartTime = CACurrentMediaTime()
-                let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp.value, Int64.max, flags)
-                audioClock.time = timestamp
-                videoClock.time = timestamp
-                KSLog("start PlayTime: \(timestamp.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp, Int64.max, flags)
+                audioClock.time = time
+                videoClock.time = time
+                KSLog("start seek PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                if let seekingCompletionHandler {
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        self.seekingCompletionHandler?(result >= 0)
+                        self.seekingCompletionHandler = nil
+                    }
+                }
             }
             state = .reading
         }
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
+            interrupt = false
             if state == .paused {
                 if let preload = ioContext as? PreLoadProtocol {
                     let size = preload.more()
-                    if size > 0 {
-                        continue
+                    // more有可能要等很久才返回,所以这里要判断下状态
+                    if size <= 0, state == .paused {
+                        condition.wait()
                     }
-                }
-                condition.wait()
-            }
-            if state == .seeking {
-                let seekToTime = seekTime
-                let time = mainClock().time
-                var increase = Int64(seekTime + startTime.seconds - time.seconds)
-                var seekFlags = options.seekFlags
-                let timeStamp: Int64
-                if seekByBytes {
-                    seekFlags |= AVSEEK_FLAG_BYTE
-                    increase *= dynamicInfo.byteRate
-                    var position = Int64(-1)
-                    if position < 0 {
-                        position = videoClock.position
-                    }
-                    if position < 0 {
-                        position = audioClock.position
-                    }
-                    if position < 0 {
-                        position = avio_tell(formatCtx?.pointee.pb)
-                    }
-                    timeStamp = position + increase
                 } else {
-                    increase *= Int64(AV_TIME_BASE)
-                    timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
+                    condition.wait()
                 }
-                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
-                let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
+            } else if state == .seeking {
+                let seekToTime = seekTime
                 let seekSuccess = seekUsePacketCache(seconds: seekToTime)
                 if seekSuccess {
                     DispatchQueue.main.async { [weak self] in
@@ -545,9 +635,42 @@ extension MEPlayerItem {
                         self.seekingCompletionHandler = nil
                     }
                     state = .reading
-                    KSLog("seek use packet cache \(seekToTime)")
                     continue
                 }
+                let time = mainClock().time
+                var increase = Int64(seekTime + startTime.seconds - time.seconds)
+                var seekFlags = options.seekFlags
+                let timeStamp: Int64
+                /// 因为有的ts走seekByBytes的话，那会seek不会精准，自定义io的直播流和点播也会有有问题，所以先关掉，下次遇到ts seek有问题的话在看下。
+                if false, seekByBytes, let formatCtx {
+                    seekFlags |= AVSEEK_FLAG_BYTE
+                    if fileSize > 0, duration > 0 {
+                        timeStamp = Int64(Double(fileSize) * seekToTime / duration)
+                    } else {
+                        var byteRate = formatCtx.pointee.bit_rate / 8
+                        if byteRate == 0 {
+                            byteRate = dynamicInfo.byteRate
+                        }
+                        increase *= byteRate
+                        var position = Int64(-1)
+                        if position < 0 {
+                            position = videoClock.position
+                        }
+                        if position < 0 {
+                            position = audioClock.position
+                        }
+                        if position < 0 {
+                            position = avio_tell(formatCtx.pointee.pb)
+                        }
+                        timeStamp = position + increase
+                    }
+                    //                avformat_flush(formatCtx)
+                } else {
+                    increase *= Int64(AV_TIME_BASE)
+                    timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
+                }
+                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
+                let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
 //                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
                 // can not seek to key frame
                 let seekStartTime = CACurrentMediaTime()
@@ -571,11 +694,11 @@ extension MEPlayerItem {
                 }
                 isSeek = true
                 allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
-                codecDidChangeCapacity()
                 audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
+                    self.codecDidChangeCapacity()
                     self.seekingCompletionHandler?(result >= 0)
                     self.seekingCompletionHandler = nil
                 }
@@ -589,33 +712,39 @@ extension MEPlayerItem {
     }
 
     private func seekUsePacketCache(seconds: Double) -> Bool {
-        if options.seekUsePacketCache {
-            var array = [(PlayerItemTrackProtocol, UInt)]()
-            if let track = videoTrack {
-                if let index = track.seekCache(time: seconds, needKeyFrame: true) {
-                    array.append((track, index))
-                } else {
-                    return false
-                }
-            }
-            if let track = audioTrack {
-                if let index = track.seekCache(time: seconds, needKeyFrame: false) {
-                    array.append((track, index))
-                } else {
-                    return false
-                }
-            }
-            for (track, index) in array {
-                track.updateCache(headIndex: index, time: seconds)
-            }
-            for track in assetTracks {
-                if let index = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {
-                    track.subtitle?.outputRenderQueue.update(headIndex: index)
-                }
-            }
-            return true
+        guard options.seekUsePacketCache else {
+            return false
         }
-        return false
+        var log = "seek use packet cache \(seconds)"
+        var seconds = seconds
+        var array = [(PlayerItemTrackProtocol, UInt, TimeInterval)]()
+        if let track = videoTrack {
+            if let (index, time) = track.seekCache(time: seconds, needKeyFrame: true) {
+                // 需要更新下seek的时间，不然视频滞后音频的话，那画面会卡住
+                seconds = time
+                array.append((track, index, time))
+            } else {
+                return false
+            }
+        }
+        if let track = audioTrack {
+            if let (index, time) = track.seekCache(time: seconds, needKeyFrame: false) {
+                array.append((track, index, time))
+            } else {
+                return false
+            }
+        }
+        for (track, index, time) in array {
+            track.updateCache(headIndex: index, time: seconds)
+            log += " \(track.mediaType.rawValue) \(time)"
+        }
+        KSLog(log)
+        for track in assetTracks {
+            if let (index, _) = track.subtitle?.outputRenderQueue.seek(seconds: seconds) {
+                track.subtitle?.outputRenderQueue.update(headIndex: index)
+            }
+        }
+        return true
     }
 
     private func reading() -> Int32 {
@@ -665,8 +794,8 @@ extension MEPlayerItem {
                     first.subtitle?.putPacket(packet: packet)
                 }
             }
-        } else {
-            if readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
+        } else if !interrupt {
+            if readResult == swift_AVERROR_EOF || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
                     _ = av_seek_frame(formatCtx, -1, startTime.value, AVSEEK_FLAG_BACKWARD)
@@ -705,7 +834,7 @@ extension MEPlayerItem: MediaPlayback {
         }
         var seekable = true
         if let ioContext = formatCtx.pointee.pb {
-            seekable = ioContext.pointee.seekable > 0 || duration != 0
+            seekable = ioContext.pointee.seekable > 0 || initDuration != 0
         }
         return seekable
     }
@@ -728,7 +857,7 @@ extension MEPlayerItem: MediaPlayback {
         }
     }
 
-    public func shutdown() {
+    public func stop() {
         guard state != .closed else { return }
         state = .closed
         av_packet_free(&outputPacket)
@@ -738,18 +867,26 @@ extension MEPlayerItem: MediaPlayback {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
             self.allPlayerItemTracks.forEach { $0.shutdown() }
             KSLog("清空formatCtx")
-            // 自定义的协议才会av_class为空
-            if let formatCtx = self.formatCtx, (formatCtx.pointee.flags & AVFMT_FLAG_CUSTOM_IO) != 0, let opaque = formatCtx.pointee.pb.pointee.opaque {
-                let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque).takeRetainedValue()
-                value.close()
-            }
-            // 不要自己来释放pb。不然第二次播放同一个url会出问题
-//            self.formatCtx?.pointee.pb = nil
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
+            if let ioContext = self.ioContext {
+                // close之后要马上把ioContext设置为nil。防止下次在进入到close方法
+                ioContext.close()
+                self.ioContext = nil
+                for item in self.pbArray {
+                    if var pb = item.pb {
+                        if pb.pointee.buffer != nil {
+                            av_freep(&pb.pointee.buffer)
+                        }
+                        if item.pb != nil {
+                            avio_context_free(&item.pb)
+                        }
+                    }
+                }
+            }
+            self.pbArray.removeAll()
             avformat_close_input(&self.outputFormatCtx)
-            self.duration = 0
             self.closeOperation = nil
             self.operationQueue.cancelAllOperations()
         }
@@ -780,34 +917,38 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
-        if state == .reading || state == .paused {
+        if state == .reading || state == .paused || state == .seeking {
+            let oldState = state
+            // 有人反馈进行20s以内的seek，如果设置interrupt为true，容易触发失败。
+            if KSOptions.seekInterruptIO, abs(time - currentPlaybackTime) > 20 {
+                interrupt = true
+            }
             seekTime = time
-            state = .seeking
             seekingCompletionHandler = completion
-            condition.broadcast()
+            state = .seeking
+            if oldState == .paused {
+                condition.broadcast()
+            }
         } else if state == .finished {
             seekTime = time
             state = .seeking
             seekingCompletionHandler = completion
             read()
-        } else if state == .seeking {
-            seekTime = time
+        } else if state == .failed {
+            options.startPlayTime = time
             seekingCompletionHandler = completion
+            prepareToPlay()
         }
         isAudioStalled = audioTrack == nil
     }
 }
 
 extension MEPlayerItem: CodecCapacityDelegate {
+    @MainActor
     func codecDidChangeCapacity() {
-        let loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
-        if let preload = ioContext as? PreLoadProtocol, fileSize > 0, duration > 0 {
-            let loadedTime = min(1, Double(preload.loadedSize) / fileSize) * duration
-            var state = loadingState
-            delegate?.sourceDidChange(loadingState:
-                LoadingState(loadedTime: loadedTime - currentPlaybackTime, progress: loadingState.progress, packetCount: loadingState.packetCount, frameCount: loadingState.frameCount, isEndOfFile: loadingState.isEndOfFile, isPlayable: loadingState.isPlayable, isFirst: loadingState.isFirst, isSeek: loadingState.isSeek))
-        } else {
-            delegate?.sourceDidChange(loadingState: loadingState)
+        var loadingState = options.playable(capacitys: videoAudioTracks, isFirst: isFirst, isSeek: isSeek)
+        if state == .seeking {
+            loadingState.loadedTime = 0
         }
         if loadingState.isPlayable {
             isFirst = false
@@ -822,6 +963,23 @@ extension MEPlayerItem: CodecCapacityDelegate {
             resume()
             adaptableVideo(loadingState: loadingState)
         }
+        // 硬盘缓存要在后面才增加，这样才不会影响到内存缓存。因为只是为了进度条的显示。
+        if let preload = ioContext as? PreLoadProtocol, initFileSize > 0, initDuration > 0 {
+            if preload.urlPos == initFileSize, preload.loadedSize != 0 {
+                loadingState.loadedTime = initDuration - currentPlaybackTime
+            } else {
+                if preload.loadedSize > 0 {
+                    loadingState.loadedTime += Double(preload.loadedSize) * initDuration / Double(initFileSize)
+                }
+                if preload.urlPos > initFileSize {
+                    fileSize = preload.urlPos
+                    duration = loadingState.loadedTime + currentPlaybackTime
+                } else {
+                    loadingState.loadedTime = min(loadingState.loadedTime, duration - currentPlaybackTime)
+                }
+            }
+        }
+        delegate?.sourceDidChange(loadingState: loadingState)
     }
 
     func codecDidFinished(track: some CapacityProtocol) {
@@ -831,18 +989,21 @@ extension MEPlayerItem: CodecCapacityDelegate {
         let allSatisfy = videoAudioTracks.allSatisfy { $0.isEndOfFile && $0.frameCount == 0 && $0.packetCount == 0 }
         if allSatisfy {
             delegate?.sourceDidFinished()
-            timer.fireDate = Date.distantFuture
+            timer.fireDate = .distantFuture
             if options.isLoopPlay {
                 isAudioStalled = audioTrack == nil
                 audioTrack?.isLoopModel = false
                 videoTrack?.isLoopModel = false
                 if state == .finished {
-                    seek(time: 0) { _ in }
+                    runOnMainThread { [weak self] in
+                        self?.seek(time: 0) { _ in }
+                    }
                 }
             }
         }
     }
 
+    @MainActor
     private func adaptableVideo(loadingState: LoadingState) {
         if options.videoDisable || videoAdaptation == nil || loadingState.isEndOfFile || loadingState.isSeek || state == .seeking {
             return
@@ -885,7 +1046,12 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 
     public func setVideo(time: CMTime, position: Int64) {
 //        KSLog("[video] video interval \(CACurrentMediaTime() - videoClock.lastMediaTime) video diff \(time.seconds - videoClock.time.seconds)")
-        videoClock.time = time
+        let oldTime = videoClock.getTime()
+        if abs(oldTime - time.seconds) > 1 {
+            videoClock.time = time
+        } else {
+            videoClock.time = CMTime(seconds: oldTime, preferredTimescale: time.timescale)
+        }
         videoClock.position = position
         videoDisplayCount += 1
         let diff = videoClock.lastMediaTime - lastVideoClock.lastMediaTime
@@ -909,6 +1075,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
         }
     }
 
+    @MainActor
     public func getVideoOutputRender(force: Bool) -> VideoVTBFrame? {
         guard let videoTrack else {
             return nil
@@ -916,8 +1083,22 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
         var type: ClockProcessType = force ? .next : .remain
         let predicate: ((VideoVTBFrame, Int) -> Bool)? = force ? nil : { [weak self] frame, count -> Bool in
             guard let self else { return true }
-            (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: self.mainClock(), nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
-            return type != .remain
+            let main: KSClock
+            if KSOptions.audioVideoClockSync {
+                main = self.mainClock()
+            } else {
+                if isAudioStalled || abs(audioClock.getTime() - videoClock.getTime()) < 1 {
+                    main = videoClock
+                } else {
+                    main = audioClock
+                }
+            }
+            (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: main, nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
+            if case .remain = type {
+                return false
+            } else {
+                return true
+            }
         }
         let frame = videoTrack.getOutputRender(where: predicate)
         switch type {
@@ -925,9 +1106,11 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
             break
         case .next:
             break
-        case .dropNextFrame:
-            if videoTrack.getOutputRender(where: nil) != nil {
-                dynamicInfo.droppedVideoFrameCount += 1
+        case let .dropFrame(count: count):
+            loop(iterations: count) { _ in
+                if videoTrack.getOutputRender(where: nil) != nil {
+                    dynamicInfo.droppedVideoFrameCount += 1
+                }
             }
         case .flush:
             let count = videoTrack.outputRenderQueue.count
@@ -973,10 +1156,9 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
     }
 }
 
-extension AbstractAVIOContext {
-    func getContext() -> UnsafeMutablePointer<AVIOContext> {
-        // 需要持有ioContext，不然会被释放掉,等到shutdown在清空
-        avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passRetained(self).toOpaque()) { opaque, buffer, size -> Int32 in
+public extension AbstractAVIOContext {
+    func getContext(bufferSize: Int32 = AbstractAVIOContext.bufferSize, writable: Bool = false) -> UnsafeMutablePointer<AVIOContext> {
+        avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passUnretained(self).toOpaque()) { opaque, buffer, size -> Int32 in
             let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque!).takeUnretainedValue()
             let ret = value.read(buffer: buffer, size: size)
             return Int32(ret)
@@ -991,5 +1173,30 @@ extension AbstractAVIOContext {
             }
             return value.seek(offset: offset, whence: whence)
         }
+    }
+}
+
+private class PBClass {
+    fileprivate var pb: UnsafeMutablePointer<AVIOContext>?
+    private var _bytesRead: Int64 = 0
+    private var add: Int64 = 0
+    fileprivate var bytesRead: Int64 {
+        if let pb = pb?.pointee {
+            // pb有可能会复用，小于就认为进行复用了。
+            if _bytesRead > pb.bytes_read {
+                add += _bytesRead
+            }
+            _bytesRead = pb.bytes_read
+        }
+        // 因为m3u8的pb会被释放，所以要保存之前的已读长度。
+        return add + _bytesRead
+    }
+
+    init(pb: UnsafeMutablePointer<AVIOContext>?) {
+        self.pb = pb
+    }
+
+    fileprivate func add(num: Int64) {
+        add += num
     }
 }

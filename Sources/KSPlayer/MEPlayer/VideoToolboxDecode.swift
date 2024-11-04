@@ -26,6 +26,7 @@ class VideoToolboxDecode: DecodeProtocol {
 
     init(options: KSOptions, session: DecompressionSession) {
         self.options = options
+        options.decodeType = .asynchronousHardware
         self.session = session
     }
 
@@ -40,31 +41,32 @@ class VideoToolboxDecode: DecodeProtocol {
         }
         do {
             var tuple = (data, Int(corePacket.size))
-            if let bitStreamFilter = session.assetTrack.bitStreamFilter {
+            let bitStreamFilter = session.assetTrack.bitStreamFilter
+            if let bitStreamFilter {
                 tuple = try bitStreamFilter.filter(tuple)
             }
             let sampleBuffer = try session.formatDescription.createSampleBuffer(tuple: tuple)
             let flags: VTDecodeFrameFlags = [
-                //                ._EnableAsynchronousDecompression,
+                ._EnableAsynchronousDecompression,
+                ._EnableTemporalProcessing,
             ]
             var flagOut = VTDecodeInfoFlags(rawValue: 0)
             let timestamp = packet.timestamp
             let packetFlags = corePacket.flags
             let duration = corePacket.duration
             let size = corePacket.size
-            _ = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
+            let position = packet.position
+            let isKeyFrame = packet.isKeyFrame
+            let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
                 guard let self, !infoFlags.contains(.frameDropped) else {
                     return
                 }
                 guard status == noErr else {
+                    KSLog("[vidoe] videoToolbox decode block error \(status) isKeyFrame: \(isKeyFrame)")
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住。
-                        if packet.isKeyFrame {
-                            completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
-                        } else {
-                            // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
-                            self.needReconfig = true
-                        }
+                        // tvos在这边抛出NSError的话，会crash。所以就先不切换了解码器了。看下会怎么样
+                        // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
+                        self.needReconfig = true
                     }
                     return
                 }
@@ -73,16 +75,30 @@ class VideoToolboxDecode: DecodeProtocol {
                 }
                 let frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
                 frame.timebase = session.assetTrack.timebase
-                if packet.isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.lastPosition > 0 {
+                if isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.lastPosition > 0 {
                     self.startTime = self.lastPosition - timestamp
                 }
                 self.lastPosition = max(self.lastPosition, timestamp)
-                frame.position = packet.position
+                frame.position = position
                 frame.timestamp = self.startTime + timestamp
                 frame.duration = duration
                 frame.size = size
                 self.lastPosition += frame.duration
                 completionHandler(.success(frame))
+            }
+            // 要在VTDecompressionSessionDecodeFrame之后才进行释放内容，不然在tvos上会crash
+            if bitStreamFilter != nil {
+                tuple.0.deallocate()
+            }
+            /// tvOS切换app会导致硬解失败，并且只在这里返回错误，不会走到block里面，所以这里也要判断错误。
+            /// 而iOS是在block里面返回错误，也会在这里返回错误
+            if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
+                KSLog("[vidoe] videoToolbox decode error \(status) isKeyFrame: \(isKeyFrame)")
+                // 从后台切换到前台会报错-12903，关键帧也会。所以要重建session
+                session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
+//                if isKeyFrame {
+//                    throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+//                }
             }
         } catch {
             completionHandler(.failure(error))
@@ -96,6 +112,8 @@ class VideoToolboxDecode: DecodeProtocol {
     }
 
     func shutdown() {
+        // 需要先调用WaitForAsynchronousFrames，才不会有Packet泄漏
+        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
         VTDecompressionSessionInvalidate(session.decompressionSession)
     }
 
@@ -103,6 +121,8 @@ class VideoToolboxDecode: DecodeProtocol {
         lastPosition = 0
         startTime = 0
     }
+
+    deinit {}
 }
 
 class DecompressionSession {
@@ -131,6 +151,7 @@ class DecompressionSession {
         ]
         var session: VTDecompressionSession?
         // swiftlint:disable line_length
+        // 不能用kCFAllocatorNull，不然会报错，todo: ffmpeg的硬解seek ts文件的话，不会花屏，还要找下原因
         let status = VTDecompressionSessionCreate(allocator: kCFAllocatorDefault, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
         // swiftlint:enable line_length
         guard status == noErr, let decompressionSession = session else {
@@ -140,7 +161,7 @@ class DecompressionSession {
             VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata,
                                  value: kCFBooleanTrue)
         }
-        if let destinationDynamicRange = options.availableDynamicRange(nil) {
+        if let destinationDynamicRange = options.availableDynamicRange() {
             let pixelTransferProperties = [
                 kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
                 kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,

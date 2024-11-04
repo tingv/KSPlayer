@@ -11,7 +11,12 @@ import Foundation
 import Metal
 import QuartzCore
 import simd
-
+#if canImport(RealityFoundation)
+import RealityFoundation
+#endif
+#if canImport(MetalKit)
+import MetalKit
+#endif
 public class MetalRender {
     public static let device = MTLCreateSystemDefaultDevice()!
     public static var mtlTextureCache: CVMetalTextureCache? = {
@@ -29,49 +34,54 @@ public class MetalRender {
         return library
     }()
 
+    @MainActor
     private static let renderPassDescriptor = MTLRenderPassDescriptor()
+    @MainActor
     private static let commandQueue = MetalRender.device.makeCommandQueue()
-    private static var samplerState: MTLSamplerState? = {
+    @MainActor
+    private static let samplerState: MTLSamplerState? = {
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
         samplerDescriptor.magFilter = .linear
         return MetalRender.device.makeSamplerState(descriptor: samplerDescriptor)
     }()
 
-    private static var colorConversion601VideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_601_4.pointee.videoRange.buffer
+    private static let colorConversion601VideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_601_4.pointee.videoRange.buffer
 
-    private static var colorConversion601FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_601_4.pointee.buffer
+    private static let colorConversion601FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_601_4.pointee.buffer
 
-    private static var colorConversion709VideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_709_2.pointee.videoRange.buffer
+    private static let colorConversion709VideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_709_2.pointee.videoRange.buffer
 
-    private static var colorConversion709FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_709_2.pointee.buffer
+    private static let colorConversion709FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_709_2.pointee.buffer
 
-    private static var colorConversionSMPTE240MVideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_SMPTE_240M_1995.videoRange.buffer
+    private static let colorConversionSMPTE240MVideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_SMPTE_240M_1995.videoRange.buffer
 
-    private static var colorConversionSMPTE240MFullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_SMPTE_240M_1995.buffer
+    private static let colorConversionSMPTE240MFullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_SMPTE_240M_1995.buffer
 
-    private static var colorConversion2020VideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_2020.videoRange.buffer
+    private static let colorConversion2020VideoRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_2020.videoRange.buffer
 
-    private static var colorConversion2020FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_2020.buffer
+    private static let colorConversion2020FullRangeMatrixBuffer: MTLBuffer? = kvImage_YpCbCrToARGBMatrix_ITU_R_2020.buffer
 
-    private static var colorOffsetVideoRangeMatrixBuffer: MTLBuffer? = SIMD3<Float>(-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0).buffer
+    private static let colorOffsetVideoRangeMatrixBuffer: MTLBuffer? = SIMD3<Float>(-16.0 / 255.0, -128.0 / 255.0, -128.0 / 255.0).buffer
 
-    private static var colorOffsetFullRangeMatrixBuffer: MTLBuffer? = SIMD3<Float>(0, -128.0 / 255.0, -128.0 / 255.0).buffer
+    private static let colorOffsetFullRangeMatrixBuffer: MTLBuffer? = SIMD3<Float>(0, -128.0 / 255.0, -128.0 / 255.0).buffer
 
-    static var leftShiftMatrixBuffer: MTLBuffer? = {
+    static let leftShiftMatrixBuffer: MTLBuffer? = {
         var firstColumn = SIMD3<UInt8>(1, 1, 1)
         let buffer = MetalRender.device.makeBuffer(bytes: &firstColumn, length: MemoryLayout<SIMD3<UInt8>>.size)
         buffer?.label = "leftShit"
         return buffer
     }()
 
-    static var leftShiftSixMatrixBuffer: MTLBuffer? = {
+    @MainActor
+    static let leftShiftSixMatrixBuffer: MTLBuffer? = {
         var firstColumn = SIMD3<UInt8>(64, 64, 64)
         let buffer = MetalRender.device.makeBuffer(bytes: &firstColumn, length: MemoryLayout<SIMD3<UInt8>>.size)
         buffer?.label = "leftShit"
         return buffer
     }()
 
+    @MainActor
     static func clear(drawable: MTLDrawable) {
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
@@ -102,11 +112,36 @@ public class MetalRender {
         display.set(frame: frame, encoder: encoder)
         encoder.popDebugGroup()
         encoder.endEncoding()
-        commandBuffer.present(drawable)
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
+        drawable.present()
     }
 
+    #if canImport(RealityFoundation)
+    @available(macOS 12.0, iOS 15.0, *)
+    @MainActor
+    static func draw(frame: VideoVTBFrame, display: DisplayEnum, drawable: TextureResource.Drawable) {
+        let inputTextures = frame.pixelBuffer.textures()
+        renderPassDescriptor.colorAttachments[0].texture = drawable.texture
+        guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+            return
+        }
+        encoder.pushDebugGroup("RenderFrame")
+        encoder.setFragmentSamplerState(samplerState, index: 0)
+        for (index, texture) in inputTextures.enumerated() {
+            texture.label = "texture\(index)"
+            encoder.setFragmentTexture(texture, index: index)
+        }
+        display.set(frame: frame, encoder: encoder)
+        encoder.popDebugGroup()
+        encoder.endEncoding()
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+        drawable.present()
+    }
+    #endif
+
+    @MainActor
     public static func setFragmentBuffer(encoder: MTLRenderCommandEncoder, pixelBuffer: PixelBufferProtocol) {
         if pixelBuffer.planeCount > 1 {
             let isFullRangeVideo = pixelBuffer.isFullRangeVideo
@@ -133,6 +168,7 @@ public class MetalRender {
         library.makePipelineState(vertexFunction: isSphere ? "mapSphereTexture" : "mapTexture", fragmentFunction: fragmentFunction, bitDepth: bitDepth)
     }
 
+    @MainActor
     static func texture(pixelBuffer: CVPixelBuffer) -> [MTLTexture] {
 //        guard let iosurface = CVPixelBufferGetIOSurface(pixelBuffer)?.takeUnretainedValue() else {
 //            return []
@@ -181,6 +217,108 @@ public class MetalRender {
         }
     }
 }
+
+@MainActor
+public protocol Drawable {
+    func draw(frame: VideoVTBFrame, display: DisplayEnum)
+    func clear()
+}
+
+extension CAMetalLayer: Drawable {
+    public func draw(frame: VideoVTBFrame, display: DisplayEnum) {
+        #if !os(tvOS)
+        // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
+        if #available(iOS 16, *) {
+            edrMetadata = frame.edrMetadata
+        }
+        #endif
+        let size: CGSize
+        if display.isSphere {
+            size = KSOptions.sceneSize
+        } else {
+            let par = frame.pixelBuffer.size
+            let sar = frame.pixelBuffer.aspectRatio
+            size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
+        }
+        drawableSize = size
+        pixelFormat = KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth)
+
+        let colorspace = frame.pixelBuffer.colorspace
+        if colorspace != nil, self.colorspace != colorspace {
+            self.colorspace = colorspace
+            KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
+            #if !os(tvOS)
+            if #available(iOS 16.0, *) {
+                if let name = colorspace?.name, name != CGColorSpace.sRGB {
+                    #if os(macOS)
+                    wantsExtendedDynamicRangeContent = NSScreen.main?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1.0 > 1.0
+                    #else
+                    wantsExtendedDynamicRangeContent = true
+                    #endif
+                } else {
+                    wantsExtendedDynamicRangeContent = false
+                }
+                KSLog("[video] CAMetalLayer wantsExtendedDynamicRangeContent \(wantsExtendedDynamicRangeContent)")
+            }
+            #endif
+        }
+        guard let drawable = nextDrawable() else {
+            KSLog("[video] CAMetalLayer not readyForMoreMediaData")
+            return
+        }
+        MetalRender.draw(frame: frame, display: display, drawable: drawable)
+    }
+
+    public func clear() {
+        #if !os(tvOS)
+        if #available(iOS 16, *) {
+            edrMetadata = nil
+        }
+        #endif
+        if let drawable = nextDrawable() {
+            MetalRender.clear(drawable: drawable)
+        }
+    }
+}
+
+#if canImport(RealityFoundation)
+@available(macOS 12.0, iOS 15.0, *)
+extension TextureResource: Drawable {
+    public func draw(frame: VideoVTBFrame, display: any DisplayEnum) {
+        if let drawableQueue, drawableQueue.width == frame.pixelBuffer.width, drawableQueue.height == frame.pixelBuffer.height {
+            drawableQueue.draw(frame: frame, display: display)
+        } else {
+            if let drawableQueue = try? TextureResource.DrawableQueue(TextureResource.DrawableQueue.Descriptor(
+                pixelFormat: KSOptions.colorPixelFormat(bitDepth: frame.pixelBuffer.bitDepth),
+                width: frame.pixelBuffer.width,
+                height: frame.pixelBuffer.height,
+                usage: [.renderTarget, .shaderRead, .shaderWrite],
+                mipmapsMode: .none
+            )) {
+                replace(withDrawables: drawableQueue)
+                drawableQueue.draw(frame: frame, display: display)
+            }
+        }
+    }
+
+    public func clear() {
+        drawableQueue?.clear()
+    }
+}
+
+@available(macOS 12.0, iOS 15.0, *)
+extension TextureResource.DrawableQueue: Drawable {
+    public func draw(frame: VideoVTBFrame, display: any DisplayEnum) {
+        guard let drawable = try? nextDrawable() else {
+            KSLog("[video] TextureResource not readyForMoreMediaData")
+            return
+        }
+        MetalRender.draw(frame: frame, display: display, drawable: drawable)
+    }
+
+    public func clear() {}
+}
+#endif
 
 // swiftlint:disable identifier_name
 // private let kvImage_YpCbCrToARGBMatrix_ITU_R_601_4 = vImage_YpCbCrToARGBMatrix(Kr: 0.299, Kb: 0.114)

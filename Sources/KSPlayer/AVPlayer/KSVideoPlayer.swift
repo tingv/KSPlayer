@@ -29,6 +29,14 @@ public struct KSVideoPlayer {
     }
 }
 
+public extension KSVideoPlayer {
+    init(playerLayer: KSPlayerLayer) {
+        let coordinator = KSVideoPlayer.Coordinator()
+        coordinator.playerLayer = playerLayer
+        self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
+    }
+}
+
 #if !os(tvOS)
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 @MainActor
@@ -154,7 +162,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
         }
 
-//        @Published
+        @Published
         @MainActor
         public var isMaskShow = true {
             didSet {
@@ -166,12 +174,13 @@ extension KSVideoPlayer: UIViewRepresentable {
 
         public var timemodel = ControllerTimeModel()
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
-        public var playerLayer: KSComplexPlayerLayer? {
+        public var playerLayer: KSPlayerLayer? {
             didSet {
                 oldValue?.delegate = nil
-                if #available(tvOS 14.0, *), oldValue?.player.pipController?.isPictureInPictureActive == true {
+                if oldValue?.player.pipController?.isPictureInPictureActive == true {
                     return
                 }
+                oldValue?.stop()
             }
         }
 
@@ -180,28 +189,22 @@ extension KSVideoPlayer: UIViewRepresentable {
         public var onFinish: ((KSPlayerLayer, Error?) -> Void)?
         public var onStateChanged: ((KSPlayerLayer, KSPlayerState) -> Void)?
         public var onBufferChanged: ((Int, TimeInterval) -> Void)?
-        #if canImport(UIKit)
-        fileprivate var onSwipe: ((UISwipeGestureRecognizer.Direction) -> Void)?
-        @objc fileprivate func swipeGestureAction(_ recognizer: UISwipeGestureRecognizer) {
-            onSwipe?(recognizer.direction)
-        }
-        #endif
 
         public init() {}
 
         public func makeView(url: URL, options: KSOptions) -> UIView {
             if let playerLayer {
                 if playerLayer.url == url {
-                    return playerLayer.player.view ?? UIView()
+                    return playerLayer.player.view
                 }
                 playerLayer.delegate = nil
                 playerLayer.set(url: url, options: options)
                 playerLayer.delegate = self
-                return playerLayer.player.view ?? UIView()
+                return playerLayer.player.view
             } else {
                 let playerLayer = KSComplexPlayerLayer(url: url, options: options, delegate: self)
                 self.playerLayer = playerLayer
-                return playerLayer.player.view ?? UIView()
+                return playerLayer.player.view
             }
         }
 
@@ -210,9 +213,6 @@ extension KSVideoPlayer: UIViewRepresentable {
             onPlay = nil
             onFinish = nil
             onBufferChanged = nil
-            #if canImport(UIKit)
-            onSwipe = nil
-            #endif
             playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
@@ -275,23 +275,9 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         } else if state == .bufferFinished {
             isMaskShow = false
         } else {
-            isMaskShow = true
-            #if canImport(UIKit)
-            if state == .preparing, let view = layer.player.view {
-                let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))
-                swipeDown.direction = .down
-                view.addGestureRecognizer(swipeDown)
-                let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))
-                swipeLeft.direction = .left
-                view.addGestureRecognizer(swipeLeft)
-                let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))
-                swipeRight.direction = .right
-                view.addGestureRecognizer(swipeRight)
-                let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(swipeGestureAction(_:)))
-                swipeUp.direction = .up
-                view.addGestureRecognizer(swipeUp)
+            if state != .preparing, !isMaskShow {
+                isMaskShow = true
             }
-            #endif
         }
     }
 
@@ -352,13 +338,6 @@ public extension KSVideoPlayer {
         coordinator.onStateChanged = handler
         return self
     }
-
-    #if canImport(UIKit)
-    func onSwipe(_ handler: @escaping (UISwipeGestureRecognizer.Direction) -> Void) -> Self {
-        coordinator.onSwipe = handler
-        return self
-    }
-    #endif
 }
 
 extension View {

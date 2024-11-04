@@ -91,6 +91,7 @@ struct ContentView: View {
                 NavigationStack(path: $appModel.path) {
                     item.destination(appModel: appModel)
                 }
+
             } else {
                 NavigationStack {
                     item.destination(appModel: appModel)
@@ -111,13 +112,13 @@ enum TabBarItem: Int {
     var lable: Label<Text, Image> {
         switch self {
         case .Home:
-            return Label("Home", systemImage: "house.fill")
+            Label("Home", systemImage: "house.fill")
         case .Favorite:
-            return Label("Favorite", systemImage: "star.fill")
+            Label("Favorite", systemImage: "star.fill")
         case .Files:
-            return Label("Files", systemImage: "folder.fill.badge.gearshape")
+            Label("Files", systemImage: "folder.fill.badge.gearshape")
         case .Setting:
-            return Label("Setting", systemImage: "gear")
+            Label("Setting", systemImage: "gear")
         }
     }
 

@@ -16,6 +16,7 @@ public protocol AudioOutput: FrameOutput {
     func prepare(audioFormat: AVAudioFormat)
 }
 
+@MainActor
 public protocol AudioDynamicsProcessor {
     var audioUnitForDynamicsProcessor: AudioUnit { get }
 }
@@ -163,6 +164,10 @@ public class AudioEnginePlayer: AudioOutput {
         if sourceNodeAudioFormat == audioFormat {
             return
         }
+        let isRunning = engine.isRunning
+        // 第一次进入需要调用reset和stop。不然会报错from AU (0x1038d6c10): aufc/conv/appl, render err: -10867
+        engine.reset()
+        engine.stop()
         sourceNodeAudioFormat = audioFormat
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
@@ -172,9 +177,6 @@ public class AudioEnginePlayer: AudioOutput {
         if let channelLayout = audioFormat.channelLayout {
             KSLog("[audio] outputFormat channelLayout \(channelLayout.channelDescriptions)")
         }
-        let isRunning = engine.isRunning
-        engine.stop()
-        engine.reset()
         sourceNode = AVAudioSourceNode(format: audioFormat) { [weak self] _, timestamp, frameCount, audioBufferList in
             if timestamp.pointee.mSampleTime == 0 {
                 return noErr
@@ -212,6 +214,12 @@ public class AudioEnginePlayer: AudioOutput {
     public func play() {
         if !engine.isRunning {
             do {
+                if currentRender == nil {
+                    currentRender = renderSource?.getAudioOutputRender()
+                }
+                if let currentRender {
+                    renderSource?.setAudio(time: currentRender.cmtime, position: -1)
+                }
                 try engine.start()
             } catch {
                 KSLog(error)
@@ -323,6 +331,11 @@ public class AudioEnginePlayer: AudioOutput {
                 renderSource?.setAudio(time: time, position: currentRender.position)
             }
         }
+    }
+
+    public func invalidate() {
+        engine.reset()
+        engine.stop()
     }
 }
 

@@ -9,6 +9,7 @@ import Foundation
 import KSPlayer
 import SwiftUI
 
+@MainActor
 public class Defaults: ObservableObject {
     @AppStorage("showRecentPlayList") public var showRecentPlayList = false
 
@@ -174,6 +175,7 @@ public class Defaults: ObservableObject {
     }
 
     public static let shared = Defaults()
+    @MainActor
     private init() {
         KSOptions.hardwareDecode = hardwareDecode
         MEOptions.isUseDisplayLayer = isUseDisplayLayer

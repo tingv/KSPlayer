@@ -19,7 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
         KSOptions.logLevel = .debug
         KSOptions.firstPlayerType = KSMEPlayer.self
         KSOptions.secondPlayerType = KSMEPlayer.self
-//        KSOptions.supportedInterfaceOrientations = .all
         KSOptions.isAutoPlay = true
         KSOptions.isSecondOpen = true
         KSOptions.isAccurateSeek = true
@@ -47,7 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
 
     #if os(iOS)
     func application(_: UIApplication, supportedInterfaceOrientationsFor _: UIWindow?) -> UIInterfaceOrientationMask {
-        KSOptions.supportedInterfaceOrientations
+        KSOptions.supportedInterfaceOrientations ?? .all
     }
 
     private var menuController: MenuController!
@@ -89,7 +88,7 @@ class CustomVideoPlayerView: VideoPlayerView {
 }
 
 class MEOptions: KSOptions {}
-
+@MainActor
 var testObjects: [KSPlayerResource] = {
     var objects = [KSPlayerResource]()
     if let url = Bundle.main.url(forResource: "test", withExtension: "m3u"), let data = try? Data(contentsOf: url) {

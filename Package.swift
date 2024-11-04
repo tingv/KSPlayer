@@ -2,6 +2,13 @@
 import Foundation
 import PackageDescription
 
+#if swift(>=6.0)
+let swiftConcurrency = SwiftSetting.enableUpcomingFeature("StrictConcurrency")
+let swiftLanguageVersions: [PackageDescription.SwiftVersion] = [.v6]
+#else
+let swiftConcurrency = SwiftSetting.enableExperimentalFeature("StrictConcurrency")
+let swiftLanguageVersions: [PackageDescription.SwiftVersion] = [.v5]
+#endif
 let package = Package(
     name: "KSPlayer",
     defaultLocalization: "en",
@@ -27,7 +34,7 @@ let package = Package(
                 .product(name: "libmpv", package: "FFmpegKit"),
             ],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency"),
+                swiftConcurrency,
             ]
         ),
         .target(
@@ -38,8 +45,7 @@ let package = Package(
             ],
             resources: [.process("Metal/Resources")],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency"),
-                .enableUpcomingFeature("StrictConcurrency"),
+                swiftConcurrency,
             ]
         ),
         .target(
@@ -51,5 +57,5 @@ let package = Package(
             resources: [.process("Resources")]
         ),
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageVersions: swiftLanguageVersions
 )

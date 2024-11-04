@@ -17,9 +17,10 @@ import UIKit
 import AppKit
 #endif
 
+@MainActor
 public protocol MediaPlayback: AnyObject {
     var duration: TimeInterval { get }
-    var fileSize: Double { get }
+    var fileSize: Int64 { get }
     var naturalSize: CGSize { get }
     var chapters: [Chapter] { get }
     var currentPlaybackTime: TimeInterval { get }
@@ -28,7 +29,8 @@ public protocol MediaPlayback: AnyObject {
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
     func startRecord(url: URL)
     func stopRecord()
-    func shutdown()
+    // deinit之前调用stop
+    func stop()
 }
 
 public class DynamicInfo: ObservableObject {
@@ -40,14 +42,17 @@ public class DynamicInfo: ObservableObject {
         metadataBlock()
     }
 
+    // 单位是B
     public var bytesRead: Int64 {
         bytesReadBlock()
     }
 
+    // 单位是b/s
     public var audioBitrate: Int {
         audioBitrateBlock()
     }
 
+    // 单位是b/s
     public var videoBitrate: Int {
         videoBitrateBlock()
     }
@@ -72,9 +77,10 @@ public struct Chapter {
     public let title: String
 }
 
+@MainActor
 public protocol MediaPlayerProtocol: MediaPlayback {
     var delegate: MediaPlayerDelegate? { get set }
-    var view: UIView? { get }
+    var view: UIView { get }
     var playableTime: TimeInterval { get }
     var isReadyToPlay: Bool { get }
     var playbackState: MediaPlaybackState { get }
@@ -88,35 +94,38 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var isExternalPlaybackActive: Bool { get }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
-    var subtitleDataSouce: (any EmbedSubtitleDataSouce)? { get }
-//    #if canImport(RealityKit)
+    var subtitleDataSource: (any EmbedSubtitleDataSource)? { get }
+    #if canImport(RealityKit)
+//    var videoMaterial: VideoMaterial { get }
 //    @available(visionOS 1.0, macOS 15.0, iOS 18.0, *)
 //    var videoPlayerComponent: VideoPlayerComponent { get }
-//    #endif
+    #endif
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     var playbackCoordinator: AVPlaybackCoordinator { get }
-    @available(tvOS 14.0, *)
-    var pipController: (AVPictureInPictureController & KSPictureInPictureProtocol)? { get }
+    var pipController: KSPictureInPictureProtocol? { get set }
     var dynamicInfo: DynamicInfo? { get }
     init(url: URL, options: KSOptions)
     func replace(url: URL, options: KSOptions)
     func play()
     func pause()
+    // 这个是用来清空资源，例如断开网络和缓存，调用这个方法之后，就要调用replace(url)才能重新开始播放
+    func reset()
     func enterBackground()
     func enterForeground()
     func thumbnailImageAtCurrentTime() async -> CGImage?
     func tracks(mediaType: AVFoundation.AVMediaType) -> [MediaPlayerTrack]
     func select(track: some MediaPlayerTrack)
+    func configPIP()
 }
 
 public extension MediaPlayerProtocol {
     @MainActor
     var contentMode: UIViewContentMode {
         get {
-            view?.contentMode ?? .center
+            view.contentMode
         }
         set {
-            view?.contentMode = newValue
+            view.contentMode = newValue
         }
     }
 
@@ -132,9 +141,9 @@ public extension MediaPlayerProtocol {
         nominalFrameRate
     }
 
-    var subtitlesTracks: [any SubtitleInfo] {
+    var subtitlesTracks: [SubtitleInfo] {
         // Return the availables subtitles
-        tracks(mediaType: .subtitle).compactMap { $0 as? (any SubtitleInfo) }
+        tracks(mediaType: .subtitle).compactMap { $0 as? SubtitleInfo }
     }
 
     var audioTracks: [MediaPlayerTrack] {
@@ -183,6 +192,10 @@ public extension MediaPlayerProtocol {
     func updateProgress(to: CGFloat) {
         seek(time: to * totalTime) { _ in
         }
+    }
+
+    func shutdown() {
+        stop()
     }
 }
 
@@ -269,6 +282,14 @@ extension FFmpegFieldOrder: CustomStringConvertible {
     }
 }
 
+extension Locale {
+    static var currentLanguage: String? {
+        Locale.current.languageCode.flatMap {
+            Locale.current.localizedString(forLanguageCode: $0)
+        }
+    }
+}
+
 // swiftlint:enable identifier_name
 public extension MediaPlayerTrack {
     var language: String? {
@@ -290,7 +311,7 @@ public extension MediaPlayerTrack {
     }
 
     var colorSpace: CGColorSpace? {
-        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?)
+        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?, isDovi: dynamicRange == .dolbyVision)
     }
 
     var mediaSubType: CMFormatDescription.MediaSubType {
@@ -323,7 +344,9 @@ public extension CMFormatDescription {
         let contentRange: DynamicRange
         if codecType.string == "dvhe" || codecType == kCMVideoCodecType_DolbyVisionHEVC {
             contentRange = .dolbyVision
-        } else if bitDepth == 10 || transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ as String { /// HDR
+        } else if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ as String {
+            /// 10bit也有可能是sdr，所以这里用与来判断，之前有遇到10bit，但是transferFunction 不是2084的hdr10。下次遇到的时候在看下有没有其他的方式判断
+            /// FFmpegAssetTrack中的CMFormatDescription 的bitDepth的值不准，因为mediaSubType的值是解码格式hvcc 这类的值，而不是像素格式。所以就先不用加bitDepth 这个判断了
             contentRange = .hdr10
         } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG as String { /// HLG
             contentRange = .hlg

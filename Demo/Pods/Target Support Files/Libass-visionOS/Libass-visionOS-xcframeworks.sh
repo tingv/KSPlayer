@@ -29,7 +29,7 @@ variant_for_slice()
   "libfreetype.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libfreetype.xcframework/tvos-arm64_arm64e")
+  "libfreetype.xcframework/tvos-arm64")
     echo ""
     ;;
   "libfreetype.xcframework/tvos-arm64_x86_64-simulator")
@@ -53,7 +53,7 @@ variant_for_slice()
   "libfribidi.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libfribidi.xcframework/tvos-arm64_arm64e")
+  "libfribidi.xcframework/tvos-arm64")
     echo ""
     ;;
   "libfribidi.xcframework/tvos-arm64_x86_64-simulator")
@@ -77,7 +77,7 @@ variant_for_slice()
   "libharfbuzz.xcframework/macos-arm64_x86_64")
     echo ""
     ;;
-  "libharfbuzz.xcframework/tvos-arm64_arm64e")
+  "libharfbuzz.xcframework/tvos-arm64")
     echo ""
     ;;
   "libharfbuzz.xcframework/tvos-arm64_x86_64-simulator")
@@ -131,8 +131,8 @@ archs_for_slice()
   "libfreetype.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libfreetype.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libfreetype.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libfreetype.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -155,8 +155,8 @@ archs_for_slice()
   "libfribidi.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libfribidi.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libfribidi.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libfribidi.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"
@@ -179,8 +179,8 @@ archs_for_slice()
   "libharfbuzz.xcframework/macos-arm64_x86_64")
     echo "arm64 x86_64"
     ;;
-  "libharfbuzz.xcframework/tvos-arm64_arm64e")
-    echo "arm64 arm64e"
+  "libharfbuzz.xcframework/tvos-arm64")
+    echo "arm64"
     ;;
   "libharfbuzz.xcframework/tvos-arm64_x86_64-simulator")
     echo "arm64 x86_64"

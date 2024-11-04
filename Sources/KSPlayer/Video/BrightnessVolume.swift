@@ -42,7 +42,7 @@ open class BrightnessVolume {
     private func appearView() {
         if progressView.alpha == 0.0 {
             progressView.alpha = 1.0
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 3) { [weak self] () in
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 3) { [weak self] in
                 self?.disAppearView()
             }
         }
