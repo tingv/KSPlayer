@@ -176,7 +176,8 @@ extension KSVideoPlayer: UIViewRepresentable {
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
         public var playerLayer: KSPlayerLayer? {
             didSet {
-                guard let oldValue, oldValue.player.pipController?.isPictureInPictureActive == false else {
+                // 要用不等于，这样才能排除pipController为空的情况
+                guard let oldValue, oldValue.player.pipController?.isPictureInPictureActive != true else {
                     return
                 }
                 oldValue.delegate = nil

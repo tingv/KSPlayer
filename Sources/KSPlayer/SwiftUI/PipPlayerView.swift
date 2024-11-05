@@ -14,9 +14,9 @@ public struct PipPlayerView: View {
     @Binding
     private var alignment: Alignment
     private let block: (Bool) -> Void
-    @FocusState.Binding
+    @FocusState
     private var focusableView: FocusableView?
-    public init(playerLayer: KSPlayerLayer, alignment: Binding<Alignment>, focusableView: FocusState<FocusableView?>.Binding, block: @escaping (Bool) -> Void) {
+    public init(playerLayer: KSPlayerLayer, alignment: Binding<Alignment>, focusableView: FocusState<FocusableView?>, block: @escaping (Bool) -> Void) {
         self.playerLayer = playerLayer
         _alignment = alignment
         _focusableView = focusableView

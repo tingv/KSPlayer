@@ -101,6 +101,9 @@ public struct KSVideoPlayerView: View {
                 .tint(.white)
                 .persistentSystemOverlays(.hidden)
                 .toolbar(.hidden, for: .automatic)
+            #if !os(macOS)
+                .toolbar(.hidden, for: .tabBar)
+            #endif
                 .focusedObject(config)
                 .onChange(of: config.isMaskShow) { newValue in
                     if newValue {
@@ -160,7 +163,7 @@ public struct KSVideoPlayerView: View {
     }
 
     private var controllerView: some View {
-        VideoControllerView(config: config, title: $title, playerWidth: config.playerLayer?.player.view.frame.width ?? 0, focusableView: $focusableView)
+        VideoControllerView(config: config, title: $title, playerWidth: config.playerLayer?.player.view.frame.width ?? 0, focusableView: _focusableView)
             .focused($focusableView, equals: .controller)
             .opacity(config.isMaskShow ? 1 : 0)
         #if os(tvOS)
@@ -181,7 +184,7 @@ public struct KSVideoPlayerView: View {
         #endif
     }
 
-    fileprivate enum FocusableView {
+    enum FocusableView {
         case play, controller, slider
     }
 }
@@ -297,12 +300,19 @@ struct VideoControllerView: View {
     @Binding
     fileprivate var title: String
     fileprivate let playerWidth: CGFloat
-    @FocusState.Binding
+    @FocusState
     fileprivate var focusableView: KSVideoPlayerView.FocusableView?
     @State
     private var showVideoSetting = false
     @Environment(\.dismiss)
     private var dismiss
+    init(config: KSVideoPlayer.Coordinator, title: Binding<String>, playerWidth: CGFloat, focusableView: FocusState<KSVideoPlayerView.FocusableView?>) {
+        self.config = config
+        _title = title
+        self.playerWidth = playerWidth
+        _focusableView = focusableView
+    }
+
     public var body: some View {
         VStack {
             #if os(tvOS)
