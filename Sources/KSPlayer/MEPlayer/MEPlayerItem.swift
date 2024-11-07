@@ -669,8 +669,9 @@ extension MEPlayerItem {
                     increase *= Int64(AV_TIME_BASE)
                     timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
                 }
-                // 有遇到一个mov的视频，如果指定min，那就无法进行seek。
-//                let seekMin = increase > 0 ? timeStamp - increase : Int64.min
+                /// 有遇到一个mov的视频，如果指定min，那seek之后，就会从0开始播放；
+                /// 并且如果seek的值大于结束时间的话，那会返回-1，到时无法加载数据，一直loading。
+//                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
                 let seekMin = Int64.min
                 let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
 //                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
