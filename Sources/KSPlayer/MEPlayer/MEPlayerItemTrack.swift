@@ -79,6 +79,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         isEndOfFile = false
         state = .flush
+        isSeek = true
         outputRenderQueue.flush()
         isLoopModel = false
     }
@@ -121,6 +122,8 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
 
     private var lastPacketBytes = Int64(0)
     private var lastPacketSeconds = Double(-1)
+    // 用于视频帧在seek之后，定位到isKeyFrame
+    private var isSeek = false
     var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
         guard let corePacket = packet.corePacket else {
@@ -140,6 +143,14 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             }
         }
         lastPacketBytes += Int64(packet.size)
+        if isSeek {
+            /// seek之后的话，要拿到isKeyFrame这样解码才不会花屏
+            /// （主要是ts会，mkv会自动第一个是isKeyFrame，但是mkv不知道为什么也会花屏）
+            if packet.assetTrack.mediaType == .video, !packet.isKeyFrame {
+                return
+            }
+            isSeek = false
+        }
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
