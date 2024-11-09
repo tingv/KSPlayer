@@ -177,10 +177,10 @@ private extension KSMEPlayer {
     #if !os(macOS)
     @MainActor
     @objc private func audioRouteChange(notification: Notification) {
-        guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt else {
+        guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt, let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason) else {
             return
         }
-        let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason)
+
         KSLog("[audio] audioRouteChange \(routeChangeReason)")
         // 有电话进来会上报categoryChange
         guard [AVAudioSession.RouteChangeReason.newDeviceAvailable, .oldDeviceUnavailable, .routeConfigurationChange].contains(routeChangeReason) else {
@@ -190,8 +190,9 @@ private extension KSMEPlayer {
             (track as? FFmpegAssetTrack)?.audioDescriptor?.updateAudioFormat()
         }
         audioOutput.flush()
-        // 切换成蓝牙音箱的话，需要异步暂停播放下，不然会没有声音
-        if playbackState == .playing, loadState == .playable {
+        // oldDeviceUnavailable的话，就不进行恢复了。因为有可能先调用这个通知，在调pause的通知。导致暂停之后还会继续播放
+        if routeChangeReason != .oldDeviceUnavailable, playbackState == .playing, loadState == .playable {
+            // 切换成蓝牙音箱的话，需要异步暂停播放下，不然会没有声音
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.audioOutput.pause()
