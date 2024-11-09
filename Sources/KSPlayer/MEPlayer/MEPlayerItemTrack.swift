@@ -145,7 +145,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         lastPacketBytes += Int64(packet.size)
         if isSeek {
             /// seek之后的话，要拿到isKeyFrame这样解码才不会花屏
-            /// （主要是ts会，mkv会自动第一个是isKeyFrame，但是mkv不知道为什么也会花屏）
+            /// （主要是ts会，mkv会自动第一个是isKeyFrame）
             if packet.assetTrack.mediaType == .video, !packet.isKeyFrame {
                 return
             }

@@ -110,7 +110,8 @@ class VideoToolboxDecode: DecodeProtocol {
     func doFlushCodec() {
         lastPosition = 0
         startTime = 0
-        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
+        // mkv seek之后，第一个帧是isKeyFrame，但是还是会花屏, 把这一行注释掉，就可以极大降低花屏的概率
+//        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
     }
 
     func shutdown() {
