@@ -59,6 +59,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         if mediaType == .audio {
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), expanding: false)
         } else if mediaType == .video {
+            // 用ffmpeg解码的话，会对视频帧进行排序在输出，但是直接用VideoToolboxDecode，是不会排序的，所以需要在放入的时候排序
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: false)
         } else {
             // 有的图片字幕不按顺序来输出，所以要排序下。

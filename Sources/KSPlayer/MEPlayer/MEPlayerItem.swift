@@ -162,8 +162,9 @@ public final class MEPlayerItem: Sendable {
                             playerItem.options.urlIO(log: String(log))
                             if log.starts(with: "Will reconnect at") {
                                 let seconds = playerItem.mainClock().time.seconds
-                                playerItem.videoTrack?.seekTime = seconds
-                                playerItem.audioTrack?.seekTime = seconds
+                                // 不要设置seekTime了，不然解码后的帧可能会被丢弃
+//                                playerItem.videoTrack?.seekTime = seconds
+//                                playerItem.audioTrack?.seekTime = seconds
                             }
                         }
                     }
@@ -1120,8 +1121,10 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
             videoTrack.outputRenderQueue.flush()
             dynamicInfo.droppedVideoFrameCount += UInt32(count)
         case .seek:
+            let count = videoTrack.outputRenderQueue.count
             videoTrack.outputRenderQueue.flush()
-            videoTrack.seekTime = mainClock().time.seconds
+            dynamicInfo.droppedVideoFrameCount += UInt32(count)
+//            videoTrack.seekTime = mainClock().time.seconds
         case .dropNextPacket:
             if let videoTrack = videoTrack as? AsyncPlayerItemTrack {
                 let packet = videoTrack.packetQueue.pop { item, _ -> Bool in

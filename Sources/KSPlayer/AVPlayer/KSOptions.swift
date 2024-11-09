@@ -295,6 +295,9 @@ open class KSOptions {
 //                return false
 //            }
             if isFirst || isSeek {
+                guard capacity.frameCount >= capacity.frameMaxCount / 2 else {
+                    return false
+                }
                 if isSecondOpen {
                     return capacity.loadedTime >= self.preferredForwardBufferDuration / 2
                 }
@@ -495,8 +498,11 @@ open class KSOptions {
     open func videoClockSync(main: KSClock, nextVideoTime: TimeInterval, fps: Double, frameCount: Int) -> (Double, ClockProcessType) {
         let desire = main.getTime() - videoDelay
         let diff = nextVideoTime - desire
-//        KSLog("[video] video diff \(diff) nextVideoTime \(nextVideoTime) main \(main.time.seconds)")
-        if diff >= 1 / fps / 2 {
+        if diff > 2 {
+            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount)"
+            KSLog(log)
+            return (diff, .next)
+        } else if diff >= 1 / fps / 2 {
             return (diff, .remain)
         } else {
             if diff < -4 / fps {
