@@ -455,9 +455,9 @@ extension MEPlayerItem {
             if let coreStream = formatCtx.pointee.streams[i] {
                 coreStream.pointee.discard = AVDISCARD_ALL
                 if let assetTrack = FFmpegAssetTrack(stream: coreStream) {
+                    // 有遇到字幕的startTime不准，需要从formatCtx取，才是准的. cc字幕也会有这个问题，所以视频轨道也要改下
+                    assetTrack.startTime = startTime
                     if assetTrack.mediaType == .subtitle {
-                        // 有遇到字幕的startTime不准，需要从formatCtx取，才是准的
-                        assetTrack.startTime = startTime
                         let subtitle = SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 255, options: options)
                         assetTrack.subtitle = subtitle
                         allPlayerItemTracks.append(subtitle)
