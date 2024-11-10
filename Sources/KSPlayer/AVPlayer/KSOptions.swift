@@ -62,7 +62,8 @@ open class KSOptions {
 //        formatContextOptions["listen_timeout"] = 3
         decoderOptions["threads"] = "auto"
         decoderOptions["refcounted_frames"] = "1"
-        decoderOptions["flags"] = "+copy_opaque"
+        // 不能加+copy_opaque这个参数。不然就的话，打开emby的链接，速度会慢很多
+//        decoderOptions["flags"] = "+copy_opaque"
     }
 
     open func playerLayerDeinit() {
