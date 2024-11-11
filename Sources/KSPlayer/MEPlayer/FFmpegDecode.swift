@@ -61,7 +61,7 @@ class FFmpegDecode: DecodeProtocol {
                 avcodec_free_context(&self.codecContext)
                 options.hardwareDecode = false
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
-                avcodec_send_packet(codecContext, packet.corePacket)
+                avcodec_send_packet(self.codecContext, packet.corePacket)
             } else {
                 avcodec_flush_buffers(codecContext)
                 return

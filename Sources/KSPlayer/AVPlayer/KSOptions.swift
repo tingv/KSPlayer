@@ -60,9 +60,13 @@ open class KSOptions {
         // There is total different meaning for 'listen_timeout' option in rtmp
         // set 'listen_timeout' = -1 for rtmp、rtsp
 //        formatContextOptions["listen_timeout"] = 3
+        /// 不需要设置这个参数了
+        ///  The new decode APIs(avcodec_send_packet/avcodec_receive_frame) always work with reference
+        ///  counted frames.
+//        decoderOptions["refcounted_frames"] = "1"
+        /// threads:auto和flags:+copy_opaque 只能二选一。不然的话，打开emby的链接，速度会慢很多。
+        /// 因为不知道flags:+copy_opaque的作用，所以先注释掉flags:+copy_opaque
         decoderOptions["threads"] = "auto"
-        decoderOptions["refcounted_frames"] = "1"
-        // 不能加+copy_opaque这个参数。不然就的话，打开emby的链接，速度会慢很多
 //        decoderOptions["flags"] = "+copy_opaque"
     }
 
