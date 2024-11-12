@@ -503,10 +503,16 @@ open class KSOptions {
     open func videoClockSync(main: KSClock, nextVideoTime: TimeInterval, fps: Double, frameCount: Int) -> (Double, ClockProcessType) {
         let desire = main.getTime() - videoDelay
         let diff = nextVideoTime - desire
-        if diff > 2 {
-            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount)"
+        if diff > 8 {
+            videoClockDelayCount += 1
+            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
             KSLog(log)
-            return (diff, .next)
+            // 只对前4帧进行显示，如果后续还是超前的话，那就一直等待
+            if videoClockDelayCount <= 4 {
+                return (diff, .next)
+            } else {
+                return (diff, .remain)
+            }
         } else if diff >= 1 / fps / 2 {
             return (diff, .remain)
         } else {
