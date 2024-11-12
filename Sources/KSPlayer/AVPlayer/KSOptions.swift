@@ -60,9 +60,14 @@ open class KSOptions {
         // There is total different meaning for 'listen_timeout' option in rtmp
         // set 'listen_timeout' = -1 for rtmp、rtsp
 //        formatContextOptions["listen_timeout"] = 3
+        /// 不需要设置这个参数了
+        ///  The new decode APIs(avcodec_send_packet/avcodec_receive_frame) always work with reference
+        ///  counted frames.
+//        decoderOptions["refcounted_frames"] = "1"
+        /// threads:auto和flags:+copy_opaque 只能二选一。不然的话，打开emby的链接，速度会慢很多。
+        /// 因为不知道flags:+copy_opaque的作用，所以先注释掉flags:+copy_opaque
         decoderOptions["threads"] = "auto"
-        decoderOptions["refcounted_frames"] = "1"
-        decoderOptions["flags"] = "+copy_opaque"
+//        decoderOptions["flags"] = "+copy_opaque"
     }
 
     open func playerLayerDeinit() {
@@ -295,6 +300,9 @@ open class KSOptions {
 //                return false
 //            }
             if isFirst || isSeek {
+                guard capacity.frameCount >= capacity.frameMaxCount / 2 else {
+                    return false
+                }
                 if isSecondOpen {
                     return capacity.loadedTime >= self.preferredForwardBufferDuration / 2
                 }
@@ -495,8 +503,11 @@ open class KSOptions {
     open func videoClockSync(main: KSClock, nextVideoTime: TimeInterval, fps: Double, frameCount: Int) -> (Double, ClockProcessType) {
         let desire = main.getTime() - videoDelay
         let diff = nextVideoTime - desire
-//        KSLog("[video] video diff \(diff) nextVideoTime \(nextVideoTime) main \(main.time.seconds)")
-        if diff >= 1 / fps / 2 {
+        if diff > 2 {
+            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount)"
+            KSLog(log)
+            return (diff, .next)
+        } else if diff >= 1 / fps / 2 {
             return (diff, .remain)
         } else {
             if diff < -4 / fps {

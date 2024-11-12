@@ -88,7 +88,8 @@ extension AVCodecParameters {
                 codecContext.pointee.thread_count = Int32(options.videoSoftDecodeThreadCount)
             }
         }
-        if codec_type == AVMEDIA_TYPE_VIDEO, options?.hardwareDecode ?? false {
+        let format = AVPixelFormat(rawValue: format)
+        if codec_type == AVMEDIA_TYPE_VIDEO, options?.hardwareDecode ?? false, format.osType() != nil {
             //        "videotoolbox" "vulkan"
             codecContext.createHwaccel(name: "videotoolbox")
         }
@@ -299,7 +300,8 @@ extension AVPixelFormat {
         case AV_PIX_FMT_P216BE, AV_PIX_FMT_P216LE, AV_PIX_FMT_YUV422P16BE, AV_PIX_FMT_YUV422P16LE: return kCVPixelFormatType_422YpCbCr16BiPlanarVideoRange
         case AV_PIX_FMT_NV24, AV_PIX_FMT_YUV444P: return fullRange ? kCVPixelFormatType_444YpCbCr8BiPlanarFullRange : kCVPixelFormatType_444YpCbCr8BiPlanarVideoRange
         case AV_PIX_FMT_YUVA444P: return kCVPixelFormatType_4444YpCbCrA8R
-        case AV_PIX_FMT_P410BE, AV_PIX_FMT_P410LE, AV_PIX_FMT_YUV444P10BE, AV_PIX_FMT_YUV444P10LE: return fullRange ? kCVPixelFormatType_444YpCbCr10BiPlanarFullRange : kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange
+        // kCVPixelFormatType_444YpCbCr10BiPlanarFullRange无法硬解
+//        case AV_PIX_FMT_P410BE, AV_PIX_FMT_P410LE, AV_PIX_FMT_YUV444P10BE, AV_PIX_FMT_YUV444P10LE: return fullRange ? kCVPixelFormatType_444YpCbCr10BiPlanarFullRange : kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange
         case AV_PIX_FMT_P416BE, AV_PIX_FMT_P416LE: return kCVPixelFormatType_444YpCbCr16BiPlanarVideoRange
         case AV_PIX_FMT_AYUV64BE, AV_PIX_FMT_AYUV64LE: return kCVPixelFormatType_4444AYpCbCr16
         case AV_PIX_FMT_YUVA444P16BE, AV_PIX_FMT_YUVA444P16LE: return kCVPixelFormatType_4444AYpCbCr16

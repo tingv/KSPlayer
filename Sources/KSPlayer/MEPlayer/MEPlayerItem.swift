@@ -162,8 +162,9 @@ public final class MEPlayerItem: Sendable {
                             playerItem.options.urlIO(log: String(log))
                             if log.starts(with: "Will reconnect at") {
                                 let seconds = playerItem.mainClock().time.seconds
-                                playerItem.videoTrack?.seekTime = seconds
-                                playerItem.audioTrack?.seekTime = seconds
+                                // 不要设置seekTime了，不然解码后的帧可能会被丢弃
+//                                playerItem.videoTrack?.seekTime = seconds
+//                                playerItem.audioTrack?.seekTime = seconds
                             }
                         }
                     }
@@ -454,9 +455,9 @@ extension MEPlayerItem {
             if let coreStream = formatCtx.pointee.streams[i] {
                 coreStream.pointee.discard = AVDISCARD_ALL
                 if let assetTrack = FFmpegAssetTrack(stream: coreStream) {
+                    // 有遇到字幕的startTime不准，需要从formatCtx取，才是准的. cc字幕也会有这个问题，所以视频轨道也要改下
+                    assetTrack.startTime = startTime
                     if assetTrack.mediaType == .subtitle {
-                        // 有遇到字幕的startTime不准，需要从formatCtx取，才是准的
-                        assetTrack.startTime = startTime
                         let subtitle = SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 255, options: options)
                         assetTrack.subtitle = subtitle
                         allPlayerItemTracks.append(subtitle)
@@ -522,7 +523,7 @@ extension MEPlayerItem {
                 track.delegate = self
                 allPlayerItemTracks.append(track)
                 videoTrack = track
-                if !first.image {
+                if !first.isImage {
                     videoAudioTracks.append(track)
                 }
                 let bitRates = videos.map(\.bitRate).filter {
@@ -669,7 +670,10 @@ extension MEPlayerItem {
                     increase *= Int64(AV_TIME_BASE)
                     timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
                 }
-                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
+                /// 有遇到一个mov的视频，如果指定min，那seek之后，就会从0开始播放；
+                /// 并且如果seek的值大于结束时间的话，那会返回-1，到时无法加载数据，一直loading。
+//                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
+                let seekMin = Int64.min
                 let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
 //                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
                 // can not seek to key frame
@@ -1117,8 +1121,10 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
             videoTrack.outputRenderQueue.flush()
             dynamicInfo.droppedVideoFrameCount += UInt32(count)
         case .seek:
+            let count = videoTrack.outputRenderQueue.count
             videoTrack.outputRenderQueue.flush()
-            videoTrack.seekTime = mainClock().time.seconds
+            dynamicInfo.droppedVideoFrameCount += UInt32(count)
+//            videoTrack.seekTime = mainClock().time.seconds
         case .dropNextPacket:
             if let videoTrack = videoTrack as? AsyncPlayerItemTrack {
                 let packet = videoTrack.packetQueue.pop { item, _ -> Bool in
