@@ -507,8 +507,8 @@ open class KSOptions {
             videoClockDelayCount += 1
             let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
             KSLog(log)
-            // 只对前4帧进行显示，如果后续还是超前的话，那就一直等待
-            if videoClockDelayCount <= 4 {
+            // 只对前几帧进行显示，如果后续还是超前的话，那就一直等待
+            if videoClockDelayCount <= Int(ceil(fps / 3)) {
                 return (diff, .next)
             } else {
                 return (diff, .remain)
