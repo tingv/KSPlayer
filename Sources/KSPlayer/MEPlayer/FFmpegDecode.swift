@@ -63,7 +63,8 @@ class FFmpegDecode: DecodeProtocol {
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
                 avcodec_send_packet(self.codecContext, packet.corePacket)
             } else {
-                avcodec_flush_buffers(codecContext)
+                // 不要在这里调用avcodec_flush_buffers，不然rmvb seek之后会花屏
+//                avcodec_flush_buffers(codecContext)
                 return
             }
         }
@@ -253,8 +254,7 @@ class FFmpegDecode: DecodeProtocol {
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
         /// seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。并且ts格式会导致画面花屏一小会儿。
-        /// rmvb不用调用avcodec_flush_buffers，不然seek之后会花屏，改成在音视频算法那边对返回seek之前的数据做下兼容
-        if options.formatName != "rm", codecContext != nil {
+        if codecContext != nil {
             avcodec_flush_buffers(codecContext)
         }
     }
