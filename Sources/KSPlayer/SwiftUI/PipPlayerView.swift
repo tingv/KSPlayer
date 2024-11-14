@@ -32,40 +32,42 @@ public struct PipPlayerView: View {
                     } label: {
                         Image(systemName: "pip.exit")
                     }
+                    .focused($focusableView, equals: .pipFull)
                     Button {
                         block(false)
                     } label: {
                         Image(systemName: "x.circle.fill")
                     }
+                    .focused($focusableView, equals: .pipClose)
                     Button {
                         if alignment == .topTrailing {
-                            alignment = .bottomTrailing
-                        } else if alignment == .bottomTrailing {
+                            alignment = .topLeading
+                        } else if alignment == .topLeading {
                             alignment = .bottomLeading
                         } else if alignment == .bottomLeading {
-                            alignment = .topLeading
+                            alignment = .bottomTrailing
                         } else {
                             alignment = .topTrailing
                         }
                     } label: {
                         switch alignment {
                         case .topTrailing:
-                            return Image(systemName: "inset.filled.toptrailing.rectangle")
-                        case .bottomLeading:
+                            return Image(systemName: "inset.filled.topleading.rectangle")
+                        case .topLeading:
                             return Image(systemName: "inset.filled.bottomleading.rectangle")
-                        case .bottomTrailing:
+                        case .bottomLeading:
                             return Image(systemName: "inset.filled.bottomtrailing.rectangle")
                         default:
-                            return Image(systemName: "inset.filled.topleading.rectangle")
+                            return Image(systemName: "inset.filled.toptrailing.rectangle")
                         }
                     }
+                    .focused($focusableView, equals: .pipMove)
                 }
-                .focused($focusableView, equals: .pip)
-                .opacity(focusableView == .pip ? 1 : 0)
+                .opacity(focusableView == nil ? 0 : 1)
             }
     }
 
     public enum FocusableView {
-        case main, pip
+        case pipFull, pipClose, pipMove
     }
 }

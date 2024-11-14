@@ -620,18 +620,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         player.pipController = nil
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().pauseCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().togglePlayPauseCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().stopCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().nextTrackCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().previousTrackCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changeRepeatModeCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changePlaybackRateCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().skipForwardCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().skipBackwardCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().enableLanguageOptionCommand.removeTarget(nil)
+        removeRemoteControllEvent()
     }
 }
 
@@ -705,6 +694,21 @@ extension KSComplexPlayerLayer {
             isAutoPlay = true
             url = urls[index - 1]
         }
+    }
+
+    public func removeRemoteControllEvent() {
+        MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().pauseCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().togglePlayPauseCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().stopCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().nextTrackCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().previousTrackCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changeRepeatModeCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changePlaybackRateCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().skipForwardCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().skipBackwardCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().enableLanguageOptionCommand.removeTarget(nil)
     }
 
     public func registerRemoteControllEvent() {
