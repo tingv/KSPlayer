@@ -83,8 +83,8 @@ class SubtitleTest: XCTestCase {
         XCTAssertEqual(parse.canParse(scanner: scanner), true)
         let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
         XCTAssertEqual(parts.count, 2)
-        XCTAssertEqual(parts[0].render.right?.0.string.contains("<"), false)
-        XCTAssertEqual(parts[1].render.right?.0.string.contains("<"), false)
+        XCTAssertEqual(parts[0].text?.string.contains("<"), false)
+        XCTAssertEqual(parts[1].text?.string.contains("<"), false)
     }
 
     func testVtt() {

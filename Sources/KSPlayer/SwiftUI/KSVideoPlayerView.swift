@@ -239,6 +239,9 @@ public struct KSCorePlayerView: View {
             .onBufferChanged { bufferedCount, consumeTime in
                 KSLog("bufferedCount \(bufferedCount), consumeTime \(consumeTime)")
             }
+        #if os(iOS) || os(macOS)
+            .translationView()
+        #endif
             .ignoresSafeArea()
 
         #if os(iOS) || os(xrOS)
@@ -292,6 +295,25 @@ public struct KSCorePlayerView: View {
         #endif
     }
 }
+
+#if os(iOS) || os(macOS)
+public extension KSVideoPlayer {
+    func translationView() -> some View {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            return translationTask(KSOptions.translationSessionConf) { session in
+                do {
+                    try await session.prepareTranslation()
+                    coordinator.playerLayer?.subtitleModel.translationSession = session
+                } catch {
+                    KSLog(error)
+                }
+            }
+        } else {
+            return self
+        }
+    }
+}
+#endif
 
 @available(iOS 16, tvOS 16, macOS 13, *)
 struct VideoControllerView: View {

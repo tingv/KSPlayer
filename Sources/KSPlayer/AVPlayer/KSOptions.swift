@@ -13,6 +13,9 @@ import DisplayCriteria
 import AVKit
 import Libavformat
 import OSLog
+#if canImport(Translation)
+import Translation
+#endif
 
 open class KSOptions {
     public internal(set) var formatName = ""
@@ -353,6 +356,10 @@ open class KSOptions {
         textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
     }
 
+    #if os(iOS) || os(macOS)
+    @available(iOS 18.0, macOS 15.0, *)
+    public static var translationSessionConf: TranslationSession.Configuration?
+    #endif
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
