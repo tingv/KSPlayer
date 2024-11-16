@@ -88,6 +88,7 @@ open class SubtitleModel: ObservableObject {
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
     public var isHDR = false
+    public var playSize = CGSize.zero
     public var screenSize = CGSize.zero
     public var url: URL {
         didSet {
@@ -135,6 +136,7 @@ open class SubtitleModel: ObservableObject {
     }
 
     public func subtitle(currentTime: TimeInterval, playSize: CGSize, screenSize: CGSize) {
+        self.playSize = playSize
         self.screenSize = screenSize
         //        KSLog("[subtitle] currentTime \(currentTime)")
         Task { @MainActor in

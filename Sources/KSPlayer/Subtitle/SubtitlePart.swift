@@ -75,8 +75,8 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
 public struct TextPosition: Equatable, Hashable {
     public var verticalAlign: VerticalAlignment = .bottom
     public var horizontalAlign: HorizontalAlignment = .center
-    public var leftMargin: CGFloat = 0
-    public var rightMargin: CGFloat = 0
+    public var leftMargin: CGFloat = 2
+    public var rightMargin: CGFloat = 2
     public var verticalMargin: CGFloat = 10
     public var edgeInsets: EdgeInsets {
         var edgeInsets = EdgeInsets()
