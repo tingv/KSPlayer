@@ -33,6 +33,7 @@ public struct VideoSubtitleView: View {
         case let .right(text, textPosition):
             SubtitleRightView(textPosition: textPosition, text: text)
                 .padding([.top, .bottom], floor((model.screenSize.height - model.playSize.height) / 2))
+                .frame(maxWidth: .infinity)
         }
     }
 }

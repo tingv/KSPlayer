@@ -502,9 +502,11 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 subtitleVC.view.heightAnchor.constraint(equalTo: view.heightAnchor),
             ]
             #if os(macOS)
+            // 要加这个，不然字幕无法显示出来
             if #available(macOS 13.0, *) {
                 subtitleVC.sizingOptions = .maxSize
             }
+            // 要加这个，不然还没字幕的时候，视频播放界面会变成zero
             for constraint in constraints {
                 constraint.priority = .defaultLow
             }
