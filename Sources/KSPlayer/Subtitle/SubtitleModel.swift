@@ -161,8 +161,11 @@ open class SubtitleModel: ObservableObject {
                 if #available(iOS 18.0, macOS 15.0, *) {
                     if let first = newParts.first, let right = first.render.right {
                         if let response = try? await translationSession?.translate(right.0.string) {
-                            let str = NSMutableAttributedString(attributedString: right.0)
-                            str.append(NSAttributedString(string: "\n"))
+                            let str = NSMutableAttributedString()
+                            if KSOptions.showTranslateSourceText {
+                                str.append(right.0)
+                                str.append(NSAttributedString(string: "\n"))
+                            }
                             str.append(NSAttributedString(string: response.targetText))
                             first.render = .right((str, right.1))
                         }

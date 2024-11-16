@@ -364,6 +364,8 @@ open class KSOptions {
     @MainActor
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var subtitleDynamicRange = Image.DynamicRange.high
+    @MainActor
+    public static var showTranslateSourceText = false
     public var audioRecognizes = [any AudioRecognize]()
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
