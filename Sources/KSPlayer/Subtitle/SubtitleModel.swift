@@ -59,6 +59,18 @@ open class SubtitleModel: ObservableObject {
     }
 
     #if os(iOS) || os(macOS)
+    private var _translationSessionConf: Any?
+    @available(iOS 18.0, macOS 15.0, *)
+    public var translationSessionConf: TranslationSession.Configuration? {
+        get {
+            _translationSessionConf as? TranslationSession.Configuration
+        }
+        set {
+            _translationSessionConf = newValue
+        }
+    }
+
+    private var _translationSession: Any?
     @available(iOS 18.0, macOS 15.0, *)
     public var translationSession: TranslationSession? {
         get {
@@ -69,10 +81,9 @@ open class SubtitleModel: ObservableObject {
         }
     }
     #endif
-    public var _translationSession: Any? = nil
     private var subtitleDataSources = [SubtitleDataSource]()
     @Published
-    public private(set) var subtitleInfos: [any SubtitleInfo] = KSOptions.audioRecognizes
+    public private(set) var subtitleInfos = [any SubtitleInfo]()
     @Published
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
@@ -86,7 +97,6 @@ open class SubtitleModel: ObservableObject {
             }
             Task { @MainActor in
                 subtitleInfos.removeAll()
-                subtitleInfos.append(contentsOf: KSOptions.audioRecognizes)
                 parts = []
                 selectedSubtitleInfo = nil
             }
@@ -98,6 +108,11 @@ open class SubtitleModel: ObservableObject {
             oldValue?.isEnabled = false
             if let selectedSubtitleInfo {
                 selectedSubtitleInfo.isEnabled = true
+                #if os(iOS) || os(macOS)
+                if #available(iOS 18.0, macOS 15.0, *) {
+                    translationSessionConf = (selectedSubtitleInfo as? AudioRecognize)?.translationSessionConf
+                }
+                #endif
                 addSubtitle(info: selectedSubtitleInfo)
                 if let info = selectedSubtitleInfo as? URLSubtitleInfo, !info.downloadURL.isFileURL, let cache = subtitleDataSources.first(where: { $0 is CacheSubtitleDataSource }) as? CacheSubtitleDataSource {
                     cache.addCache(fileURL: url, downloadURL: info.downloadURL)
@@ -144,8 +159,8 @@ open class SubtitleModel: ObservableObject {
             if newParts != parts {
                 #if os(iOS) || os(macOS)
                 if #available(iOS 18.0, macOS 15.0, *) {
-                    if let first = newParts.first, let right = first.render.right, let session = translationSession {
-                        if let response = try? await session.translate(right.0.string) {
+                    if let first = newParts.first, let right = first.render.right {
+                        if let response = try? await translationSession?.translate(right.0.string) {
                             let str = NSMutableAttributedString(attributedString: right.0)
                             str.append(NSAttributedString(string: "\n"))
                             str.append(NSAttributedString(string: response.targetText))
@@ -188,7 +203,7 @@ open class SubtitleModel: ObservableObject {
                     KSLog(error)
                 }
             }
-        } else if let dataSource = dataSource as? (any EmbedSubtitleDataSource) {
+        } else if let dataSource = dataSource as? (any ConstantSubtitleDataSource) {
             subtitleInfos.append(contentsOf: dataSource.infos)
         }
     }

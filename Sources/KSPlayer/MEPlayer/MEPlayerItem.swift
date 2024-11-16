@@ -1152,7 +1152,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 
     public func getAudioOutputRender() -> AudioFrame? {
         if let frame = audioTrack?.getOutputRender(where: nil) {
-            KSOptions.audioRecognizes.first {
+            options.audioRecognizes.first {
                 $0.isEnabled
             }?.append(frame: frame)
             return frame

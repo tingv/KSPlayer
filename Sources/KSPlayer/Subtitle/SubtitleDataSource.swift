@@ -8,7 +8,7 @@ import Foundation
 
 public protocol SubtitleDataSource: AnyObject {}
 
-public protocol EmbedSubtitleDataSource: SubtitleDataSource {
+public protocol ConstantSubtitleDataSource: SubtitleDataSource {
     associatedtype Subtitle: SubtitleInfo
     var infos: [Subtitle] { get }
 }

@@ -354,7 +354,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
 
     public func stopRecord() {}
 
-    public var subtitleDataSource: (any EmbedSubtitleDataSource)? { nil }
+    public var subtitleDataSource: (any ConstantSubtitleDataSource)? { nil }
     public var isPlaying: Bool { player.rate > 0 ? true : playbackState == .playing }
     public var view: UIView { playerView }
     public var currentPlaybackTime: TimeInterval {

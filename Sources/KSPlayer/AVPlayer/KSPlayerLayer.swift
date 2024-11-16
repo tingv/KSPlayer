@@ -71,7 +71,14 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public var bufferingProgress: Int = 0
     @Published
     public var loopCount: Int = 0
-    public private(set) var options: KSOptions
+    public private(set) var options: KSOptions {
+        didSet {
+            options.audioRecognizes = subtitleModel.subtitleInfos.compactMap { info in
+                info as? AudioRecognize
+            }
+        }
+    }
+
     public let subtitleVC: UIHostingController<VideoSubtitleView>
     public var player: MediaPlayerProtocol {
         didSet {
@@ -169,6 +176,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         subtitleVC.view.backgroundColor = .clear
         subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
         super.init()
+        options.audioRecognizes = subtitleModel.subtitleInfos.compactMap { info in
+            info as? AudioRecognize
+        }
         player.playbackRate = options.startPlayRate
         player.delegate = self
         player.contentMode = .scaleAspectFit
@@ -484,6 +494,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     fileprivate func addSubtitle(to view: UIView) {
         if subtitleVC.view.superview != view {
             view.addSubview(subtitleVC.view)
+            subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
             let constraints = [
                 subtitleVC.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 subtitleVC.view.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -498,7 +509,6 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 constraint.priority = .defaultLow
             }
             #endif
-
             NSLayoutConstraint.activate(constraints)
         }
     }

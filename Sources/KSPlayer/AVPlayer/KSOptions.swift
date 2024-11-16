@@ -356,19 +356,15 @@ open class KSOptions {
         textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
     }
 
-    #if os(iOS) || os(macOS)
-    @available(iOS 18.0, macOS 15.0, *)
-    public static var translationSessionConf: TranslationSession.Configuration?
-    #endif
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
     @MainActor
     public static var textPosition = TextPosition()
-    public nonisolated(unsafe) static var audioRecognizes = [any AudioRecognize]()
     @MainActor
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var subtitleDynamicRange = Image.DynamicRange.high
+    public var audioRecognizes = [any AudioRecognize]()
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public var subtitleTimeInterval = 0.1

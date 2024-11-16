@@ -300,7 +300,7 @@ public struct KSCorePlayerView: View {
 public extension KSVideoPlayer {
     func translationView() -> some View {
         if #available(iOS 18.0, macOS 15.0, *) {
-            return translationTask(KSOptions.translationSessionConf) { session in
+            return translationTask(coordinator.playerLayer?.subtitleModel.translationSessionConf) { session in
                 do {
                     try await session.prepareTranslation()
                     coordinator.playerLayer?.subtitleModel.translationSession = session

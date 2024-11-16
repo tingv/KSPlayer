@@ -7,6 +7,9 @@
 //
 
 import Foundation
+#if canImport(Translation)
+import Translation
+#endif
 
 public protocol SubtitlePartProtocol: Equatable {
     func render(size: CGSize) -> SubtitlePart
@@ -96,6 +99,10 @@ extension Collection where Element: NumericComparable {
 }
 
 public protocol AudioRecognize: SubtitleInfo {
+    #if os(iOS) || os(macOS)
+    @available(iOS 18.0, macOS 15.0, *)
+    var translationSessionConf: TranslationSession.Configuration? { get }
+    #endif
     func append(frame: AudioFrame)
 }
 
