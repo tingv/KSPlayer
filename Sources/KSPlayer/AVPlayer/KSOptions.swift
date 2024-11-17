@@ -520,38 +520,36 @@ open class KSOptions {
             }
         } else if diff >= 1 / fps / 2 {
             return (diff, .remain)
-        } else {
-            if diff < -4 / fps {
-                videoClockDelayCount += 1
-                /// 之前有一次因为mainClock的时间戳不准，导致diff很大，所以这边要判断下delay的次数在做seek、dropGOPPacket、flush处理，避免误伤。
-                let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
+        } else if diff < -4 / fps {
+            videoClockDelayCount += 1
+            /// 之前有一次因为mainClock的时间戳不准，导致diff很大，所以这边要判断下delay的次数在做seek、dropGOPPacket、flush处理，避免误伤。
+            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
 
-                if diff < -8, videoClockDelayCount % 80 == 0 {
-                    KSLog("\(log) seek video track")
-                    return (diff, .seek)
-                }
-                if diff < -1, videoClockDelayCount % 10 == 0 {
-                    if frameCount == 1 {
-                        KSLog("\(log) drop gop Packet")
-                        return (diff, .dropGOPPacket)
-                    } else {
-                        KSLog("\(log) flush video track")
-                        return (diff, .flush)
-                    }
-                }
-                let count: Int
-                if videoClockDelayCount == 1 {
-                    // 第一次delay的话，就先只丢一帧。防止seek之后第一次播放丢太多帧
-                    count = 1
-                } else {
-                    count = Int(-diff * fps / 4.0)
-                }
-                KSLog("\(log) drop \(count) frame")
-                return (diff, .dropFrame(count: count))
-            } else {
-                videoClockDelayCount = 0
-                return (diff, .next)
+            if diff < -8, videoClockDelayCount % 80 == 0 {
+                KSLog("\(log) seek video track")
+                return (diff, .seek)
             }
+            if diff < -1, videoClockDelayCount % 10 == 0 {
+                if frameCount == 1 {
+                    KSLog("\(log) drop gop Packet")
+                    return (diff, .dropGOPPacket)
+                } else {
+                    KSLog("\(log) flush video track")
+                    return (diff, .flush)
+                }
+            }
+            let count: Int
+            if videoClockDelayCount == 1 {
+                // 第一次delay的话，就先只丢一帧。防止seek之后第一次播放丢太多帧
+                count = 1
+            } else {
+                count = Int(-diff * fps / 4.0)
+            }
+            KSLog("\(log) drop \(count) frame")
+            return (diff, .dropFrame(count: count))
+        } else {
+            videoClockDelayCount = 0
+            return (diff, .next)
         }
     }
 

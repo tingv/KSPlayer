@@ -434,8 +434,9 @@ struct VideoControllerView: View {
                 contentModeButton
                 if config.playerLayer?.player.naturalSize.isHorizonal == true, UIApplication.isLandscape == false {
                     Button {
-                        KSOptions.supportedInterfaceOrientations = .landscape
-                        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+                        KSOptions.supportedInterfaceOrientations = UIApplication.isLandscape ? .portrait : .landscapeLeft
+//                        let orientation: UIInterfaceOrientation = UIApplication.isLandscape ? .portrait : .landscapeLeft
+//                        UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
                         UIViewController.attemptRotationToDeviceOrientation()
                     } label: {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
