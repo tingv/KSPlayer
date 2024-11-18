@@ -67,6 +67,9 @@ open class SubtitleModel: ObservableObject {
         }
         set {
             _translationSessionConf = newValue
+            if newValue == nil {
+                translationSession = nil
+            }
         }
     }
 
