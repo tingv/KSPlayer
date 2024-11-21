@@ -99,7 +99,7 @@ extension Collection where Element: NumericComparable {
 }
 
 public protocol AudioRecognize: SubtitleInfo {
-    #if os(iOS) || os(macOS)
+    #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
     @available(iOS 18.0, macOS 15.0, *)
     var translationSessionConf: TranslationSession.Configuration? { get }
     #endif

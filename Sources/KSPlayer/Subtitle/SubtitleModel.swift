@@ -58,7 +58,7 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    #if os(iOS) || os(macOS)
+    #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
     private var _translationSessionConf: Any?
     @available(iOS 18.0, macOS 15.0, *)
     public var translationSessionConf: TranslationSession.Configuration? {
@@ -113,7 +113,7 @@ open class SubtitleModel: ObservableObject {
             oldValue?.isEnabled = false
             if let selectedSubtitleInfo {
                 selectedSubtitleInfo.isEnabled = true
-                #if os(iOS) || os(macOS)
+                #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
                 if #available(iOS 18.0, macOS 15.0, *) {
                     translationSessionConf = (selectedSubtitleInfo as? AudioRecognize)?.translationSessionConf
                 }
@@ -165,7 +165,7 @@ open class SubtitleModel: ObservableObject {
             }
             // swiftUI不会判断是否相等。所以需要这边判断下。
             if newParts != parts {
-                #if os(iOS) || os(macOS)
+                #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
                 if #available(iOS 18.0, macOS 15.0, *) {
                     if let first = newParts.first, let right = first.render.right {
                         if let response = try? await translationSession?.translate(right.0.string) {

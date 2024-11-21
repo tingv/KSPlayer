@@ -110,7 +110,6 @@ extension AssImageRenderer: KSSubtitleProtocol {
         /// 如果图片大于10张的话，那要用PointerImagePipeline。
         /// 图片小的话，用PointerImagePipeline 差不多是0.0001，而Accelerate要0.0003。
         /// 图片大的话  用Accelerate差不多0.005 ，而PointerImagePipeline差不多要0.04
-
         if images.count <= 10, #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
             imagePipeline = vImage.PixelBuffer<vImage.Interleaved8x4>.self
         } else {

@@ -30,6 +30,7 @@ public struct KSVideoPlayer {
 }
 
 public extension KSVideoPlayer {
+    @MainActor
     init(playerLayer: KSPlayerLayer) {
         let coordinator = KSVideoPlayer.Coordinator()
         coordinator.playerLayer = playerLayer
@@ -176,7 +177,7 @@ extension KSVideoPlayer: UIViewRepresentable {
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
         public var playerLayer: KSPlayerLayer? {
             didSet {
-                #if os(iOS) || os(macOS)
+                #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
                 if #available(iOS 18.0, macOS 15.0, *) {
                     oldValue?.subtitleModel.translationSessionConf?.invalidate()
                     oldValue?.subtitleModel.translationSession = nil
@@ -363,4 +364,11 @@ public class ControllerTimeModel: ObservableObject {
     public var currentTime = 0
     @Published
     public var totalTime = 1
+}
+struct KSVideoPlayer_Previews: PreviewProvider {
+    static var previews: some View {
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
+        let coordinator = KSVideoPlayer.Coordinator()
+        KSVideoPlayer(coordinator: coordinator, url: url, options: KSOptions())
+    }
 }

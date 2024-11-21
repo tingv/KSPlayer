@@ -239,7 +239,7 @@ public struct KSCorePlayerView: View {
             .onBufferChanged { bufferedCount, consumeTime in
                 KSLog("bufferedCount \(bufferedCount), consumeTime \(consumeTime)")
             }
-        #if os(iOS) || os(macOS)
+        #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
             .translationView()
         #endif
             .ignoresSafeArea()
@@ -296,8 +296,9 @@ public struct KSCorePlayerView: View {
     }
 }
 
-#if os(iOS) || os(macOS)
+#if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
 public extension KSVideoPlayer {
+    @MainActor
     func translationView() -> some View {
         if #available(iOS 18.0, macOS 15.0, *) {
             return translationTask(coordinator.playerLayer?.subtitleModel.translationSessionConf) { session in
@@ -773,7 +774,7 @@ public struct PlatformView<Content: View>: View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 struct KSVideoPlayerView_Previews: PreviewProvider {
     static var previews: some View {
-        let url = URL(string: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")!
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
         KSVideoPlayerView(url: url, options: KSOptions())
     }
 }

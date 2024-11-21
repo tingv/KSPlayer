@@ -20,6 +20,7 @@ Feature       | Free      |
 |Use the fonts in the video to render subtitles|✅|
 |Use memory cache for fast seek in short time range|✅|
 |Cache data to Hard Drive,Preload data to Hard Drive|❌|
+|Offline AI real-time subtitle generation and translation|❌|
 |Full display of ass subtitles effect(Render as image using libass)|✅|
 |Play videos in a small window in the App (resumable, supports tvos and ios)|❌|
 |FFmpeg version|7.0.2|
