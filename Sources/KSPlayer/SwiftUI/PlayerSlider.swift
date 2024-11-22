@@ -214,3 +214,15 @@ private func valueFrom(distance: Float, availableDistance: Float, bounds: Closed
     let validatedValue = min(bounds.upperBound, max(bounds.lowerBound, steppedNewValue))
     return validatedValue
 }
+
+#if DEBUG
+@available(iOS 15, tvOS 15, macOS 12, *)
+struct PlayerSlider_Previews: PreviewProvider {
+    static var previews: some View {
+        let model = ControllerTimeModel()
+        model.currentTime = 50
+        model.totalTime = 100
+        return PlayerSlider(model: model, bufferValue: 75)
+    }
+}
+#endif

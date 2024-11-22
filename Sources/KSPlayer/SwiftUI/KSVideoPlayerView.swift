@@ -716,12 +716,12 @@ public struct PlatformView<Content: View>: View {
     }
 }
 
+#if DEBUG
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 struct KSVideoPlayerView_Previews: PreviewProvider {
     static var previews: some View {
-        KSOptions.firstPlayerType = KSMEPlayer.self
-        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
-        return KSVideoPlayerView(url: url, options: KSOptions())
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/subrip.mkv")!
+        KSVideoPlayerView(url: url, options: KSOptions())
     }
 }
 
@@ -742,3 +742,4 @@ struct KSVideoPlayerView_Previews: PreviewProvider {
 //        playerVC.player = AVPlayer(url: URL(string: "https://bitmovin-a.akamaihd.net/content/dataset/multi-codec/hevc/stream_fmp4.m3u8")!)
 //    }
 // }
+#endif

@@ -366,6 +366,7 @@ public class ControllerTimeModel: ObservableObject {
     public var totalTime = 1
 }
 
+#if DEBUG
 struct KSVideoPlayer_Previews: PreviewProvider {
     static var previews: some View {
         KSOptions.firstPlayerType = KSMEPlayer.self
@@ -374,3 +375,4 @@ struct KSVideoPlayer_Previews: PreviewProvider {
         return KSVideoPlayer(coordinator: coordinator, url: url, options: KSOptions())
     }
 }
+#endif

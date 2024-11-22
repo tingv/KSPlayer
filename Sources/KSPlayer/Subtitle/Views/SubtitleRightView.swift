@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct SubtitleRightView: View {
-    let textPosition: TextPosition?
     let text: NSAttributedString
-
+    let textPosition: TextPosition?
     var body: some View {
         VStack {
             let textPosition = textPosition ?? KSOptions.textPosition
@@ -37,3 +36,11 @@ struct SubtitleRightView: View {
         }
     }
 }
+
+#if DEBUG
+struct SubtitleRightView_Previews: PreviewProvider {
+    static var previews: some View {
+        SubtitleRightView(text: NSAttributedString(string: "SubtitleRightView_Previews"), textPosition: nil)
+    }
+}
+#endif
