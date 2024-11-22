@@ -95,24 +95,43 @@ public enum KSVideoPlayerViewBuilder {
                 .foregroundColor(config.isRecord ? .red : .white)
         }
     }
-}
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-public extension KSVideoPlayerViewBuilder {
-    static var speakerSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "speaker.fill"
-        #else
-        "speaker.wave.2.circle.fill"
-        #endif
+    @ViewBuilder
+    static func volumeSlider(config: KSVideoPlayer.Coordinator, volume: Binding<Float>) -> some View {
+        Slider(value: volume, in: 0 ... 1)
+            .onChange(of: config.playbackVolume) { newValue in
+                config.isMuted = newValue == 0
+            }
     }
 
-    static var speakerDisabledSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "speaker.slash.fill"
-        #else
-        "speaker.slash.circle.fill"
-        #endif
+    @ViewBuilder
+    static func audioButton(config: KSVideoPlayer.Coordinator, audioTracks: [MediaPlayerTrack]) -> some View {
+        MenuView(selection: Binding {
+            audioTracks.first { $0.isEnabled }?.trackID
+        } set: { value in
+            if let track = audioTracks.first(where: { $0.trackID == value }) {
+                config.playerLayer?.player.select(track: track)
+            }
+        }) {
+            ForEach(audioTracks, id: \.trackID) { track in
+                Text(track.description).tag(track.trackID as Int32?)
+            }
+        } label: {
+            Image(systemName: "waveform.circle.fill")
+            #if os(xrOS)
+                .padding()
+                .clipShape(Circle())
+            #endif
+        }
+    }
+
+    @ViewBuilder
+    static func pipButton(config: KSVideoPlayer.Coordinator) -> some View {
+        Button {
+            (config.playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
+        } label: {
+            Image(systemName: "pip.fill")
+        }
     }
 
     @ViewBuilder
@@ -159,6 +178,25 @@ public extension KSVideoPlayerViewBuilder {
         #endif
         #if !os(tvOS)
         .keyboardShortcut(.space, modifiers: .none)
+        #endif
+    }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+public extension KSVideoPlayerViewBuilder {
+    static var speakerSystemName: String {
+        #if os(xrOS) || os(macOS)
+        "speaker.fill"
+        #else
+        "speaker.wave.2.circle.fill"
+        #endif
+    }
+
+    static var speakerDisabledSystemName: String {
+        #if os(xrOS) || os(macOS)
+        "speaker.slash.fill"
+        #else
+        "speaker.slash.circle.fill"
         #endif
     }
 }

@@ -17,7 +17,15 @@ public struct PlayerSlider: View {
     private var beginDrag = false
     @FocusState
     private var isFocused: Bool
-    public init(value: Binding<Float>, bufferValue: Float, in bounds: ClosedRange<Float> = 0 ... 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(model: ControllerTimeModel, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: Binding {
+            Float(model.currentTime)
+        } set: { newValue, _ in
+            model.currentTime = Int(newValue)
+        }, in: 0 ... Float(model.totalTime), bufferValue: bufferValue, onEditingChanged: onEditingChanged)
+    }
+
+    public init(value: Binding<Float>, in bounds: ClosedRange<Float> = 0 ... 1, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.value = value
         self.bufferValue = bufferValue
         self.bounds = bounds

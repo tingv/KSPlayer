@@ -346,18 +346,18 @@ struct VideoControllerView: View {
                     .layoutPriority(100)
                 KSVideoPlayerViewBuilder.muteButton(config: config)
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                    audioButton(audioTracks: audioTracks)
+                    KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
                 }
                 Spacer()
                     .layoutPriority(2)
                 HStack(spacing: 10) {
                     KSVideoPlayerViewBuilder.playButton(config: config)
-                    contentModeButton
-                    playbackRateButton
+                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
                     KSVideoPlayerViewBuilder.recordButton(config: config)
-                    pipButton
-                    subtitleButton
-                    infoButton
+                    KSVideoPlayerViewBuilder.pipButton(config: config)
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
                 .font(.caption)
             }
@@ -370,10 +370,10 @@ struct VideoControllerView: View {
             VStack(spacing: 10) {
                 HStack {
                     KSVideoPlayerViewBuilder.muteButton(config: config)
-                    volumeSlider
+                    KSVideoPlayerViewBuilder.volumeSlider(config: config, volume: $config.playbackVolume)
                         .frame(maxWidth: 100)
                     if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                        audioButton(audioTracks: audioTracks)
+                        KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
                     }
                     Spacer()
                     KSVideoPlayerViewBuilder.backwardButton(config: config)
@@ -383,11 +383,11 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.forwardButton(config: config)
                         .font(.largeTitle)
                     Spacer()
-                    contentModeButton
-                    playbackRateButton
+                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
                     KSVideoPlayerViewBuilder.recordButton(config: config)
-                    subtitleButton
-                    infoButton
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
                 // 设置opacity为0，还是会去更新View。所以只能这样了
                 if config.isMaskShow {
@@ -413,7 +413,7 @@ struct VideoControllerView: View {
                 .glassBackgroundEffect()
                 #endif
                 KSVideoPlayerViewBuilder.muteButton(config: config)
-                volumeSlider
+                KSVideoPlayerViewBuilder.volumeSlider(config: config, volume: $config.playbackVolume)
                     .frame(maxWidth: 100)
                     .tint(.white.opacity(0.8))
                     .padding(.leading, 16)
@@ -421,7 +421,7 @@ struct VideoControllerView: View {
                     .glassBackgroundEffect()
                 #endif
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                    audioButton(audioTracks: audioTracks)
+                    KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
                     #if os(xrOS)
                         .aspectRatio(1, contentMode: .fit)
                         .glassBackgroundEffect()
@@ -432,7 +432,7 @@ struct VideoControllerView: View {
                 if config.playerLayer?.player.allowsExternalPlayback == true {
                     AirPlayView().fixedSize()
                 }
-                contentModeButton
+                KSVideoPlayerViewBuilder.contentModeButton(config: config)
                 if config.playerLayer?.player.naturalSize.isHorizonal == true, UIApplication.isLandscape == false {
                     Button {
                         KSOptions.supportedInterfaceOrientations = UIApplication.isLandscape ? .portrait : .landscapeLeft
@@ -460,11 +460,11 @@ struct VideoControllerView: View {
             HStack {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
                 Spacer()
-                playbackRateButton
-                pipButton
+                KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
+                KSVideoPlayerViewBuilder.pipButton(config: config)
                 KSVideoPlayerViewBuilder.recordButton(config: config)
-                subtitleButton
-                infoButton
+                KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
@@ -486,10 +486,10 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.playButton(config: config)
                     KSVideoPlayerViewBuilder.forwardButton(config: config)
                     VideoTimeShowView(config: config, model: config.timemodel, timeFont: .title3)
-                    contentModeButton
-                    subtitleButton
-                    playbackRateButton
-                    infoButton
+                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
+                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
             }
             .frame(minWidth: playerWidth / 1.5)
@@ -515,57 +515,6 @@ struct VideoControllerView: View {
             .buttonStyle(.borderless)
             .padding()
         #endif
-    }
-
-    private var volumeSlider: some View {
-        Slider(value: $config.playbackVolume, in: 0 ... 1)
-            .onChange(of: config.playbackVolume) { newValue in
-                config.isMuted = newValue == 0
-            }
-    }
-
-    private var contentModeButton: some View {
-        KSVideoPlayerViewBuilder.contentModeButton(config: config)
-    }
-
-    private func audioButton(audioTracks: [MediaPlayerTrack]) -> some View {
-        MenuView(selection: Binding {
-            audioTracks.first { $0.isEnabled }?.trackID
-        } set: { value in
-            if let track = audioTracks.first(where: { $0.trackID == value }) {
-                config.playerLayer?.player.select(track: track)
-            }
-        }) {
-            ForEach(audioTracks, id: \.trackID) { track in
-                Text(track.description).tag(track.trackID as Int32?)
-            }
-        } label: {
-            Image(systemName: "waveform.circle.fill")
-            #if os(xrOS)
-                .padding()
-                .clipShape(Circle())
-            #endif
-        }
-    }
-
-    private var subtitleButton: some View {
-        KSVideoPlayerViewBuilder.subtitleButton(config: config)
-    }
-
-    private var playbackRateButton: some View {
-        KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
-    }
-
-    private var pipButton: some View {
-        Button {
-            (config.playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
-        } label: {
-            Image(systemName: "pip.fill")
-        }
-    }
-
-    private var infoButton: some View {
-        KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
     }
 }
 
@@ -616,11 +565,7 @@ struct VideoTimeShowView: View {
             HStack {
                 Text(model.currentTime.toString(for: .minOrHour))
                     .font(timeFont.monospacedDigit())
-                PlayerSlider(value: Binding {
-                    Float(model.currentTime)
-                } set: { newValue, _ in
-                    model.currentTime = Int(newValue)
-                }, bufferValue: Float(playerLayer.player.playableTime), in: 0 ... Float(model.totalTime)) { onEditingChanged in
+                PlayerSlider(model: model, bufferValue: Float(playerLayer.player.playableTime)) { onEditingChanged in
                     if onEditingChanged {
                         playerLayer.pause()
                     } else {
@@ -774,8 +719,9 @@ public struct PlatformView<Content: View>: View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 struct KSVideoPlayerView_Previews: PreviewProvider {
     static var previews: some View {
+        KSOptions.firstPlayerType = KSMEPlayer.self
         let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
-        KSVideoPlayerView(url: url, options: KSOptions())
+        return KSVideoPlayerView(url: url, options: KSOptions())
     }
 }
 

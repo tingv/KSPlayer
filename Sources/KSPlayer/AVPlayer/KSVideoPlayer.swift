@@ -365,10 +365,12 @@ public class ControllerTimeModel: ObservableObject {
     @Published
     public var totalTime = 1
 }
+
 struct KSVideoPlayer_Previews: PreviewProvider {
     static var previews: some View {
+        KSOptions.firstPlayerType = KSMEPlayer.self
         let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
         let coordinator = KSVideoPlayer.Coordinator()
-        KSVideoPlayer(coordinator: coordinator, url: url, options: KSOptions())
+        return KSVideoPlayer(coordinator: coordinator, url: url, options: KSOptions())
     }
 }
