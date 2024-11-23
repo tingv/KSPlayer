@@ -297,8 +297,8 @@ install_xcframework() {
   echo "Copied $source to $destination"
 }
 
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libfreetype.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libfribidi.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libharfbuzz.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libass.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libfreetype.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libfribidi.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libharfbuzz.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libass.xcframework" "Libass/Libass" "framework" "xros-arm64" "xros-arm64-simulator"
 

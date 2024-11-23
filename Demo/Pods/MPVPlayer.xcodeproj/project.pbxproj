@@ -7,96 +7,96 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0223DAFC95524420E245619110471AE9 /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
-		0826BA2B0ABDD258E5C28B917FDF6D61 /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
-		08AFE9478BB34957EF370EFD613A6A6F /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
-		0D592126631486F01E0F01BEA20ADA78 /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
-		1272769A52BA0D51071645F54E5A8BA2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 465E7067EF651582E6BE3EDF9D3A8154 /* Cocoa.framework */; };
-		12A5F384F26FD8D7779C7C9094BCAA53 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E69D4A98D2FD08714D8EFA1AC50776A5 /* Foundation.framework */; };
-		1A080710F82EDC6B15491AB3D7103B2A /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
-		219315EB194D751D14924536858A37CD /* MPVPlayer-visionOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = EAB1945A0FFCBA83FE9EE7B2F410C320 /* MPVPlayer-visionOS-dummy.m */; };
-		257363AE88215F4A66591FCE2686CA8B /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
-		3ABFD27480E79989400D7EF374BB66B3 /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
-		453A0FB2289124A4FD4EA3DFB93869AB /* MPVPlayer-tvOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E320BD1C8807A2F413B35EB3DCBC6D0 /* MPVPlayer-tvOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		45CABFD5A8E7E285A6F515EC5A601B86 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCAF192B659034B4C7AC54B522E4CE75 /* Foundation.framework */; };
-		4866A8C569DBD3F96D6EE7CD31AEEA7C /* MPVPlayer-iOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A771E774A2CD2899321C0C1BDAE49A0 /* MPVPlayer-iOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5F8AFCC16207117E9211A74EB03165A0 /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
-		84D61A4AE592EEA43F2E3496269F6453 /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
-		8557D7E13994B296D43587956C025CF6 /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
-		860B20A64D6DCCAC8F59CDD4CD73334A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC22398168EBC8AEEE6C6940E79B2F0C /* Foundation.framework */; };
-		9E667C7EB5F0B150C53FD3AB8B5A202D /* MPVPlayer-iOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = A4ACD04C336E87A82F45C3F369783297 /* MPVPlayer-iOS-dummy.m */; };
-		9FA869AEA4C3935CEB1B1E7AF045D015 /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
-		AA980D345FD1C6C6FE124007AC78F02D /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
-		AB7D9394C2467930E9832614DB8C190C /* MPVPlayer-visionOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 429C63A0D3729247A11B789A69EEDCB5 /* MPVPlayer-visionOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BB3951C8358EB331A92AB66B60DA17FE /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
-		BB746CFD5C188BF0D0D2357FD5482FF8 /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
-		BD8EE37C66DDC6598F9038CE43F21C01 /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
-		C302AD036E3AF73645150C20667DB427 /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
-		CA3202F1A343855736936815E08002D5 /* MPVPlayer-macOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B161ED90AF13BEA57C7E763592F570F /* MPVPlayer-macOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CC4EC0BF46BEB097A7A6621493D1826C /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
-		D4A86E0E793D0F839B8B26E3091A5957 /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
-		E4D82A74846BB9E956BF2E93C37E9B73 /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
-		E7A141433704EA0CD7D8D35B3D3457E2 /* MPVPlayer-tvOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C345172C806E4132B5A6C1F7CC86E /* MPVPlayer-tvOS-dummy.m */; };
-		EECF7274EF89CEDC6EEDEC97925E97A5 /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
-		FE9D1E78A4314CCF53480D499053FD5A /* MPVPlayer-macOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = BBB6A3C36CACD331FCF2125439A31989 /* MPVPlayer-macOS-dummy.m */; };
+		03A4E0205B4605A4D7AF9963E01BA29A /* MPVPlayer-visionOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 429C63A0D3729247A11B789A69EEDCB5 /* MPVPlayer-visionOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		0685997F34C7183F44BD16E5013244CD /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
+		0AAD8912304204AB7E4FD2E4F2314C51 /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
+		0BFE3FD750CACEFB048048F0F7E58152 /* MPVPlayer-visionOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = EAB1945A0FFCBA83FE9EE7B2F410C320 /* MPVPlayer-visionOS-dummy.m */; };
+		0FBF3176F67CBA8B2B93B02797337711 /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
+		174A0E69E5C086BD773F961E205F0945 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA8E44BD0FE4112BC24E5E66EFA3E481 /* Foundation.framework */; };
+		1E4F1403AF8C501AD9F6E17C122C04B4 /* MPVPlayer-macOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B161ED90AF13BEA57C7E763592F570F /* MPVPlayer-macOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		205CA94EEE9D15D3FF42A3374EE34A55 /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
+		22D699F2D42F6CB0A6B2F0B68F960EC0 /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
+		5D72F942870FF5B87C482C1B882DD643 /* MPVPlayer-macOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = BBB6A3C36CACD331FCF2125439A31989 /* MPVPlayer-macOS-dummy.m */; };
+		62388BE6EC0F49A0C43340B2EEB220BB /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
+		64498FFA9B2499012F65EFC65284A722 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A363E433DC5F08ABAFDC70160D0D8501 /* Cocoa.framework */; };
+		6C312D588CDC56CBF7EE470A9A2D72B4 /* MPVPlayer-iOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = A4ACD04C336E87A82F45C3F369783297 /* MPVPlayer-iOS-dummy.m */; };
+		766D5005FA5BD2E2FC735B3E4C413429 /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
+		8107E2C598524247C82803BB8FAC179F /* KSMPVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0830C74ADC419B1AA20B1287CDB9F188 /* KSMPVPlayer.swift */; };
+		8F8DA6FE68A197FDBBBDE84B2BE0C82B /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
+		909DB35675102CBA08E53DAAAD13746E /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
+		92E57A2B873351CA1E992B98996DD89C /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
+		A3CD35F0C9007EB47FF1AFA60BCC6CBD /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
+		BB2FF3C1423F1F7B040A84A82ACEAA7F /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
+		C1E6ECA8D12B0BF6D0B8867F1DFBEF1D /* MPVPlayer-tvOS-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C345172C806E4132B5A6C1F7CC86E /* MPVPlayer-tvOS-dummy.m */; };
+		C6566369029E795E8B9402AA8420E580 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9CDB46E2BD6BADEE0727E57340024993 /* Foundation.framework */; };
+		D2F2F6D105F25738CD3AC081F75006F5 /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
+		DF43E9961583EBA5C3AF11C34E2E1825 /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
+		E194B143B8D9131EA47D242E9B5DA7C9 /* MPVCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */; };
+		E4437D82DC3C76BDCFB5D18EBB108490 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B9E722ADC7F340E0419628797E9792C /* Foundation.framework */; };
+		E4F31E6DCCFFFF18DB46CD06F78A6DC1 /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
+		E62B671B69614F3C99954053CBC3493D /* MPVOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */; };
+		E7A2E9EDBCB89091FDB6AE10858E911C /* MPVPlayer-tvOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E320BD1C8807A2F413B35EB3DCBC6D0 /* MPVPlayer-tvOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E835A43516FB6DFBAC8F432EA1C03BE2 /* MPVHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */; };
+		F51C9C0FB999B281CC00A8BC4F18A3A1 /* MPVPlayer-iOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 3A771E774A2CD2899321C0C1BDAE49A0 /* MPVPlayer-iOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FF6E6E99DE39A66EBC0A756DF36B7E4F /* MPVProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED736C540FC67C195CEC33A3B48C155 /* MPVProperty.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		028ED4C2D75BE31FCA6F72F83D6C4A8E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 414B784CFBFE981829285DF44E2E68C5;
-			remoteInfo = "Libmpv-macOS";
-		};
-		30EECFCF4B545A08E3246D471051CEC6 /* PBXContainerItemProxy */ = {
+		025A38886777707D54AF71888BD3D89B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 621DC206E1023A38D338534A9E682743;
 			remoteInfo = "KSPlayer-visionOS";
 		};
-		3A39C10EF07ED988BD56D88D7E3F68AF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 9C3F4D5DE5D953D8DE280EB2863EA932;
-			remoteInfo = "Libmpv-visionOS";
-		};
-		460A4A6E9797812449D0502565551D33 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E9D29EC267067D41407F0D5CFC0EE5F3;
-			remoteInfo = "Libmpv-iOS";
-		};
-		63AB085226792E2D0DF01FA01726F715 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
-			remoteInfo = "KSPlayer-macOS";
-		};
-		6BD14B9CB5E5E74077E9FA8C4D8337B7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
-			remoteInfo = "KSPlayer-iOS";
-		};
-		A49A3F521B5E499F933EE26CD7945EE8 /* PBXContainerItemProxy */ = {
+		15E3A312EA9B8FE79683AA121E6801B6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = D9D3D8532247338E7FB4726FE870B78B;
 			remoteInfo = "Libmpv-tvOS";
 		};
-		A9582B59A1C3F52098140FEA100E5E22 /* PBXContainerItemProxy */ = {
+		1EF4492AE38DA5AC45F44A37F80A0277 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
+			remoteInfo = "KSPlayer-macOS";
+		};
+		317150F25D729CF45F4D4825A7822114 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
 			remoteInfo = "KSPlayer-tvOS";
+		};
+		835078AB7D86114223E3EEC7E1836A09 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9D29EC267067D41407F0D5CFC0EE5F3;
+			remoteInfo = "Libmpv-iOS";
+		};
+		94A74668F052BCAE293FE2E53B67F8FD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 414B784CFBFE981829285DF44E2E68C5;
+			remoteInfo = "Libmpv-macOS";
+		};
+		DD21BAB44DD1B723D6CBABEA3862140E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9C3F4D5DE5D953D8DE280EB2863EA932;
+			remoteInfo = "Libmpv-visionOS";
+		};
+		DEAB6FAD17BC6F55D9A6B312AE69D35E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
+			remoteInfo = "KSPlayer-iOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -116,8 +116,8 @@
 		3A771E774A2CD2899321C0C1BDAE49A0 /* MPVPlayer-iOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "MPVPlayer-iOS-umbrella.h"; sourceTree = "<group>"; };
 		429C63A0D3729247A11B789A69EEDCB5 /* MPVPlayer-visionOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MPVPlayer-visionOS-umbrella.h"; path = "../MPVPlayer-visionOS/MPVPlayer-visionOS-umbrella.h"; sourceTree = "<group>"; };
 		45EA00CCC52CF72AE17920E5C725DA33 /* MPVOption.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPVOption.swift; path = Sources/MPVPlayer/MPVOption.swift; sourceTree = "<group>"; };
-		465E7067EF651582E6BE3EDF9D3A8154 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		4A367FD7287F7BCD47ABC1492D6F4F01 /* MPVPlayer-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "MPVPlayer-tvOS.debug.xcconfig"; path = "../MPVPlayer-tvOS/MPVPlayer-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		4B9E722ADC7F340E0419628797E9792C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS2.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		4E320BD1C8807A2F413B35EB3DCBC6D0 /* MPVPlayer-tvOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MPVPlayer-tvOS-umbrella.h"; path = "../MPVPlayer-tvOS/MPVPlayer-tvOS-umbrella.h"; sourceTree = "<group>"; };
 		5B858792A32FAFA77D34F24544381D92 /* MPVPlayer-iOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "MPVPlayer-iOS.modulemap"; sourceTree = "<group>"; };
 		601F1EC9E3E044CFFA088F3B76440CA8 /* MPVPlayer-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "MPVPlayer-macOS.debug.xcconfig"; path = "../MPVPlayer-macOS/MPVPlayer-macOS.debug.xcconfig"; sourceTree = "<group>"; };
@@ -126,57 +126,57 @@
 		8B161ED90AF13BEA57C7E763592F570F /* MPVPlayer-macOS-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MPVPlayer-macOS-umbrella.h"; path = "../MPVPlayer-macOS/MPVPlayer-macOS-umbrella.h"; sourceTree = "<group>"; };
 		9786568711CEEE3A3BA7B8F63E852D84 /* MPVPlayer-iOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "MPVPlayer-iOS-prefix.pch"; sourceTree = "<group>"; };
 		9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = KSPlayer; path = KSPlayer.xcodeproj; sourceTree = "<group>"; };
+		9CDB46E2BD6BADEE0727E57340024993 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9E2F8751E875B76ADF1C6DAAFA561A20 /* MPVPlayer-visionOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "MPVPlayer-visionOS-Info.plist"; path = "../MPVPlayer-visionOS/MPVPlayer-visionOS-Info.plist"; sourceTree = "<group>"; };
 		9ED8083D1F9409AD01B9D6719F6F9BA4 /* MPVPlayer-macOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MPVPlayer-macOS-prefix.pch"; path = "../MPVPlayer-macOS/MPVPlayer-macOS-prefix.pch"; sourceTree = "<group>"; };
+		A363E433DC5F08ABAFDC70160D0D8501 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		A4ACD04C336E87A82F45C3F369783297 /* MPVPlayer-iOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "MPVPlayer-iOS-dummy.m"; sourceTree = "<group>"; };
 		A884B96A22716FC222A6ADE2A85926E7 /* MPVCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPVCommand.swift; path = Sources/MPVPlayer/MPVCommand.swift; sourceTree = "<group>"; };
 		B3622F2F2B3FCE29733EE8FF2736AE88 /* MPVPlayer-iOS-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "MPVPlayer-iOS-Info.plist"; sourceTree = "<group>"; };
 		BB38BC672055456510F27915C3124224 /* MPVPlayer-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "MPVPlayer-tvOS.release.xcconfig"; path = "../MPVPlayer-tvOS/MPVPlayer-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		BBB6A3C36CACD331FCF2125439A31989 /* MPVPlayer-macOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "MPVPlayer-macOS-dummy.m"; path = "../MPVPlayer-macOS/MPVPlayer-macOS-dummy.m"; sourceTree = "<group>"; };
-		BCAF192B659034B4C7AC54B522E4CE75 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BFF3DEE91B859D086978E52B07775EDB /* MPVHandle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPVHandle.swift; path = Sources/MPVPlayer/MPVHandle.swift; sourceTree = "<group>"; };
 		C582B5161813A5E9C308D6F6C3751D8D /* MPVPlayer-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "MPVPlayer-iOS.debug.xcconfig"; sourceTree = "<group>"; };
 		D36D827B84C490DECA0415269CA2D452 /* MPVPlayer-visionOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "MPVPlayer-visionOS.release.xcconfig"; path = "../MPVPlayer-visionOS/MPVPlayer-visionOS.release.xcconfig"; sourceTree = "<group>"; };
 		D427C3C31A462A420413EFAE2251F94F /* MPVPlayer-visionOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "MPVPlayer-visionOS.debug.xcconfig"; path = "../MPVPlayer-visionOS/MPVPlayer-visionOS.debug.xcconfig"; sourceTree = "<group>"; };
 		D70B9DAF459522DF995312B83EAFA370 /* Libmpv */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Libmpv; path = Libmpv.xcodeproj; sourceTree = "<group>"; };
-		DC22398168EBC8AEEE6C6940E79B2F0C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		DA8E44BD0FE4112BC24E5E66EFA3E481 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		E224BCEB21701DDB4B1D62A4871FE802 /* MPVPlayer-tvOS-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MPVPlayer-tvOS-prefix.pch"; path = "../MPVPlayer-tvOS/MPVPlayer-tvOS-prefix.pch"; sourceTree = "<group>"; };
-		E69D4A98D2FD08714D8EFA1AC50776A5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		EAB1945A0FFCBA83FE9EE7B2F410C320 /* MPVPlayer-visionOS-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "MPVPlayer-visionOS-dummy.m"; path = "../MPVPlayer-visionOS/MPVPlayer-visionOS-dummy.m"; sourceTree = "<group>"; };
 		F6B9D3D5E654F89FFCFBBF89B57F94D3 /* MPVPlayer-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "MPVPlayer-macOS.release.xcconfig"; path = "../MPVPlayer-macOS/MPVPlayer-macOS.release.xcconfig"; sourceTree = "<group>"; };
 		FE34863331D57CFF32EDF10EB423090A /* MPVPlayer-tvOS.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; name = "MPVPlayer-tvOS.modulemap"; path = "../MPVPlayer-tvOS/MPVPlayer-tvOS.modulemap"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		25DC1CD387E6C9630DAD06C800189025 /* Frameworks */ = {
+		474573B8287A3640866B96534E528994 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45CABFD5A8E7E285A6F515EC5A601B86 /* Foundation.framework in Frameworks */,
+				E4437D82DC3C76BDCFB5D18EBB108490 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7C0552091E1FA8010217351C6AEA00D3 /* Frameworks */ = {
+		5B7F79FBD971669F5BF865CCD2E5EA76 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				860B20A64D6DCCAC8F59CDD4CD73334A /* Foundation.framework in Frameworks */,
+				C6566369029E795E8B9402AA8420E580 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9277A4175F2D6829F3662FEDC32FFE66 /* Frameworks */ = {
+		BDB4B51A787E7473FF03107814B34CE0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1272769A52BA0D51071645F54E5A8BA2 /* Cocoa.framework in Frameworks */,
+				174A0E69E5C086BD773F961E205F0945 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A822FA404A15BBF8849517A7F5166A38 /* Frameworks */ = {
+		CB62B421D63B28334E46CF7836D0BC02 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				12A5F384F26FD8D7779C7C9094BCAA53 /* Foundation.framework in Frameworks */,
+				64498FFA9B2499012F65EFC65284A722 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,6 +194,14 @@
 			path = ../..;
 			sourceTree = "<group>";
 		};
+		1697D366E273855C2EB2F47B7CBFA511 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				9CDB46E2BD6BADEE0727E57340024993 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		1A58F899A938385AA8AF28A585A6D0DA /* Pod */ = {
 			isa = PBXGroup;
 			children = (
@@ -202,20 +210,12 @@
 			name = Pod;
 			sourceTree = "<group>";
 		};
-		29EABD115266EF042C28AA8F46450633 /* iOS */ = {
+		579257593D3FB36E80E4B7892559E0B2 /* visionOS */ = {
 			isa = PBXGroup;
 			children = (
-				DC22398168EBC8AEEE6C6940E79B2F0C /* Foundation.framework */,
+				4B9E722ADC7F340E0419628797E9792C /* Foundation.framework */,
 			);
-			name = iOS;
-			sourceTree = "<group>";
-		};
-		346716FA311B2CDD2662A4287F5B9D0E /* OS X */ = {
-			isa = PBXGroup;
-			children = (
-				465E7067EF651582E6BE3EDF9D3A8154 /* Cocoa.framework */,
-			);
-			name = "OS X";
+			name = visionOS;
 			sourceTree = "<group>";
 		};
 		8D61C227643EECCE75DA557C95932A8F /* Products */ = {
@@ -227,6 +227,14 @@
 				7D83BCC8F21A6B6DC8F964492A25FF49 /* MPVPlayer-visionOS */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9464FC14C6A515702D09468DA85B26EA /* tvOS */ = {
+			isa = PBXGroup;
+			children = (
+				DA8E44BD0FE4112BC24E5E66EFA3E481 /* Foundation.framework */,
+			);
+			name = tvOS;
 			sourceTree = "<group>";
 		};
 		975926DA66D2EF4A383FD586FB8BC39D = {
@@ -251,31 +259,23 @@
 			name = MPVPlayer;
 			sourceTree = "<group>";
 		};
-		B72EDF05427DCB4B3F06BFD4DB310CE5 /* tvOS */ = {
-			isa = PBXGroup;
-			children = (
-				E69D4A98D2FD08714D8EFA1AC50776A5 /* Foundation.framework */,
-			);
-			name = tvOS;
-			sourceTree = "<group>";
-		};
-		D28F5772D977D0E67BFCDF554D466FA4 /* visionOS */ = {
-			isa = PBXGroup;
-			children = (
-				BCAF192B659034B4C7AC54B522E4CE75 /* Foundation.framework */,
-			);
-			name = visionOS;
-			sourceTree = "<group>";
-		};
 		E50E9A4BC0D02A8656A8BD27A59A882E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				29EABD115266EF042C28AA8F46450633 /* iOS */,
-				346716FA311B2CDD2662A4287F5B9D0E /* OS X */,
-				B72EDF05427DCB4B3F06BFD4DB310CE5 /* tvOS */,
-				D28F5772D977D0E67BFCDF554D466FA4 /* visionOS */,
+				1697D366E273855C2EB2F47B7CBFA511 /* iOS */,
+				EDE1CBAB589375995D8EC4E5FF95391B /* OS X */,
+				9464FC14C6A515702D09468DA85B26EA /* tvOS */,
+				579257593D3FB36E80E4B7892559E0B2 /* visionOS */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EDE1CBAB589375995D8EC4E5FF95391B /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				A363E433DC5F08ABAFDC70160D0D8501 /* Cocoa.framework */,
+			);
+			name = "OS X";
 			sourceTree = "<group>";
 		};
 		F08F16D140D32C3277C8958725419757 /* Dependencies */ = {
@@ -326,35 +326,35 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		9CC64F56396A636EEEA413AC387D2A18 /* Headers */ = {
+		1F8F4819E958140B83BAE524E0FFAE7B /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				453A0FB2289124A4FD4EA3DFB93869AB /* MPVPlayer-tvOS-umbrella.h in Headers */,
+				1E4F1403AF8C501AD9F6E17C122C04B4 /* MPVPlayer-macOS-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AB2B85058463E49410329609FB2A9A13 /* Headers */ = {
+		7FC795F27427CCF48340F399CAC451A8 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA3202F1A343855736936815E08002D5 /* MPVPlayer-macOS-umbrella.h in Headers */,
+				03A4E0205B4605A4D7AF9963E01BA29A /* MPVPlayer-visionOS-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EF66271F1D6BF0F9E68F51CB2C1203D2 /* Headers */ = {
+		AF96C1FC5C9D96D237AB2196911CE2DD /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AB7D9394C2467930E9832614DB8C190C /* MPVPlayer-visionOS-umbrella.h in Headers */,
+				F51C9C0FB999B281CC00A8BC4F18A3A1 /* MPVPlayer-iOS-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F037A11C696CA4E67A3B7227707AE04B /* Headers */ = {
+		F701B785D2D6ECB520E900B4C69B58FC /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4866A8C569DBD3F96D6EE7CD31AEEA7C /* MPVPlayer-iOS-umbrella.h in Headers */,
+				E7A2E9EDBCB89091FDB6AE10858E911C /* MPVPlayer-tvOS-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,18 +363,18 @@
 /* Begin PBXNativeTarget section */
 		1379E322B8E36C1341AB2E7179C0537C /* MPVPlayer-visionOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 728116C43655852081028EEDDE0526D5 /* Build configuration list for PBXNativeTarget "MPVPlayer-visionOS" */;
+			buildConfigurationList = BAB83BD5E160F6CF5C03052245FCEC2E /* Build configuration list for PBXNativeTarget "MPVPlayer-visionOS" */;
 			buildPhases = (
-				EF66271F1D6BF0F9E68F51CB2C1203D2 /* Headers */,
-				BDE43B86A40651127FBBE65029AF7983 /* Sources */,
-				25DC1CD387E6C9630DAD06C800189025 /* Frameworks */,
-				F777E4602EB27D9E24CEB0427D1248B7 /* Resources */,
+				7FC795F27427CCF48340F399CAC451A8 /* Headers */,
+				FFDAE577D6513CB06A81FA0DC6974D54 /* Sources */,
+				474573B8287A3640866B96534E528994 /* Frameworks */,
+				C9E328B27D3861C8741D3A330B92EC8D /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				2C2E29CC433A0E706391A8C37B55F5B1 /* PBXTargetDependency */,
-				CC74E632BDBC53B6C3D7A5853E3F6A5B /* PBXTargetDependency */,
+				49AE5893F2AF8D5654B566636C0721C0 /* PBXTargetDependency */,
+				D2E2F499E03DA96D2C373E8734B43CE7 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-visionOS";
 			productName = MPVPlayer;
@@ -383,18 +383,18 @@
 		};
 		357DAEE2AEEA135ED5D9285878936773 /* MPVPlayer-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D740348E11118812A3874425896416E7 /* Build configuration list for PBXNativeTarget "MPVPlayer-iOS" */;
+			buildConfigurationList = FFE922BA21A06AB15CC29A65A06B1EF3 /* Build configuration list for PBXNativeTarget "MPVPlayer-iOS" */;
 			buildPhases = (
-				F037A11C696CA4E67A3B7227707AE04B /* Headers */,
-				E6C07251133D3705A1194EBF4DDC791C /* Sources */,
-				7C0552091E1FA8010217351C6AEA00D3 /* Frameworks */,
-				DAB7345FEBFD76AEF8FCC16FED962FCB /* Resources */,
+				AF96C1FC5C9D96D237AB2196911CE2DD /* Headers */,
+				C6E43A499779B08E1549F363EE5AB801 /* Sources */,
+				5B7F79FBD971669F5BF865CCD2E5EA76 /* Frameworks */,
+				2909EC7B04A05EDDBE092E7D469678F8 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				9049108A5B318460CF875589A1A9F35F /* PBXTargetDependency */,
-				0F1F8652B83FF09F2A7F9B10969B7F86 /* PBXTargetDependency */,
+				2A615C4A5847D0927ED97B5BB03F9831 /* PBXTargetDependency */,
+				0104958A69BE2E0005CE0C76E67954C8 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-iOS";
 			productName = MPVPlayer;
@@ -403,18 +403,18 @@
 		};
 		7B1B86FEE63BC19F5C09F1B91F356F4B /* MPVPlayer-tvOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B7B9E22AE3485A5047DE827C30E6EAE6 /* Build configuration list for PBXNativeTarget "MPVPlayer-tvOS" */;
+			buildConfigurationList = A32C4F9109D5EDC7AE0FD7A8E7D0B153 /* Build configuration list for PBXNativeTarget "MPVPlayer-tvOS" */;
 			buildPhases = (
-				9CC64F56396A636EEEA413AC387D2A18 /* Headers */,
-				472B54B8B0B0045A21A13F662752A0AD /* Sources */,
-				A822FA404A15BBF8849517A7F5166A38 /* Frameworks */,
-				E9E5280B871AA7BAAC080BB7C09CB208 /* Resources */,
+				F701B785D2D6ECB520E900B4C69B58FC /* Headers */,
+				E09F0B467C147FD2A8072483CD0D1D4A /* Sources */,
+				BDB4B51A787E7473FF03107814B34CE0 /* Frameworks */,
+				E11E7FA8FD1B1BEF47FC1EF4EDA2D023 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				8A33320007307A8D8C4EB1E1F336FD7A /* PBXTargetDependency */,
-				10F0DA7D5BBABF90DCAF90F71B1481C4 /* PBXTargetDependency */,
+				F168DC3B4EF705B62DF9F6B530FC53A3 /* PBXTargetDependency */,
+				52CCD97668D142CBA396A5CAAFF6A5C6 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-tvOS";
 			productName = MPVPlayer;
@@ -423,18 +423,18 @@
 		};
 		DCCF26E6185EBF4B573015ADCDFF3EB6 /* MPVPlayer-macOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 90FAB154C58EA29B0075860EE8D92AE0 /* Build configuration list for PBXNativeTarget "MPVPlayer-macOS" */;
+			buildConfigurationList = FF8E90CAF297A95C125E1C24F94896A5 /* Build configuration list for PBXNativeTarget "MPVPlayer-macOS" */;
 			buildPhases = (
-				AB2B85058463E49410329609FB2A9A13 /* Headers */,
-				35C7A46E1DEE2B5A6384969577FB8C09 /* Sources */,
-				9277A4175F2D6829F3662FEDC32FFE66 /* Frameworks */,
-				0DB6BFA23C6C99BD9B990DD0FCD8E84E /* Resources */,
+				1F8F4819E958140B83BAE524E0FFAE7B /* Headers */,
+				C7BE727208A6E0950DB48B4158A2B799 /* Sources */,
+				CB62B421D63B28334E46CF7836D0BC02 /* Frameworks */,
+				1ED26CA38990E930F8B06E74EB59285E /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				CBB61BD86CD767C0B9A61791BD40579F /* PBXTargetDependency */,
-				70F325BE00F4D4FFAB5B3B471241B85D /* PBXTargetDependency */,
+				F5D537347DE748CD2437787F10F52271 /* PBXTargetDependency */,
+				2DCB95D10CC728E6DB1C7A130996EC68 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-macOS";
 			productName = MPVPlayer;
@@ -447,8 +447,8 @@
 		C6FDB9218A42425725AB6EF6D235D6F2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
 			};
 			buildConfigurationList = F54F42DBEDABAA283591D075410280F8 /* Build configuration list for PBXProject "MPVPlayer" */;
 			compatibilityVersion = "Xcode 12.0";
@@ -460,6 +460,7 @@
 			);
 			mainGroup = 975926DA66D2EF4A383FD586FB8BC39D;
 			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 8D61C227643EECCE75DA557C95932A8F /* Products */;
 			projectDirPath = "";
 			projectReferences = (
@@ -481,28 +482,28 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		0DB6BFA23C6C99BD9B990DD0FCD8E84E /* Resources */ = {
+		1ED26CA38990E930F8B06E74EB59285E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DAB7345FEBFD76AEF8FCC16FED962FCB /* Resources */ = {
+		2909EC7B04A05EDDBE092E7D469678F8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E9E5280B871AA7BAAC080BB7C09CB208 /* Resources */ = {
+		C9E328B27D3861C8741D3A330B92EC8D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F777E4602EB27D9E24CEB0427D1248B7 /* Resources */ = {
+		E11E7FA8FD1B1BEF47FC1EF4EDA2D023 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -512,104 +513,145 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		35C7A46E1DEE2B5A6384969577FB8C09 /* Sources */ = {
+		C6E43A499779B08E1549F363EE5AB801 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BB746CFD5C188BF0D0D2357FD5482FF8 /* KSMPVPlayer.swift in Sources */,
-				CC4EC0BF46BEB097A7A6621493D1826C /* MPVCommand.swift in Sources */,
-				BB3951C8358EB331A92AB66B60DA17FE /* MPVHandle.swift in Sources */,
-				EECF7274EF89CEDC6EEDEC97925E97A5 /* MPVOption.swift in Sources */,
-				FE9D1E78A4314CCF53480D499053FD5A /* MPVPlayer-macOS-dummy.m in Sources */,
-				257363AE88215F4A66591FCE2686CA8B /* MPVProperty.swift in Sources */,
+				62388BE6EC0F49A0C43340B2EEB220BB /* KSMPVPlayer.swift in Sources */,
+				0AAD8912304204AB7E4FD2E4F2314C51 /* MPVCommand.swift in Sources */,
+				D2F2F6D105F25738CD3AC081F75006F5 /* MPVHandle.swift in Sources */,
+				0685997F34C7183F44BD16E5013244CD /* MPVOption.swift in Sources */,
+				6C312D588CDC56CBF7EE470A9A2D72B4 /* MPVPlayer-iOS-dummy.m in Sources */,
+				909DB35675102CBA08E53DAAAD13746E /* MPVProperty.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		472B54B8B0B0045A21A13F662752A0AD /* Sources */ = {
+		C7BE727208A6E0950DB48B4158A2B799 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD8EE37C66DDC6598F9038CE43F21C01 /* KSMPVPlayer.swift in Sources */,
-				9FA869AEA4C3935CEB1B1E7AF045D015 /* MPVCommand.swift in Sources */,
-				8557D7E13994B296D43587956C025CF6 /* MPVHandle.swift in Sources */,
-				0826BA2B0ABDD258E5C28B917FDF6D61 /* MPVOption.swift in Sources */,
-				E7A141433704EA0CD7D8D35B3D3457E2 /* MPVPlayer-tvOS-dummy.m in Sources */,
-				AA980D345FD1C6C6FE124007AC78F02D /* MPVProperty.swift in Sources */,
+				8107E2C598524247C82803BB8FAC179F /* KSMPVPlayer.swift in Sources */,
+				E194B143B8D9131EA47D242E9B5DA7C9 /* MPVCommand.swift in Sources */,
+				92E57A2B873351CA1E992B98996DD89C /* MPVHandle.swift in Sources */,
+				E4F31E6DCCFFFF18DB46CD06F78A6DC1 /* MPVOption.swift in Sources */,
+				5D72F942870FF5B87C482C1B882DD643 /* MPVPlayer-macOS-dummy.m in Sources */,
+				FF6E6E99DE39A66EBC0A756DF36B7E4F /* MPVProperty.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BDE43B86A40651127FBBE65029AF7983 /* Sources */ = {
+		E09F0B467C147FD2A8072483CD0D1D4A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				84D61A4AE592EEA43F2E3496269F6453 /* KSMPVPlayer.swift in Sources */,
-				08AFE9478BB34957EF370EFD613A6A6F /* MPVCommand.swift in Sources */,
-				0D592126631486F01E0F01BEA20ADA78 /* MPVHandle.swift in Sources */,
-				1A080710F82EDC6B15491AB3D7103B2A /* MPVOption.swift in Sources */,
-				219315EB194D751D14924536858A37CD /* MPVPlayer-visionOS-dummy.m in Sources */,
-				E4D82A74846BB9E956BF2E93C37E9B73 /* MPVProperty.swift in Sources */,
+				205CA94EEE9D15D3FF42A3374EE34A55 /* KSMPVPlayer.swift in Sources */,
+				0FBF3176F67CBA8B2B93B02797337711 /* MPVCommand.swift in Sources */,
+				E835A43516FB6DFBAC8F432EA1C03BE2 /* MPVHandle.swift in Sources */,
+				E62B671B69614F3C99954053CBC3493D /* MPVOption.swift in Sources */,
+				C1E6ECA8D12B0BF6D0B8867F1DFBEF1D /* MPVPlayer-tvOS-dummy.m in Sources */,
+				BB2FF3C1423F1F7B040A84A82ACEAA7F /* MPVProperty.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E6C07251133D3705A1194EBF4DDC791C /* Sources */ = {
+		FFDAE577D6513CB06A81FA0DC6974D54 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4A86E0E793D0F839B8B26E3091A5957 /* KSMPVPlayer.swift in Sources */,
-				C302AD036E3AF73645150C20667DB427 /* MPVCommand.swift in Sources */,
-				0223DAFC95524420E245619110471AE9 /* MPVHandle.swift in Sources */,
-				5F8AFCC16207117E9211A74EB03165A0 /* MPVOption.swift in Sources */,
-				9E667C7EB5F0B150C53FD3AB8B5A202D /* MPVPlayer-iOS-dummy.m in Sources */,
-				3ABFD27480E79989400D7EF374BB66B3 /* MPVProperty.swift in Sources */,
+				766D5005FA5BD2E2FC735B3E4C413429 /* KSMPVPlayer.swift in Sources */,
+				22D699F2D42F6CB0A6B2F0B68F960EC0 /* MPVCommand.swift in Sources */,
+				DF43E9961583EBA5C3AF11C34E2E1825 /* MPVHandle.swift in Sources */,
+				8F8DA6FE68A197FDBBBDE84B2BE0C82B /* MPVOption.swift in Sources */,
+				0BFE3FD750CACEFB048048F0F7E58152 /* MPVPlayer-visionOS-dummy.m in Sources */,
+				A3CD35F0C9007EB47FF1AFA60BCC6CBD /* MPVProperty.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0F1F8652B83FF09F2A7F9B10969B7F86 /* PBXTargetDependency */ = {
+		0104958A69BE2E0005CE0C76E67954C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-iOS";
-			targetProxy = 460A4A6E9797812449D0502565551D33 /* PBXContainerItemProxy */;
+			targetProxy = 835078AB7D86114223E3EEC7E1836A09 /* PBXContainerItemProxy */;
 		};
-		10F0DA7D5BBABF90DCAF90F71B1481C4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "Libmpv-tvOS";
-			targetProxy = A49A3F521B5E499F933EE26CD7945EE8 /* PBXContainerItemProxy */;
-		};
-		2C2E29CC433A0E706391A8C37B55F5B1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "KSPlayer-visionOS";
-			targetProxy = 30EECFCF4B545A08E3246D471051CEC6 /* PBXContainerItemProxy */;
-		};
-		70F325BE00F4D4FFAB5B3B471241B85D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "Libmpv-macOS";
-			targetProxy = 028ED4C2D75BE31FCA6F72F83D6C4A8E /* PBXContainerItemProxy */;
-		};
-		8A33320007307A8D8C4EB1E1F336FD7A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "KSPlayer-tvOS";
-			targetProxy = A9582B59A1C3F52098140FEA100E5E22 /* PBXContainerItemProxy */;
-		};
-		9049108A5B318460CF875589A1A9F35F /* PBXTargetDependency */ = {
+		2A615C4A5847D0927ED97B5BB03F9831 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "KSPlayer-iOS";
-			targetProxy = 6BD14B9CB5E5E74077E9FA8C4D8337B7 /* PBXContainerItemProxy */;
+			targetProxy = DEAB6FAD17BC6F55D9A6B312AE69D35E /* PBXContainerItemProxy */;
 		};
-		CBB61BD86CD767C0B9A61791BD40579F /* PBXTargetDependency */ = {
+		2DCB95D10CC728E6DB1C7A130996EC68 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "KSPlayer-macOS";
-			targetProxy = 63AB085226792E2D0DF01FA01726F715 /* PBXContainerItemProxy */;
+			name = "Libmpv-macOS";
+			targetProxy = 94A74668F052BCAE293FE2E53B67F8FD /* PBXContainerItemProxy */;
 		};
-		CC74E632BDBC53B6C3D7A5853E3F6A5B /* PBXTargetDependency */ = {
+		49AE5893F2AF8D5654B566636C0721C0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "KSPlayer-visionOS";
+			targetProxy = 025A38886777707D54AF71888BD3D89B /* PBXContainerItemProxy */;
+		};
+		52CCD97668D142CBA396A5CAAFF6A5C6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Libmpv-tvOS";
+			targetProxy = 15E3A312EA9B8FE79683AA121E6801B6 /* PBXContainerItemProxy */;
+		};
+		D2E2F499E03DA96D2C373E8734B43CE7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-visionOS";
-			targetProxy = 3A39C10EF07ED988BD56D88D7E3F68AF /* PBXContainerItemProxy */;
+			targetProxy = DD21BAB44DD1B723D6CBABEA3862140E /* PBXContainerItemProxy */;
+		};
+		F168DC3B4EF705B62DF9F6B530FC53A3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "KSPlayer-tvOS";
+			targetProxy = 317150F25D729CF45F4D4825A7822114 /* PBXContainerItemProxy */;
+		};
+		F5D537347DE748CD2437787F10F52271 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "KSPlayer-macOS";
+			targetProxy = 1EF4492AE38DA5AC45F44A37F80A0277 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		01C9C60B9F2518B266C7E010062ACB2E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FE034CB26C424100A51F8C4BEBA76BB /* MPVPlayer-iOS.release.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS.modulemap";
+				PRODUCT_MODULE_NAME = MPVPlayer;
+				PRODUCT_NAME = MPVPlayer;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		031E067445F9B4C4501E15084085F31B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -679,45 +721,9 @@
 			};
 			name = Debug;
 		};
-		5297CA4E3AC4CFB7B9A969D71070B0E5 /* Debug */ = {
+		0CBB37169AA792A3AEC75ACA91F30C99 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C582B5161813A5E9C308D6F6C3751D8D /* MPVPlayer-iOS.debug.xcconfig */;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS.modulemap";
-				PRODUCT_MODULE_NAME = MPVPlayer;
-				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Debug;
-		};
-		605D02419F48F8EE6AB671C108CCD170 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 601F1EC9E3E044CFFA088F3B76440CA8 /* MPVPlayer-macOS.debug.xcconfig */;
+			baseConfigurationReference = F6B9D3D5E654F89FFCFBBF89B57F94D3 /* MPVPlayer-macOS.release.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -730,7 +736,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -746,15 +755,16 @@
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
-			name = Debug;
+			name = Release;
 		};
-		6446E200F0FB879A3AAB91A72895CAA2 /* Release */ = {
+		3A193C1F8FA00FFFC0118844686D6857 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BB38BC672055456510F27915C3124224 /* MPVPlayer-tvOS.release.xcconfig */;
+			baseConfigurationReference = D36D827B84C490DECA0415269CA2D452 /* MPVPlayer-visionOS.release.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
@@ -764,29 +774,66 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-Info.plist";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS.modulemap";
+				PRODUCT_MODULE_NAME = MPVPlayer;
+				PRODUCT_NAME = MPVPlayer;
+				SDKROOT = xros;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
+		57518C69493EE64B02937B17D79F4E60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C582B5161813A5E9C308D6F6C3751D8D /* MPVPlayer-iOS.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS.modulemap";
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS.modulemap";
 				PRODUCT_MODULE_NAME = MPVPlayer;
 				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = appletvos;
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.0;
-				VALIDATE_PRODUCT = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
-			name = Release;
+			name = Debug;
 		};
 		7B3013EFCC020C1958B003F29D2AE0A3 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -853,9 +900,9 @@
 			};
 			name = Release;
 		};
-		8B0CCEBC6952476BB98ED9D5D1F56C84 /* Release */ = {
+		7C87738925AE1515DAF0FB6CBDDDFE63 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F6B9D3D5E654F89FFCFBBF89B57F94D3 /* MPVPlayer-macOS.release.xcconfig */;
+			baseConfigurationReference = 601F1EC9E3E044CFFA088F3B76440CA8 /* MPVPlayer-macOS.debug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -868,7 +915,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Target Support Files/MPVPlayer-macOS/MPVPlayer-macOS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -884,71 +934,14 @@
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
-		8DD8FA52B0C034903D5055500FC6FD64 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = D36D827B84C490DECA0415269CA2D452 /* MPVPlayer-visionOS.release.xcconfig */;
-			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS.modulemap";
-				PRODUCT_MODULE_NAME = MPVPlayer;
-				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = xros;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-				XROS_DEPLOYMENT_TARGET = 1.0;
-			};
-			name = Release;
-		};
-		D68A44C852BE0F2F5D5AEFB9B26D1C35 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = D427C3C31A462A420413EFAE2251F94F /* MPVPlayer-visionOS.debug.xcconfig */;
-			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS.modulemap";
-				PRODUCT_MODULE_NAME = MPVPlayer;
-				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = xros;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Debug;
 		};
-		D7B7A9CC9B6D8DAFDC8BD263B45B228A /* Debug */ = {
+		849E16B204995AD6B1CB1077C6F9CCBA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4A367FD7287F7BCD47ABC1492D6F4F01 /* MPVPlayer-tvOS.debug.xcconfig */;
 			buildSettings = {
@@ -960,7 +953,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -975,6 +971,7 @@
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 13.0;
@@ -983,11 +980,10 @@
 			};
 			name = Debug;
 		};
-		E6637B2436D627B130A890E4F9B2A5BE /* Release */ = {
+		8B6D4B144BE3E0F3BFC1ECA678DD70EB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1FE034CB26C424100A51F8C4BEBA76BB /* MPVPlayer-iOS.release.xcconfig */;
+			baseConfigurationReference = BB38BC672055456510F27915C3124224 /* MPVPlayer-tvOS.release.xcconfig */;
 			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
@@ -996,65 +992,84 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS-Info.plist";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/MPVPlayer-iOS/MPVPlayer-iOS.modulemap";
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-tvOS/MPVPlayer-tvOS.modulemap";
 				PRODUCT_MODULE_NAME = MPVPlayer;
 				PRODUCT_NAME = MPVPlayer;
-				SDKROOT = iphoneos;
+				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
+		FD29C1CA4B11F9F9379831F0FCBC11F6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D427C3C31A462A420413EFAE2251F94F /* MPVPlayer-visionOS.debug.xcconfig */;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREFIX_HEADER = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-prefix.pch";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/MPVPlayer-visionOS/MPVPlayer-visionOS.modulemap";
+				PRODUCT_MODULE_NAME = MPVPlayer;
+				PRODUCT_NAME = MPVPlayer;
+				SDKROOT = xros;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		728116C43655852081028EEDDE0526D5 /* Build configuration list for PBXNativeTarget "MPVPlayer-visionOS" */ = {
+		A32C4F9109D5EDC7AE0FD7A8E7D0B153 /* Build configuration list for PBXNativeTarget "MPVPlayer-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D68A44C852BE0F2F5D5AEFB9B26D1C35 /* Debug */,
-				8DD8FA52B0C034903D5055500FC6FD64 /* Release */,
+				849E16B204995AD6B1CB1077C6F9CCBA /* Debug */,
+				8B6D4B144BE3E0F3BFC1ECA678DD70EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		90FAB154C58EA29B0075860EE8D92AE0 /* Build configuration list for PBXNativeTarget "MPVPlayer-macOS" */ = {
+		BAB83BD5E160F6CF5C03052245FCEC2E /* Build configuration list for PBXNativeTarget "MPVPlayer-visionOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				605D02419F48F8EE6AB671C108CCD170 /* Debug */,
-				8B0CCEBC6952476BB98ED9D5D1F56C84 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B7B9E22AE3485A5047DE827C30E6EAE6 /* Build configuration list for PBXNativeTarget "MPVPlayer-tvOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D7B7A9CC9B6D8DAFDC8BD263B45B228A /* Debug */,
-				6446E200F0FB879A3AAB91A72895CAA2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D740348E11118812A3874425896416E7 /* Build configuration list for PBXNativeTarget "MPVPlayer-iOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				5297CA4E3AC4CFB7B9A969D71070B0E5 /* Debug */,
-				E6637B2436D627B130A890E4F9B2A5BE /* Release */,
+				FD29C1CA4B11F9F9379831F0FCBC11F6 /* Debug */,
+				3A193C1F8FA00FFFC0118844686D6857 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1064,6 +1079,24 @@
 			buildConfigurations = (
 				031E067445F9B4C4501E15084085F31B /* Debug */,
 				7B3013EFCC020C1958B003F29D2AE0A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FF8E90CAF297A95C125E1C24F94896A5 /* Build configuration list for PBXNativeTarget "MPVPlayer-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C87738925AE1515DAF0FB6CBDDDFE63 /* Debug */,
+				0CBB37169AA792A3AEC75ACA91F30C99 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FFE922BA21A06AB15CC29A65A06B1EF3 /* Build configuration list for PBXNativeTarget "MPVPlayer-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				57518C69493EE64B02937B17D79F4E60 /* Debug */,
+				01C9C60B9F2518B266C7E010062ACB2E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

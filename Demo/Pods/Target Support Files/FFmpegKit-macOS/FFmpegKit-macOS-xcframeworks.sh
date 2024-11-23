@@ -281,6 +281,30 @@ variant_for_slice()
   "libdav1d.xcframework/xros-arm64-simulator")
     echo "simulator"
     ;;
+  "libdovi.xcframework/ios-arm64")
+    echo ""
+    ;;
+  "libdovi.xcframework/ios-arm64_x86_64-maccatalyst")
+    echo "maccatalyst"
+    ;;
+  "libdovi.xcframework/ios-arm64_x86_64-simulator")
+    echo "simulator"
+    ;;
+  "libdovi.xcframework/macos-arm64_x86_64")
+    echo ""
+    ;;
+  "libdovi.xcframework/tvos-arm64")
+    echo ""
+    ;;
+  "libdovi.xcframework/tvos-arm64_x86_64-simulator")
+    echo "simulator"
+    ;;
+  "libdovi.xcframework/xros-arm64")
+    echo ""
+    ;;
+  "libdovi.xcframework/xros-arm64-simulator")
+    echo "simulator"
+    ;;
   "libplacebo.xcframework/ios-arm64")
     echo ""
     ;;
@@ -327,6 +351,30 @@ variant_for_slice()
     echo ""
     ;;
   "libfontconfig.xcframework/xros-arm64-simulator")
+    echo "simulator"
+    ;;
+  "libopus.xcframework/ios-arm64")
+    echo ""
+    ;;
+  "libopus.xcframework/ios-arm64_x86_64-maccatalyst")
+    echo "maccatalyst"
+    ;;
+  "libopus.xcframework/ios-arm64_x86_64-simulator")
+    echo "simulator"
+    ;;
+  "libopus.xcframework/macos-arm64_x86_64")
+    echo ""
+    ;;
+  "libopus.xcframework/tvos-arm64")
+    echo ""
+    ;;
+  "libopus.xcframework/tvos-arm64_x86_64-simulator")
+    echo "simulator"
+    ;;
+  "libopus.xcframework/xros-arm64")
+    echo ""
+    ;;
+  "libopus.xcframework/xros-arm64-simulator")
     echo "simulator"
     ;;
   "gmp.xcframework/ios-arm64")
@@ -743,6 +791,30 @@ archs_for_slice()
   "libdav1d.xcframework/xros-arm64-simulator")
     echo "arm64"
     ;;
+  "libdovi.xcframework/ios-arm64")
+    echo "arm64"
+    ;;
+  "libdovi.xcframework/ios-arm64_x86_64-maccatalyst")
+    echo "arm64 x86_64"
+    ;;
+  "libdovi.xcframework/ios-arm64_x86_64-simulator")
+    echo "arm64 x86_64"
+    ;;
+  "libdovi.xcframework/macos-arm64_x86_64")
+    echo "arm64 x86_64"
+    ;;
+  "libdovi.xcframework/tvos-arm64")
+    echo "arm64"
+    ;;
+  "libdovi.xcframework/tvos-arm64_x86_64-simulator")
+    echo "arm64 x86_64"
+    ;;
+  "libdovi.xcframework/xros-arm64")
+    echo "arm64"
+    ;;
+  "libdovi.xcframework/xros-arm64-simulator")
+    echo "arm64"
+    ;;
   "libplacebo.xcframework/ios-arm64")
     echo "arm64"
     ;;
@@ -789,6 +861,30 @@ archs_for_slice()
     echo "arm64"
     ;;
   "libfontconfig.xcframework/xros-arm64-simulator")
+    echo "arm64"
+    ;;
+  "libopus.xcframework/ios-arm64")
+    echo "arm64"
+    ;;
+  "libopus.xcframework/ios-arm64_x86_64-maccatalyst")
+    echo "arm64 x86_64"
+    ;;
+  "libopus.xcframework/ios-arm64_x86_64-simulator")
+    echo "arm64 x86_64"
+    ;;
+  "libopus.xcframework/macos-arm64_x86_64")
+    echo "arm64 x86_64"
+    ;;
+  "libopus.xcframework/tvos-arm64")
+    echo "arm64"
+    ;;
+  "libopus.xcframework/tvos-arm64_x86_64-simulator")
+    echo "arm64 x86_64"
+    ;;
+  "libopus.xcframework/xros-arm64")
+    echo "arm64"
+    ;;
+  "libopus.xcframework/xros-arm64-simulator")
     echo "arm64"
     ;;
   "gmp.xcframework/ios-arm64")
@@ -1017,24 +1113,26 @@ install_xcframework() {
   echo "Copied $source to $destination"
 }
 
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libavcodec.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libavfilter.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libavformat.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libavutil.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libswresample.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libswscale.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/Libavdevice.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libshaderc_combined.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/MoltenVK.xcframework" "FFmpegKit/FFmpegKit" "library" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/lcms2.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libdav1d.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libplacebo.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libfontconfig.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/gmp.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/nettle.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/hogweed.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/gnutls.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libzvbi.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libsrt.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libbluray.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libavcodec.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libavfilter.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libavformat.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libavutil.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libswresample.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libswscale.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/Libavdevice.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libshaderc_combined.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/MoltenVK.xcframework" "FFmpegKit/FFmpegKit" "library" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/lcms2.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libdav1d.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libdovi.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libplacebo.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libfontconfig.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libopus.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/gmp.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/nettle.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/hogweed.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/gnutls.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libzvbi.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libsrt.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libbluray.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
 
