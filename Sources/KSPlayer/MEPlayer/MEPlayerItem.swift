@@ -523,7 +523,8 @@ extension MEPlayerItem {
                 track.delegate = self
                 allPlayerItemTracks.append(track)
                 videoTrack = track
-                if !first.isImage {
+                // 有的m3u8会返回视频轨道，但是那个轨道是空的，所以这里需要判断下
+                if !first.isImage && !first.isEmpty {
                     videoAudioTracks.append(track)
                 }
                 let bitRates = videos.map(\.bitRate).filter {
