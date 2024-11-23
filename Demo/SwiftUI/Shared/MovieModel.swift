@@ -293,3 +293,13 @@ extension KSVideoPlayerView {
         self.init(url: url, options: options, title: model.name)
     }
 }
+
+#if DEBUG
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+struct KSVideoPlayerView2_Previews: PreviewProvider {
+    static var previews: some View {
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/subrip.mkv")!
+        KSVideoPlayerView(url: url)
+    }
+}
+#endif
