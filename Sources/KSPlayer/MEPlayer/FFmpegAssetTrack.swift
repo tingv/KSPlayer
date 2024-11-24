@@ -321,6 +321,7 @@ extension FFmpegAssetTrack {
     var isEmpty: Bool {
         codecpar.format == -1 && stream?.pointee.nb_frames == 0
     }
+
     var pixelFormatType: OSType? {
         let format = AVPixelFormat(codecpar.format)
         return format.osType(fullRange: formatDescription?.fullRangeVideo ?? false)

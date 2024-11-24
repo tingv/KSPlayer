@@ -52,8 +52,8 @@ public final actor AssImageRenderer {
         ass_set_extract_fonts(library, 1)
         // 这个是用内存来加载字体，如果字体多的话，会导致内存暴涨，用系统的方法还是无法加载字体，所以只能用这个方法来加载
         ass_set_fonts_dir(library, KSOptions.fontsDir.path)
-        // 用FONTCONFIG会比较耗时，并且文字可能会大小不一致
-        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_AUTODETECT.rawValue), nil, 0)
+        // 用FONTCONFIG会比较耗时，并且文字可能会大小不一致，用ASS_FONTPROVIDER_AUTODETECT会导致数字和中文的大小不一致。
+        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
         if let content, var buffer = content.cString(using: .utf8) {
             currentTrack = ass_read_memory(library, &buffer, buffer.count, nil)
         } else {
