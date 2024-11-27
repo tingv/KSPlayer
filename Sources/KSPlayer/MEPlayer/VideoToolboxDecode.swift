@@ -64,9 +64,15 @@ class VideoToolboxDecode: DecodeProtocol {
                 guard status == noErr else {
                     KSLog("[video] videoToolbox decode block error \(status) isKeyFrame: \(isKeyFrame)")
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
-                        // tvos在这边抛出NSError的话，会crash。所以就先不切换了解码器了。看下会怎么样
-                        // 这个地方同步解码只会调用一次，但是异步解码，会调用多次。所以用状态来判断。
-                        self.needReconfig = true
+                        /// 这个地方同步解码只会调用一次，但是异步解码，会调用多次,所以用状态来判断。
+                        /// 并且只在关键帧报错时候才切换解码器，不然就会多次切换解码，在tvos上会crash
+                        ///  有的Annex-B硬解在iOS和tvOS上间隔一段时间就会有几帧失败，导致卡顿。所以要切换成软解
+                        if isKeyFrame {
+                            let error = NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
+                            completionHandler(.failure(error))
+                        } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr {
+                            self.needReconfig = true
+                        }
                     }
                     return
                 }

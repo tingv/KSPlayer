@@ -60,6 +60,7 @@ class FFmpegDecode: DecodeProtocol {
             if isVideo, !hasDecodeSuccess {
                 avcodec_free_context(&self.codecContext)
                 options.hardwareDecode = false
+                KSLog("[video] videoToolbox ffmpeg decode have not success. change to software decode")
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
                 avcodec_send_packet(self.codecContext, packet.corePacket)
             } else {

@@ -189,13 +189,17 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             } catch {
                 KSLog("Decoder did Failed : \(error)")
                 if decoder is VideoToolboxDecode {
-                    // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
-                    DispatchQueue.global().async {
-                        decoder?.shutdown()
+                    // 因为异步解码报错会回调多次，所以这边需要做一下判断，不要重复创建FFmpegDecode
+                    if self.decoderMap[packet.assetTrack.trackID] === decoder {
+                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
+                        DispatchQueue.global().async {
+                            decoder?.shutdown()
+                        }
+                        self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
+                        KSLog("[video] VideoToolboxDecode fail. switch to ffmpeg decode")
                     }
-                    self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
-                    KSLog("VideoCodec switch to software decompression")
-                    self.doDecode(packet: packet)
+                    // packet不要在复用了。因为有可能进行了bitStreamFilter，导致内存被释放了，如果调用avcodec_send_packet的话，就会crashcrash
+//                    self.doDecode(packet: packet)
                 } else {
                     self.state = .failed
                 }
