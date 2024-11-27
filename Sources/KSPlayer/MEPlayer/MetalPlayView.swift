@@ -306,6 +306,16 @@ private class AVSampleBufferDisplayView: UIView {
     }
 
     func enqueue(imageBuffer: CVPixelBuffer, formatDescription: CMVideoFormatDescription) {
+        #if !os(tvOS)
+        if #available(iOS 17.0, macOS 14.0, *) {
+            let colorspace = imageBuffer.colorspace
+            if let name = colorspace?.name, name != CGColorSpace.sRGB {
+                layer.wantsExtendedDynamicRangeContent = true
+            } else {
+                layer.wantsExtendedDynamicRangeContent = false
+            }
+        }
+        #endif
         let timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: .zero, decodeTimeStamp: .invalid)
         //        var timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: time, decodeTimeStamp: .invalid)
         var sampleBuffer: CMSampleBuffer?
