@@ -491,16 +491,22 @@ open class KSOptions {
     open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription) {
         dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
         #if os(tvOS) || os(xrOS)
-        /**
-         快速更改preferredDisplayCriteria，会导致isDisplayModeSwitchInProgress变成true。
-         例如退出一个视频，然后在3s内重新进入的话。所以不判断isDisplayModeSwitchInProgress了
-         */
         guard let displayManager = UIApplication.shared.windows.first?.avDisplayManager,
               displayManager.isDisplayCriteriaMatchingEnabled
         else {
             return
         }
-        displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
+        /// 因为目前formatDescription里面没有信息可以看出是dovi。
+        /// 所以当设备只是dv，内容是dv的话，用videoDynamicRange。
+        if DynamicRange.availableHDRModes.contains(.dolbyVision), dynamicRange == .dolbyVision {
+            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
+        }
+        if #available(tvOS 17.0, *) {
+            /// 用formatDescription的话，显示的颜色会更准确，特别是hlg就不会显示dovi了
+            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, formatDescription: formatDescription)
+        } else {
+            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
+        }
         #endif
     }
 
