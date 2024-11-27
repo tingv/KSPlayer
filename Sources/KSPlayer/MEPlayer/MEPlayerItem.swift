@@ -184,7 +184,7 @@ public final class MEPlayerItem: Sendable {
         self.options = options
         operationQueue.name = "KSPlayer_" + String(describing: self).components(separatedBy: ".").last!
         operationQueue.maxConcurrentOperationCount = 1
-        operationQueue.qualityOfService = .userInteractive
+        operationQueue.qualityOfService = .userInitiated
         _ = MEPlayerItem.onceInitial
         // 一开始要清空字体，不然字体太多用ass加载的话，会内存暴涨
         try? FileManager.default.removeItem(at: KSOptions.fontsDir)
@@ -569,8 +569,8 @@ extension MEPlayerItem {
             Thread.current.stackSize = KSOptions.stackSize
             self.readThread()
         }
-        readOperation?.queuePriority = .veryHigh
-        readOperation?.qualityOfService = .userInteractive
+        readOperation?.queuePriority = .high
+        readOperation?.qualityOfService = .utility
         if let readOperation {
             operationQueue.addOperation(readOperation)
         }
@@ -856,7 +856,7 @@ extension MEPlayerItem: MediaPlayback {
             self.openThread()
         }
         openOperation?.queuePriority = .veryHigh
-        openOperation?.qualityOfService = .userInteractive
+        openOperation?.qualityOfService = .userInitiated
         if let openOperation {
             operationQueue.addOperation(openOperation)
         }
@@ -895,8 +895,8 @@ extension MEPlayerItem: MediaPlayback {
             self.closeOperation = nil
             self.operationQueue.cancelAllOperations()
         }
-        closeOperation.queuePriority = .veryHigh
-        closeOperation.qualityOfService = .userInteractive
+        closeOperation.queuePriority = .normal
+        closeOperation.qualityOfService = .background
         if let readOperation {
             readOperation.cancel()
             closeOperation.addDependency(readOperation)
