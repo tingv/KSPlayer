@@ -500,8 +500,7 @@ open class KSOptions {
         /// 所以当设备只是dv，内容是dv的话，用videoDynamicRange。
         if DynamicRange.availableHDRModes.contains(.dolbyVision), dynamicRange == .dolbyVision {
             displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
-        }
-        if #available(tvOS 17.0, *) {
+        } else if #available(tvOS 17.0, *) {
             /// 用formatDescription的话，显示的颜色会更准确，特别是hlg就不会显示dovi了
             displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, formatDescription: formatDescription)
         } else {
