@@ -67,7 +67,7 @@ class VideoToolboxDecode: DecodeProtocol {
                         /// 这个地方同步解码只会调用一次，但是异步解码，会调用多次,所以用状态来判断。
                         /// 并且只在关键帧报错时候才切换解码器，不然就会多次切换解码，在tvos上会crash
                         ///  有的Annex-B硬解在iOS和tvOS上间隔一段时间就会有几帧失败，导致界面卡住几秒。所以要马上切换成软解
-                        if isKeyFrame || bitStreamFilter is AnnexbToCCBitStreamFilter {
+                        if isKeyFrame || bitStreamFilter is AnnexbToCCBitStreamFilter.Type {
                             let error = NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
                             completionHandler(.failure(error))
                         } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr {
