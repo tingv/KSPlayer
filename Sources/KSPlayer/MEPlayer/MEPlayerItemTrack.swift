@@ -156,7 +156,11 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
                 let sideData = corePacket.pointee.side_data[i]
-                if sideData.type == AV_PKT_DATA_A53_CC {}
+                if sideData.type == AV_PKT_DATA_A53_CC {
+                } else if sideData.type == AV_PKT_DATA_WEBVTT_IDENTIFIER || sideData.type == AV_PKT_DATA_WEBVTT_SETTINGS {
+//                    let str = String(cString: sideData.data)
+//                    KSLog(str)
+                }
             }
         }
         //        var startTime = CACurrentMediaTime()

@@ -180,6 +180,18 @@ public enum KSVideoPlayerViewBuilder {
         .keyboardShortcut(.space, modifiers: .none)
         #endif
     }
+
+    #if canImport(UIKit) && !os(tvOS)
+    @ViewBuilder
+    static var landscapeButton: some View {
+        Button {
+            KSOptions.supportedInterfaceOrientations = UIApplication.isLandscape ? .portrait : .landscapeLeft
+            UIViewController.attemptRotationToDeviceOrientation()
+        } label: {
+            Image(systemName: UIApplication.isLandscape ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+        }
+    }
+    #endif
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)

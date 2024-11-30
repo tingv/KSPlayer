@@ -433,15 +433,8 @@ struct VideoControllerView: View {
                     AirPlayView().fixedSize()
                 }
                 KSVideoPlayerViewBuilder.contentModeButton(config: config)
-                if config.playerLayer?.player.naturalSize.isHorizonal == true, UIApplication.isLandscape == false {
-                    Button {
-                        KSOptions.supportedInterfaceOrientations = UIApplication.isLandscape ? .portrait : .landscapeLeft
-//                        let orientation: UIInterfaceOrientation = UIApplication.isLandscape ? .portrait : .landscapeLeft
-//                        UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
-                        UIViewController.attemptRotationToDeviceOrientation()
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
+                if config.playerLayer?.player.naturalSize.isHorizonal == true {
+                    KSVideoPlayerViewBuilder.landscapeButton
                 }
                 #endif
             }

@@ -221,7 +221,26 @@ public extension KSOptions {
 
 extension UIApplication {
     static var isLandscape: Bool {
-        UIApplication.shared.windows.first?.windowScene?.interfaceOrientation.isLandscape ?? false
+        UIApplication.shared.activeScene?.interfaceOrientation.isLandscape ?? false
+    }
+
+    static var navigationTopViewController: UIViewController? {
+        let nav = UIApplication.shared.rootViewController as? UINavigationController
+        return nav?.topViewController
+    }
+
+//    @available(iOS 16.0, *)
+//    static func changeOrientation(_ orientation: UIInterfaceOrientationMask) {
+//        UIApplication.shared.activeScene?.requestGeometryUpdate(.iOS(interfaceOrientations: orientation))
+//        UIApplication.navigationTopViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+//    }
+
+    var activeScene: UIWindowScene? {
+        connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+    }
+
+    var rootViewController: UIViewController? {
+        activeScene?.windows.first?.rootViewController
     }
 }
 #endif
