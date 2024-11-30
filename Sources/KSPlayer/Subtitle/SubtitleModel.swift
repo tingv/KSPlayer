@@ -215,7 +215,9 @@ open class SubtitleModel: ObservableObject {
                 }
             }
         } else if let dataSource = dataSource as? (any ConstantSubtitleDataSource) {
-            subtitleInfos.append(contentsOf: dataSource.infos)
+            for info in dataSource.infos {
+                addSubtitle(info: info)
+            }
         }
     }
 }

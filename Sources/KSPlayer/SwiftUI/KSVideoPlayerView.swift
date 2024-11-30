@@ -207,115 +207,6 @@ public extension KSVideoPlayerView {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-public struct KSCorePlayerView: View {
-    @StateObject
-    private var config: KSVideoPlayer.Coordinator
-    public let url: URL
-    public let options: KSOptions
-    @State
-    private var title: String
-    private let subtitleDataSource: SubtitleDataSource?
-    public init(config: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
-        _config = .init(wrappedValue: config)
-        self.url = url
-        self.options = options
-        _title = title
-        self.subtitleDataSource = subtitleDataSource
-    }
-
-    public var body: some View {
-        KSVideoPlayer(coordinator: config, url: url, options: options)
-            .onStateChanged { playerLayer, state in
-                if state == .readyToPlay {
-                    if let subtitleDataSource {
-                        config.playerLayer?.subtitleModel.addSubtitle(dataSource: subtitleDataSource)
-                    }
-                    if let movieTitle = playerLayer.player.dynamicInfo?.metadata["title"] {
-                        title = movieTitle
-                    }
-                }
-            }
-            .onBufferChanged { bufferedCount, consumeTime in
-                KSLog("bufferedCount \(bufferedCount), consumeTime \(consumeTime)")
-            }
-        #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
-            .translationView()
-        #endif
-            .ignoresSafeArea()
-
-        #if os(iOS) || os(xrOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if !os(iOS)
-        .focusable(!config.isMaskShow)
-        #endif
-        #if !os(xrOS)
-        .onKeyPressLeftArrow {
-            config.skip(interval: -15)
-        }
-        .onKeyPressRightArrow {
-            config.skip(interval: 15)
-        }
-        .onKeyPressSapce {
-            if config.state.isPlaying {
-                config.playerLayer?.pause()
-            } else {
-                config.playerLayer?.play()
-            }
-        }
-        #endif
-        #if os(macOS)
-        .navigationTitle(title)
-        .onTapGesture(count: 2) {
-            guard let view = config.playerLayer?.player.view else {
-                return
-            }
-            view.window?.toggleFullScreen(nil)
-            view.needsLayout = true
-            view.layoutSubtreeIfNeeded()
-        }
-        .onExitCommand {
-            config.playerLayer?.player.view.exitFullScreenMode()
-        }
-        .onMoveCommand { direction in
-            switch direction {
-            case .left:
-                config.skip(interval: -15)
-            case .right:
-                config.skip(interval: 15)
-            case .up:
-                config.playerLayer?.player.playbackVolume += 0.2
-            case .down:
-                config.playerLayer?.player.playbackVolume -= 0.2
-            @unknown default:
-                break
-            }
-        }
-        #endif
-    }
-}
-
-#if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
-public extension KSVideoPlayer {
-    @MainActor
-    func translationView() -> some View {
-        if #available(iOS 18.0, macOS 15.0, *) {
-            return translationTask(coordinator.playerLayer?.subtitleModel.translationSessionConf) { session in
-                do {
-                    try await session.prepareTranslation()
-                    coordinator.playerLayer?.subtitleModel.translationSession = session
-                } catch {
-                    KSLog(error)
-                }
-            }
-        } else {
-            return self
-        }
-    }
-}
-#endif
-
 @available(iOS 16, tvOS 16, macOS 13, *)
 struct VideoControllerView: View {
     @ObservedObject
@@ -511,41 +402,6 @@ struct VideoControllerView: View {
     }
 }
 
-@available(iOS 15, tvOS 16, macOS 12, *)
-public struct MenuView<Label, SelectionValue, Content>: View where Label: View, SelectionValue: Hashable, Content: View {
-    public let selection: Binding<SelectionValue>
-    @ViewBuilder
-    public let content: () -> Content
-    @ViewBuilder
-    public let label: () -> Label
-    @State
-    private var showMenu = false
-    public var body: some View {
-        if #available(tvOS 17, *) {
-            Menu {
-                Picker(selection: selection) {
-                    content()
-                } label: {
-                    EmptyView()
-                }
-                .pickerStyle(.inline)
-            } label: {
-                label()
-            }
-            .menuIndicator(.hidden)
-        } else {
-            Picker(selection: selection, content: content, label: label)
-            #if !os(macOS)
-                .pickerStyle(.navigationLink)
-            #endif
-                .frame(height: 50)
-            #if os(tvOS)
-                .frame(width: 110)
-            #endif
-        }
-    }
-}
-
 @available(iOS 15, tvOS 15, macOS 12, *)
 struct VideoTimeShowView: View {
     @ObservedObject
@@ -577,10 +433,6 @@ struct VideoTimeShowView: View {
             Text("Live Streaming".localized)
         }
     }
-}
-
-extension EventModifiers {
-    static let none = Self()
 }
 
 @available(iOS 16, tvOS 16, macOS 13, *)
@@ -680,32 +532,6 @@ public struct DynamicInfoView: View {
         LabeledContent("Bytes Read".localized, value: dynamicInfo.bytesRead.kmFormatted + "B")
         LabeledContent("Audio bitrate".localized, value: dynamicInfo.audioBitrate.kmFormatted + "bps")
         LabeledContent("Video bitrate".localized, value: dynamicInfo.videoBitrate.kmFormatted + "bps")
-    }
-}
-
-@available(iOS 16, tvOS 16, macOS 13, *)
-public struct PlatformView<Content: View>: View {
-    private let content: () -> Content
-    public var body: some View {
-        #if os(tvOS)
-        // tvos需要加NavigationStack，不然无法出现下拉框。iOS不能加NavigationStack，不然会丢帧。
-        NavigationStack {
-            ScrollView {
-                content()
-                    .padding()
-            }
-        }
-        .pickerStyle(.navigationLink)
-        #else
-        Form {
-            content()
-        }
-        .formStyle(.grouped)
-        #endif
-    }
-
-    public init(@ViewBuilder content: @escaping () -> Content) {
-        self.content = content
     }
 }
 
