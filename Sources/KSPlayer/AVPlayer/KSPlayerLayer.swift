@@ -306,6 +306,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 }
                 return
             }
+            subtitleModel.cleanParts()
             player.seek(time: time) { [weak self] finished in
                 guard let self else { return }
                 if finished, autoPlay {

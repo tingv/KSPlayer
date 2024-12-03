@@ -185,6 +185,10 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
+    public func cleanParts() {
+        parts = []
+    }
+
     public func searchSubtitle(query: String, languages: [String]) {
         for dataSource in subtitleDataSources {
             if let dataSource = dataSource as? SearchSubtitleDataSource {
