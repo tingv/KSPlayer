@@ -310,8 +310,12 @@ public extension MediaPlayerTrack {
         }
     }
 
+    var isDovi: Bool {
+        dynamicRange == .dolbyVision
+    }
+
     var colorSpace: CGColorSpace? {
-        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?, isDovi: dynamicRange == .dolbyVision)
+        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?, isDovi: isDovi)
     }
 
     var mediaSubType: CMFormatDescription.MediaSubType {

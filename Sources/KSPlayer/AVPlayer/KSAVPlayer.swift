@@ -243,6 +243,9 @@ extension KSAVPlayer {
             }
             if let playableVideo {
                 naturalSize = playableVideo.naturalSize
+                if let formatDescription = playableVideo.formatDescription {
+                    options.updateVideo(refreshRate: playableVideo.nominalFrameRate, isDovi: playableVideo.isDovi, formatDescription: formatDescription)
+                }
             } else {
                 error = NSError(errorCode: .videoTracksUnplayable)
                 return
