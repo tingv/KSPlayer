@@ -253,7 +253,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             UIApplication.shared.isIdleTimerDisabled = true
         }
         isAutoPlay = true
-        if state == .error || state == .initialized {
+        if state == .error || state == .initialized || (state == .playedToTheEnd && !player.seekable) {
             prepareToPlay()
         }
         if player.isReadyToPlay {

@@ -161,11 +161,11 @@ public final class MEPlayerItem: Sendable {
                             // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
                             playerItem.options.urlIO(log: String(log))
                             if log.starts(with: "Will reconnect at") {
-                                let seconds = playerItem.mainClock().time.seconds
-                                // 不要设置seekTime了，不然解码后的帧可能会被丢弃
-//                                playerItem.videoTrack?.seekTime = seconds
-//                                playerItem.audioTrack?.seekTime = seconds
-                            }
+                                // ts流报Will reconnect at，会导致重复播放一段时间，所以要重新建立链接
+                                if !playerItem.seekable, playerItem.seekByBytes {
+                                    playerItem.prepareToPlay()
+                                }
+                            };
                         }
                     }
                 }
@@ -845,7 +845,7 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func prepareToPlay() {
-        guard [MESourceState.idle, .closed, .failed].contains(state) else {
+        guard [MESourceState.idle, .closed, .failed, .finished].contains(state) else {
             return
         }
         state = .opening
