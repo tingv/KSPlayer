@@ -39,7 +39,7 @@ Feature       | Free      |
 |Automatically switch to multi-bitrate streams based on network|✅|✅|
 
 ## The list of App using this SDK
-App Store Link| TestFlight Link |
+App Store Link| Logo |
 | ----------- | ----------- |
 |[Alplayer](https://apps.apple.com/us/app/alplayer/id1660917007)||
 |[APTV](https://apps.apple.com/app/aptv/id1630403500)||
