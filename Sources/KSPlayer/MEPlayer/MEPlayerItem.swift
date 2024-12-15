@@ -82,6 +82,10 @@ public final class MEPlayerItem: Sendable {
     public private(set) var fileSize: Int64 = 0
 
     public private(set) var naturalSize = CGSize.one
+    private var isLive: Bool {
+        initDuration == 0 || initDuration != duration
+    }
+
     private var error: NSError? {
         didSet {
             if error != nil {
@@ -159,12 +163,13 @@ public final class MEPlayerItem: Sendable {
                         if playerItem.state != .closed, playerItem.options != nil {
                             // 不能在这边判断playerItem.formatCtx。不然会报错Simultaneous accesses
                             playerItem.options.urlIO(log: String(log))
-                            if log.starts(with: "Will reconnect at") {
-                                // ts流报Will reconnect at，会导致重复播放一段时间，所以要重新建立链接
-                                if !playerItem.seekable, playerItem.seekByBytes {
-                                    playerItem.prepareToPlay()
-                                }
-                            }
+//                            if log.starts(with: "Will reconnect at") {
+//                                // 直播ts流打开reconnect会报Will reconnect at，会导致重复播放一段时间，所以要重新建立链接
+//                                // 点播也报这个错，所以需要判断下是直播
+//                                if playerItem.isLive, playerItem.seekByBytes, playerItem.options.formatContextOptions["reconnect"] as? Int == 1 {
+//                                    playerItem.prepareToPlay()
+//                                }
+//                            }
                         }
                     }
                 }
@@ -518,7 +523,7 @@ extension MEPlayerItem {
                 naturalSize = abs(rotation - 90) <= 1 || abs(rotation - 270) <= 1 ? first.naturalSize.reverse : first.naturalSize
                 options.process(assetTrack: first)
                 options.dynamicRange = first.dynamicRange ?? .sdr
-                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: initDuration == 0)
+                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: isLive)
                 let track = options.syncDecodeVideo ? SyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options)
                 track.delegate = self
                 allPlayerItemTracks.append(track)
