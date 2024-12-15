@@ -165,7 +165,7 @@ public final class MEPlayerItem: Sendable {
                                 if !playerItem.seekable, playerItem.seekByBytes {
                                     playerItem.prepareToPlay()
                                 }
-                            };
+                            }
                         }
                     }
                 }
@@ -380,7 +380,8 @@ extension MEPlayerItem {
 
         if videoTrack == nil, audioTrack == nil {
             state = .failed
-        } else {
+        } else if state != .closed {
+            // 有可能在open的时候，进行了关闭。那这时就不要read了
             state = .opened
             read()
         }
