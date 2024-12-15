@@ -152,7 +152,6 @@ public final class MEPlayerItem: Sendable {
                     }
                 } else if avclass != nil, let namePtr = avclass.pointee.class_name, String(cString: namePtr) == "URLContext" {
                     let context = ptr.assumingMemoryBound(to: URLContext.self).pointee
-
                     /// 因为这里需要获取playerItem。所以如果有其他的播放器内核的话，那需要重新设置av_log_set_callback，不然在这里会crash。
                     /// 其他播放内核不设置interrupt_callback的话，那也不会有问题
                     if let opaque = context.interrupt_callback.opaque, context.interrupt_callback.callback != nil {

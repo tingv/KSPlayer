@@ -42,8 +42,11 @@ open class KSOptions {
         // 参数的配置可以参考protocols.texi 和 http.c
         // 这个一定要，不然有的流就会判断不准FieldOrder
         formatContextOptions["scan_all_pmts"] = 1
-        // ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。但是日志会报Will reconnect at，导致重复播放一段时间，所以要重新建立链接
-        formatContextOptions["reconnect"] = 1
+        /// ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
+        /// 但是日志会报Will reconnect at，导致重复播放一段时间，所以要重新建立链接。
+        /// 重新建立链接会有概率在playerItem.prepareToPlay()crash。所以改成不自动重新建立链接了。
+        /// 最好是在播放结束的时候重新调用prepareToPlay方法
+//        formatContextOptions["reconnect"] = 1
         formatContextOptions["reconnect_streamed"] = 1
         // 需要加这个超时，不然从wifi切换到4g就会一直卡住
         formatContextOptions["rw_timeout"] = 10_000_000
