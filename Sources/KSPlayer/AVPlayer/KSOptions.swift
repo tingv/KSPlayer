@@ -49,7 +49,7 @@ open class KSOptions {
 //        formatContextOptions["reconnect"] = 1
         formatContextOptions["reconnect_streamed"] = 1
         // 需要加这个超时，不然从wifi切换到4g就会一直卡住
-        formatContextOptions["rw_timeout"] = 10_000_000
+        formatContextOptions["rw_timeout"] = 5_000_000
         // 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
         // 开启这个，百度网盘的视频链接无法播放
         // formatContextOptions["multiple_requests"] = 1
