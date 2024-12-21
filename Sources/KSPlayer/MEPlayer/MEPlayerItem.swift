@@ -815,7 +815,13 @@ extension MEPlayerItem {
                 }
             } else if readResult != AVError.tryAgain.code {
                 //                        if IS_AVERROR_INVALIDDATA(readResult)
-                error = .init(errorCode: .readFrame, avErrorCode: readResult)
+                // 超时进行重新连接，ts流断流之后需要重新建立连接，不然会有重复的内容播放
+                if readResult == swift_AVERROR(ETIMEDOUT) {
+                    KSLog("readFrame fail " + AVError(code: readResult).localizedDescription)
+                    openThread()
+                } else {
+                    error = .init(errorCode: .readFrame, avErrorCode: readResult)
+                }
             }
         }
         return readResult

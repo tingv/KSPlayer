@@ -437,6 +437,10 @@ public struct AVError: Error, Equatable {
         self.code = code
         message = String(avErrorCode: code)
     }
+
+    var localizedDescription: String {
+        "code: \(code) message: \(message)"
+    }
 }
 
 public extension Dictionary where Key == String {

@@ -276,6 +276,8 @@ extension KSPlayerErrorCode: CustomStringConvertible {
             return "swr_init swrContext fail"
         case .pixelBufferPoolCreate:
             return "pixelBufferPool Create fail"
+        case .readFrame:
+            return "readFrame fail"
         default:
             return "unknown"
         }
