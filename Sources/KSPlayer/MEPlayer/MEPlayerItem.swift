@@ -238,7 +238,7 @@ public final class MEPlayerItem: Sendable {
 // MARK: private functions
 
 extension MEPlayerItem {
-    private func openThread() {
+    private func openAndFindStream() {
         formatCtx?.pointee.interrupt_callback.opaque = nil
         formatCtx?.pointee.interrupt_callback.callback = nil
         pbArray.removeAll()
@@ -288,15 +288,15 @@ extension MEPlayerItem {
             if result >= 0 {
                 playerItem.pbArray.append(PBClass(pb: pb?.pointee))
             }
-//            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options, s.pointee.interrupt_callback) {
-//                pb?.pointee = subPb
-//                return 0
-//            } else {
-//                return -1
-//            }
+            //            if let ioContext = playerItem.ioContext, let url = URL(string: String(cString: url)), var subPb = ioContext.addSub(url: url, flags: flags, options: options, s.pointee.interrupt_callback) {
+            //                pb?.pointee = subPb
+            //                return 0
+            //            } else {
+            //                return -1
+            //            }
             return result
         }
-//         avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
+        //         avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
         defaultIOClose = formatCtx.pointee.io_close2
         formatCtx.pointee.io_close2 = { s, pb -> Int32 in
             guard let s else {
@@ -327,8 +327,8 @@ extension MEPlayerItem {
         guard result == 0 else {
             error = .init(errorCode: .formatOpenInput, avErrorCode: result)
             // opaque设置为空的话，可能会crash。但是我本地无法复现，暂时先注释掉吧。
-//            formatCtx.pointee.interrupt_callback.opaque = nil
-//            formatCtx.pointee.interrupt_callback.callback = nil
+            //            formatCtx.pointee.interrupt_callback.opaque = nil
+            //            formatCtx.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
             return
         }
@@ -353,6 +353,14 @@ extension MEPlayerItem {
         }
         // FIXME: hack, ffplay maybe should not use avio_feof() to test for the end
         formatCtx.pointee.pb?.pointee.eof_reached = 0
+    }
+
+    private func openThread() {
+        openAndFindStream()
+        guard let formatCtx else {
+            error = NSError(errorCode: .formatCreate)
+            return
+        }
         let flags = formatCtx.pointee.iformat.pointee.flags
         maxFrameDuration = flags & AVFMT_TS_DISCONT == AVFMT_TS_DISCONT ? 10.0 : 3600.0
         options.findTime = CACurrentMediaTime()
@@ -449,13 +457,9 @@ extension MEPlayerItem {
         outputPacket = av_packet_alloc()
     }
 
-    private func createCodec(formatCtx: UnsafeMutablePointer<AVFormatContext>) {
+    private func createAssetTracks(formatCtx: UnsafeMutablePointer<AVFormatContext>) {
         allPlayerItemTracks.removeAll()
         assetTracks.removeAll()
-        videoAdaptation = nil
-        videoTrack = nil
-        audioTrack = nil
-        videoAudioTracks.removeAll()
         assetTracks = (0 ..< Int(formatCtx.pointee.nb_streams)).compactMap { i in
             if let coreStream = formatCtx.pointee.streams[i] {
                 coreStream.pointee.discard = AVDISCARD_ALL
@@ -494,54 +498,29 @@ extension MEPlayerItem {
         }
         // 因为本地视频加载很快，所以要在这边就把图片字幕给打开。不然前几秒的图片视频可能就无法展示出来了。
         options.wantedSubtitle(tracks: subtitles)?.isEnabled = true
-        var videoIndex: Int32 = -1
-        if !options.videoDisable {
-            let videos = assetTracks.filter { $0.mediaType == .video }
-            let wantedStreamNb: Int32
-            if !videos.isEmpty, let track = options.wantedVideo(tracks: videos) {
-                wantedStreamNb = track.trackID
-            } else {
-                wantedStreamNb = -1
-            }
-            videoIndex = av_find_best_stream(formatCtx, AVMEDIA_TYPE_VIDEO, wantedStreamNb, -1, nil, 0)
-            if let first = videos.first(where: { $0.trackID == videoIndex }) {
-                first.isEnabled = true
-                let rotation = first.rotation
-                if rotation > 0, options.autoRotate {
-                    options.hardwareDecode = false
-                    if abs(rotation - 90) <= 1 {
-                        options.videoFilters.append("transpose=clock")
-                    } else if abs(rotation - 180) <= 1 {
-                        options.videoFilters.append("hflip")
-                        options.videoFilters.append("vflip")
-                    } else if abs(rotation - 270) <= 1 {
-                        options.videoFilters.append("transpose=cclock")
-                    } else if abs(rotation) > 1 {
-                        options.videoFilters.append("rotate=\(rotation)*PI/180")
-                    }
-                }
-                naturalSize = abs(rotation - 90) <= 1 || abs(rotation - 270) <= 1 ? first.naturalSize.reverse : first.naturalSize
-                options.process(assetTrack: first)
-                options.dynamicRange = first.dynamicRange ?? .sdr
-                let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: isLive)
-                let track = options.syncDecodeVideo ? SyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options)
-                track.delegate = self
-                allPlayerItemTracks.append(track)
-                videoTrack = track
-                // 有的m3u8会返回视频轨道，但是那个轨道是空的，所以这里需要判断下
-                if !first.isImage, !first.isEmpty {
-                    videoAudioTracks.append(track)
-                }
-                let bitRates = videos.map(\.bitRate).filter {
-                    $0 > 0
-                }
-                if bitRates.count > 1, options.videoAdaptable {
-                    let bitRateState = VideoAdaptationState.BitRateState(bitRate: first.bitRate, time: CACurrentMediaTime())
-                    videoAdaptation = VideoAdaptationState(bitRates: bitRates.sorted(by: <), duration: duration, fps: first.nominalFrameRate, bitRateStates: [bitRateState])
-                }
-            }
+    }
+
+    private func findBestVideoAssetTrack() -> FFmpegAssetTrack? {
+        guard !options.videoDisable else {
+            return nil
         }
 
+        let videos = assetTracks.filter { $0.mediaType == .video }
+        let wantedStreamNb: Int32
+        if !videos.isEmpty, let track = options.wantedVideo(tracks: videos) {
+            wantedStreamNb = track.trackID
+        } else {
+            wantedStreamNb = -1
+        }
+        let videoIndex = av_find_best_stream(formatCtx, AVMEDIA_TYPE_VIDEO, wantedStreamNb, -1, nil, 0)
+        if let first = videos.first(where: { $0.trackID == videoIndex }) {
+            first.isEnabled = true
+            return first
+        }
+        return nil
+    }
+
+    private func findBestAudioAssetTrack() -> FFmpegAssetTrack? {
         let audios = assetTracks.filter { $0.mediaType == .audio }
         let wantedStreamNb: Int32
         if !audios.isEmpty, let track = options.wantedAudio(tracks: audios) {
@@ -549,13 +528,64 @@ extension MEPlayerItem {
         } else {
             wantedStreamNb = -1
         }
+        let videoIndex = assetTracks.first { $0.mediaType == .video && $0.isEnabled }?.trackID ?? -1
         let index = av_find_best_stream(formatCtx, AVMEDIA_TYPE_AUDIO, wantedStreamNb, videoIndex, nil, 0)
         if let first = audios.first(where: {
             index > 0 ? $0.trackID == index : true
         }), first.codecpar.codec_id != AV_CODEC_ID_NONE {
             first.isEnabled = true
+            return first
+        }
+        return nil
+    }
+
+    private func createCodec(formatCtx: UnsafeMutablePointer<AVFormatContext>) {
+        videoAdaptation = nil
+        videoTrack = nil
+        audioTrack = nil
+        videoAudioTracks.removeAll()
+        allPlayerItemTracks.forEach { $0.shutdown() }
+        createAssetTracks(formatCtx: formatCtx)
+        if let first = findBestVideoAssetTrack() {
+            let rotation = first.rotation
+            if rotation > 0, options.autoRotate {
+                options.hardwareDecode = false
+                if abs(rotation - 90) <= 1 {
+                    options.videoFilters.append("transpose=clock")
+                } else if abs(rotation - 180) <= 1 {
+                    options.videoFilters.append("hflip")
+                    options.videoFilters.append("vflip")
+                } else if abs(rotation - 270) <= 1 {
+                    options.videoFilters.append("transpose=cclock")
+                } else if abs(rotation) > 1 {
+                    options.videoFilters.append("rotate=\(rotation)*PI/180")
+                }
+            }
+            naturalSize = abs(rotation - 90) <= 1 || abs(rotation - 270) <= 1 ? first.naturalSize.reverse : first.naturalSize
+            options.process(assetTrack: first)
+            options.dynamicRange = first.dynamicRange ?? .sdr
+            let frameCapacity = options.videoFrameMaxCount(fps: first.nominalFrameRate, naturalSize: naturalSize, isLive: isLive)
+            let track = options.syncDecodeVideo ? SyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<VideoVTBFrame>(mediaType: .video, frameCapacity: frameCapacity, options: options)
+            track.delegate = self
+            allPlayerItemTracks.append(track)
+            videoTrack = track
+            // 有的m3u8会返回视频轨道，但是那个轨道是空的，所以这里需要判断下
+            if !first.isImage, !first.isEmpty {
+                videoAudioTracks.append(track)
+            }
+            let videos = assetTracks.filter { $0.mediaType == .video }
+            let bitRates = videos.map(\.bitRate).filter {
+                $0 > 0
+            }
+            if bitRates.count > 1, options.videoAdaptable {
+                let bitRateState = VideoAdaptationState.BitRateState(bitRate: first.bitRate, time: CACurrentMediaTime())
+                videoAdaptation = VideoAdaptationState(bitRates: bitRates.sorted(by: <), duration: duration, fps: first.nominalFrameRate, bitRateStates: [bitRateState])
+            }
+        }
+        if let first = findBestAudioAssetTrack() {
             options.process(assetTrack: first)
             // 音频要比较所有的音轨，因为truehd的fps是1200，跟其他的音轨差距太大了
+            let audios = assetTracks.filter { $0.mediaType == .audio }
             let fps = audios.map(\.nominalFrameRate).max() ?? 44
             let frameCapacity = options.audioFrameMaxCount(fps: fps, channelCount: Int(first.audioDescriptor?.audioFormat.channelCount ?? 2))
             let track = options.syncDecodeAudio ? SyncPlayerItemTrack<AudioFrame>(mediaType: .audio, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<AudioFrame>(mediaType: .audio, frameCapacity: frameCapacity, options: options)
@@ -805,7 +835,18 @@ extension MEPlayerItem {
                 }
             }
         } else if !interrupt {
-            if readResult == swift_AVERROR_EOF || avio_feof(formatCtx?.pointee.pb) > 0 {
+            // 超时的话，进行重试；ts流断流之后需要重新建立连接，不然会有重复的内容播放
+            if readResult == swift_AVERROR(ETIMEDOUT) {
+                KSLog("readFrame fail isLive: \(isLive) " + AVError(code: readResult).localizedDescription)
+                if isLive {
+                    //                        openThread()
+                    openAndFindStream()
+                    if let formatCtx {
+                        createCodec(formatCtx: formatCtx)
+                        allPlayerItemTracks.forEach { $0.decode() }
+                    }
+                }
+            } else if readResult == swift_AVERROR_EOF || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
                     _ = av_seek_frame(formatCtx, -1, startTime.value, AVSEEK_FLAG_BACKWARD)
@@ -815,15 +856,7 @@ extension MEPlayerItem {
                 }
             } else if readResult != AVError.tryAgain.code {
                 //                        if IS_AVERROR_INVALIDDATA(readResult)
-                // 超时进行重新连接，ts流断流之后需要重新建立连接，不然会有重复的内容播放
-                if readResult == swift_AVERROR(ETIMEDOUT) {
-                    KSLog("readFrame fail isLive: \(isLive) " + AVError(code: readResult).localizedDescription)
-                    if isLive {
-                        openThread()
-                    }
-                } else {
-                    error = .init(errorCode: .readFrame, avErrorCode: readResult)
-                }
+                error = .init(errorCode: .readFrame, avErrorCode: readResult)
             }
         }
         return readResult

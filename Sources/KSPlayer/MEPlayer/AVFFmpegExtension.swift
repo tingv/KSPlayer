@@ -465,7 +465,7 @@ public extension Dictionary where Key == String {
     }
 }
 
-extension String {
+public extension String {
     init(avErrorCode code: Int32) {
         let buf = UnsafeMutablePointer<Int8>.allocate(capacity: Int(AV_ERROR_MAX_STRING_SIZE))
         buf.initialize(repeating: 0, count: Int(AV_ERROR_MAX_STRING_SIZE))
