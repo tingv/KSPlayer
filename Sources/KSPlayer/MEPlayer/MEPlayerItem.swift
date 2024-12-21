@@ -817,8 +817,10 @@ extension MEPlayerItem {
                 //                        if IS_AVERROR_INVALIDDATA(readResult)
                 // 超时进行重新连接，ts流断流之后需要重新建立连接，不然会有重复的内容播放
                 if readResult == swift_AVERROR(ETIMEDOUT) {
-                    KSLog("readFrame fail " + AVError(code: readResult).localizedDescription)
-                    openThread()
+                    KSLog("readFrame fail isLive: \(isLive) " + AVError(code: readResult).localizedDescription)
+                    if isLive {
+                        openThread()
+                    }
                 } else {
                     error = .init(errorCode: .readFrame, avErrorCode: readResult)
                 }
