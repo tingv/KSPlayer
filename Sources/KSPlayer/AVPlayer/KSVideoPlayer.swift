@@ -55,8 +55,11 @@ extension KSVideoPlayer: UIViewRepresentable {
 
     // iOS tvOS真机先调用onDisappear在调用dismantleUIView，但是模拟器就反过来了。
     public static func dismantleUIView(_: UIViewType, coordinator: Coordinator) {
-        coordinator.resetPlayer()
+        if let playerLayer = coordinator.playerLayer as? KSComplexPlayerLayer, !playerLayer.isPipActive {
+            coordinator.resetPlayer()
+        }
     }
+    
     #else
     public typealias NSViewType = UIView
     public func makeNSView(context: Context) -> NSViewType {
