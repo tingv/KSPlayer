@@ -653,6 +653,7 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
         player.pipController?.stop(restoreUserInterface: false)
         addSubtitle(to: player.view)
         options.isPictureInPictureActive = false
+        isPipActive = false
     }
 
     @MainActor
