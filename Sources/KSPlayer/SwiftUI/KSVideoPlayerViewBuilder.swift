@@ -128,7 +128,13 @@ public enum KSVideoPlayerViewBuilder {
     @ViewBuilder
     static func pipButton(config: KSVideoPlayer.Coordinator) -> some View {
         Button {
-            (config.playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
+            if let playerLayer = config.playerLayer as? KSComplexPlayerLayer {
+                if playerLayer.isPictureInPictureActive {
+                    playerLayer.pipStop(restoreUserInterface: true)
+                } else {
+                    playerLayer.pipStart()
+                }
+            }
         } label: {
             Image(systemName: "pip.fill")
         }

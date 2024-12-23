@@ -517,31 +517,14 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 }
 
+extension KSPlayerLayer {
+    var isPictureInPictureActive: Bool {
+        player.pipController?.isPictureInPictureActive ?? false
+    }
+}
+
 open class KSComplexPlayerLayer: KSPlayerLayer {
     private var urls = [URL]()
-    @Published
-    @MainActor
-    public var isPipActive = false {
-        didSet {
-            if isPipActive {
-                if let pipController = player.pipController {
-                    pipController.start(layer: self)
-                } else {
-                    player.configPIP()
-                    if #available(tvOS 14.0, *) {
-                        player.pipController?.delegate = self
-                    }
-                    // 刚创建pip的话，需要等待0.3才能pip
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                        guard let self, let pipController = self.player.pipController else { return }
-                        pipController.start(layer: self)
-                    }
-                }
-            } else {
-                player.pipController?.stop(restoreUserInterface: true)
-            }
-        }
-    }
 
     @MainActor
     public required init(url: URL, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
@@ -561,6 +544,28 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
     @available(*, unavailable)
     public required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    @MainActor
+    public func pipStart() {
+        if let pipController = player.pipController {
+            pipController.start(layer: self)
+        } else {
+            player.configPIP()
+            if #available(tvOS 14.0, *) {
+                player.pipController?.delegate = self
+            }
+            // 刚创建pip的话，需要等待0.3才能pip
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self, let pipController = self.player.pipController else { return }
+                pipController.start(layer: self)
+            }
+        }
+    }
+
+    @MainActor
+    public func pipStop(restoreUserInterface: Bool) {
+        player.pipController?.stop(restoreUserInterface: restoreUserInterface)
     }
 
     public func set(urls: [URL]) {
@@ -650,15 +655,14 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
 
     @MainActor
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
-        player.pipController?.stop(restoreUserInterface: false)
+        pipStop(restoreUserInterface: false)
         addSubtitle(to: player.view)
         options.isPictureInPictureActive = false
-        isPipActive = false
     }
 
     @MainActor
     public func pictureInPictureController(_: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler _: @escaping (Bool) -> Void) {
-        isPipActive = false
+        pipStop(restoreUserInterface: true)
     }
 }
 
@@ -849,7 +853,7 @@ extension KSComplexPlayerLayer {
         }
         if player.pipController?.isPictureInPictureActive == true {
             if !options.canStartPictureInPictureAutomaticallyFromInline {
-                isPipActive = false
+                pipStop(restoreUserInterface: true)
 
                 // 要延迟清空，这样delegate的方法才能调用，不然会导致回到前台，字幕无法显示了。并且1秒还不行，一定要2秒
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in

@@ -55,11 +55,9 @@ extension KSVideoPlayer: UIViewRepresentable {
 
     // iOS tvOS真机先调用onDisappear在调用dismantleUIView，但是模拟器就反过来了。
     public static func dismantleUIView(_: UIViewType, coordinator: Coordinator) {
-        if let playerLayer = coordinator.playerLayer as? KSComplexPlayerLayer, !playerLayer.isPipActive {
-            coordinator.resetPlayer()
-        }
+        coordinator.resetPlayer()
     }
-    
+
     #else
     public typealias NSViewType = UIView
     public func makeNSView(context: Context) -> NSViewType {
@@ -158,12 +156,8 @@ extension KSVideoPlayer: UIViewRepresentable {
                     oldValue?.subtitleModel.translationSession = nil
                 }
                 #endif
-                // 要用不等于，这样才能排除pipController为空的情况
-                guard let oldValue, oldValue.player.pipController?.isPictureInPictureActive != true else {
-                    return
-                }
-                oldValue.delegate = nil
-                oldValue.stop()
+                oldValue?.delegate = nil
+                oldValue?.stop()
             }
         }
 
@@ -193,11 +187,22 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         public func resetPlayer() {
+            // 进入pip一定要清空translationSession。不然会crash
+            #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, macOS 15.0, *) {
+                playerLayer?.subtitleModel.translationSessionConf?.invalidate()
+                playerLayer?.subtitleModel.translationSession = nil
+            }
+            #endif
+            // 要用不等于，这样才能排除pipController为空的情况
+            guard let playerLayer, playerLayer.player.pipController?.isPictureInPictureActive != true else {
+                return
+            }
             onStateChanged = nil
             onPlay = nil
             onFinish = nil
             onBufferChanged = nil
-            playerLayer = nil
+            self.playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
         }

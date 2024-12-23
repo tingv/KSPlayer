@@ -130,9 +130,6 @@ open class VideoPlayerView: PlayerView {
                     view.bottomAnchor.constraint(equalTo: bottomAnchor),
                     view.trailingAnchor.constraint(equalTo: trailingAnchor),
                 ])
-                if let cancellable = (playerLayer as? KSComplexPlayerLayer)?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton) {
-                    cancellables.append(cancellable)
-                }
             }
         }
     }
@@ -152,7 +149,15 @@ open class VideoPlayerView: PlayerView {
         super.onButtonPressed(type: type, button: button)
         if type == .pictureInPicture {
             if #available(tvOS 14.0, *) {
-                (playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
+                if let playerLayer = playerLayer as? KSComplexPlayerLayer {
+                    if playerLayer.isPictureInPictureActive {
+                        playerLayer.pipStop(restoreUserInterface: true)
+                        button.isSelected = false
+                    } else {
+                        playerLayer.pipStart()
+                        button.isSelected = true
+                    }
+                }
             }
         }
         #if os(tvOS)
