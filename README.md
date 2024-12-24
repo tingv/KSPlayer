@@ -54,6 +54,8 @@ App Store Link| Logo |
 |[TracyPlayer](https://apps.apple.com/app/tracyplayer/id6450770064)||
 |[UHF - Love your IPTV](https://apps.apple.com/app/uhf-love-your-iptv/id6443751726)|![logo](https://uhf-web.vercel.app/uhfsponsor.png)|
 |[Zen IPTV](https://apps.apple.com/fr/app/zen-iptv/id6458223193)||
+|[Swiptv - IPTV Smart Player](https://apps.apple.com/us/app/swiptv-iptv-player/id1658538188)|![logo]([https://uhf-web.vercel.app/uhfsponsor.png](https://www.swiptv.app/logo))|
+
 
 
 
