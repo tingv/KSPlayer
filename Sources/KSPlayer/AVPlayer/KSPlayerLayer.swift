@@ -649,7 +649,6 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
     @MainActor
     public func pictureInPictureControllerDidStartPictureInPicture(_: AVPictureInPictureController) {
         pipAddSubtitle()
-        options.isPictureInPictureActive = true
         player.pipController?.didStart(layer: self)
     }
 
@@ -657,7 +656,6 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
         pipStop(restoreUserInterface: false)
         addSubtitle(to: player.view)
-        options.isPictureInPictureActive = false
     }
 
     @MainActor
@@ -835,7 +833,7 @@ extension KSComplexPlayerLayer {
         guard state.isPlaying, !player.isExternalPlaybackActive else {
             return
         }
-        if player.pipController?.isPictureInPictureActive == true {
+        if isPictureInPictureActive {
             pipAddSubtitle()
             return
         }
@@ -851,7 +849,7 @@ extension KSComplexPlayerLayer {
         guard !player.isExternalPlaybackActive else {
             return
         }
-        if player.pipController?.isPictureInPictureActive == true {
+        if isPictureInPictureActive {
             if !options.canStartPictureInPictureAutomaticallyFromInline {
                 pipStop(restoreUserInterface: true)
 

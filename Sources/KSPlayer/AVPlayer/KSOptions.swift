@@ -431,7 +431,6 @@ open class KSOptions {
     @MainActor
     public static var audioVideoClockSync = true
     public var dynamicRange: DynamicRange = .sdr
-    public var isPictureInPictureActive = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoRotate = true

@@ -195,7 +195,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             }
             #endif
             // 要用不等于，这样才能排除pipController为空的情况
-            guard let playerLayer, playerLayer.player.pipController?.isPictureInPictureActive != true else {
+            guard let playerLayer, !playerLayer.isPictureInPictureActive else {
                 return
             }
             onStateChanged = nil
