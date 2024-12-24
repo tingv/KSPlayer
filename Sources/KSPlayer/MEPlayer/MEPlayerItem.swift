@@ -836,7 +836,7 @@ extension MEPlayerItem {
             }
         } else if !interrupt {
             // 超时的话，进行重试；ts流断流之后需要重新建立连接，不然会有重复的内容播放
-            if readResult == swift_AVERROR(ETIMEDOUT) {
+            if readResult == swift_AVERROR(ETIMEDOUT) || readResult == swift_AVERROR(EIO) {
                 KSLog("readFrame fail isLive: \(isLive) " + AVError(code: readResult).localizedDescription)
                 if isLive {
                     //                        openThread()
