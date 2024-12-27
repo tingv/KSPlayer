@@ -453,13 +453,15 @@ public protocol LogHandler {
 
 public class OSLog: LogHandler {
     public let label: String
+    public let formatter = DateFormatter()
     public init(lable: String) {
         label = lable
+        formatter.dateFormat = "MM-dd HH:mm:ss.SSSSSS"
     }
 
     @inlinable
     public func log(level: LogLevel, message: CustomStringConvertible, file: String, function: String, line: UInt) {
-        os_log(level.logType, "%@ %@: %@:%d %@ | %@", level.description, label, file, line, function, message.description)
+        os_log(level.logType, "%@ %@ %@: %@:%d %@ | %@", formatter.string(from: Date()), level.description, label, file, line, function, message.description)
     }
 }
 
