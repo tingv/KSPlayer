@@ -450,6 +450,10 @@ open class KSOptions {
         KSOptions.preferredFrame || fps > 61
     }
 
+    open func recreateContext(hasDecodeSuccess: Bool) -> Bool {
+        !hasDecodeSuccess
+    }
+
     open func wantedVideo(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {
         nil
     }
