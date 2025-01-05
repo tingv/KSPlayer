@@ -181,11 +181,12 @@ class DecompressionSession {
         }
         #endif
 //        VTDecompressionSessionCanAcceptFormatDescription(<#T##session: VTDecompressionSession##VTDecompressionSession#>, formatDescription: <#T##CMFormatDescription#>)
+        let size = options.decodeSize(width: assetTrack.codecpar.width, height: assetTrack.codecpar.height)
         let attributes: NSMutableDictionary = [
             kCVPixelBufferPixelFormatTypeKey: pixelFormatType,
             kCVPixelBufferMetalCompatibilityKey: true,
-            kCVPixelBufferWidthKey: assetTrack.codecpar.width,
-            kCVPixelBufferHeightKey: assetTrack.codecpar.height,
+            kCVPixelBufferWidthKey: size.width,
+            kCVPixelBufferHeightKey: size.height,
             kCVPixelBufferIOSurfacePropertiesKey: NSDictionary(),
         ]
         var session: VTDecompressionSession?

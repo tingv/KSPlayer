@@ -450,6 +450,20 @@ open class KSOptions {
         KSOptions.preferredFrame || fps > 61
     }
 
+    /// 这个函数只在异步硬解才生效
+    open func decodeSize(width: Int32, height: Int32) -> CGSize {
+        #if os(iOS)
+        // ios 要iPhone 15 pro max 播放8k的才不会卡顿，其他都会硬件解码耗时太久。所以把分辨率减半，降低解码耗时
+        if UIDevice.current.userInterfaceIdiom == .phone, width >= 7680 {
+            return CGSize(width: Int(width) / 2, height: Int(height) / 2)
+        } else {
+            return CGSize(width: Int(width), height: Int(height))
+        }
+        #else
+        return CGSize(width: Int(width), height: Int(height))
+        #endif
+    }
+
     open func recreateContext(hasDecodeSuccess: Bool) -> Bool {
         !hasDecodeSuccess
     }
