@@ -483,6 +483,7 @@ public extension NSError {
 
 public extension AVError {
     /// Resource temporarily unavailable
+    /// -35
     static let tryAgain = AVError(code: swift_AVERROR(EAGAIN))
     /// Invalid argument
     static let invalidArgument = AVError(code: swift_AVERROR(EINVAL))

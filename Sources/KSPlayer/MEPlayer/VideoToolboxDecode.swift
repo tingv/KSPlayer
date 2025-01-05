@@ -14,15 +14,19 @@ class VideoToolboxDecode: DecodeProtocol {
     private var session: DecompressionSession {
         didSet {
             VTDecompressionSessionInvalidate(oldValue.decompressionSession)
-            lastPosition = 0
             startTime = 0
+            maxTimestamp = 0
+            lastTimestamp = -1
         }
     }
 
     private let options: KSOptions
     private var startTime = Int64(0)
-    private var lastPosition = Int64(0)
+    private var maxTimestamp = Int64(0)
+    private var lastTimestamp = Int64(-1)
     private var needReconfig = false
+    // 解决异步硬解返回的数据没有排序的问题
+    private var frames = [VideoVTBFrame]()
 
     init(options: KSOptions, session: DecompressionSession) {
         self.options = options
@@ -81,16 +85,37 @@ class VideoToolboxDecode: DecodeProtocol {
                 }
                 let frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
                 frame.timebase = session.assetTrack.timebase
-                if isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.lastPosition > 0 {
-                    self.startTime = self.lastPosition - timestamp
+                if isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.maxTimestamp > 0 {
+                    self.startTime = self.maxTimestamp - timestamp
                 }
-                self.lastPosition = max(self.lastPosition, timestamp)
+                self.maxTimestamp = max(self.maxTimestamp, timestamp)
                 frame.position = position
                 frame.timestamp = self.startTime + timestamp
                 frame.duration = duration
                 frame.size = size
-                self.lastPosition += frame.duration
-                completionHandler(.success(frame))
+                if lastTimestamp == -1 || frame.timestamp - lastTimestamp < 2 * duration {
+                    lastTimestamp = frame.timestamp
+                    completionHandler(.success(frame))
+                } else {
+                    frames.append(frame)
+                    frames.sort {
+                        $0.timestamp < $1.timestamp
+                    }
+                    var index = 0
+                    while index < frames.count {
+                        let frame = frames[index]
+                        if frame.timestamp - self.lastTimestamp < 2 * duration
+                            || (index == 0 && frames.count > 4)
+                        {
+                            self.lastTimestamp = frame.timestamp
+                            completionHandler(.success(frame))
+                            index += 1
+                        } else {
+                            break
+                        }
+                    }
+                    frames.removeFirst(index)
+                }
             }
             // 要在VTDecompressionSessionDecodeFrame之后才进行释放内容，不然在tvos上会crash
             if bitStreamFilter != nil {
@@ -114,23 +139,26 @@ class VideoToolboxDecode: DecodeProtocol {
     }
 
     func doFlushCodec() {
-        lastPosition = 0
+        maxTimestamp = 0
         startTime = 0
+        frames.removeAll()
         VTDecompressionSessionFinishDelayedFrames(session.decompressionSession)
         /// mkv seek之后，第一个帧是isKeyFrame，但是还是会花屏, 把这一行注释掉，就可以极大降低花屏的概率
-        /// 但是会导致画面来回抖动，所以还是不能去掉
-        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
+        /// 但是会导致画面来回抖动，所以加了frames，来缓存数据，保证顺序
+//        VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
     }
 
     func shutdown() {
         // 需要先调用WaitForAsynchronousFrames，才不会有Packet泄漏
         VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
         VTDecompressionSessionInvalidate(session.decompressionSession)
+        frames.removeAll()
     }
 
     func decode() {
-        lastPosition = 0
         startTime = 0
+        maxTimestamp = 0
+        lastTimestamp = -1
     }
 
     deinit {}
@@ -168,9 +196,11 @@ class DecompressionSession {
         guard status == noErr, let decompressionSession = session else {
             return nil
         }
+        var propertyDict: CFDictionary?
+        // kVTDecompressionPropertyKey_ReducedResolutionDecode kVTDecompressionPropertyKey_ReducedFrameDelivery kVTPropertyNotSupportedErr -12900
+        VTSessionCopySupportedPropertyDictionary(decompressionSession, supportedPropertyDictionaryOut: &propertyDict)
         if #available(iOS 14.0, tvOS 14.0, macOS 11.0, *) {
-            VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata,
-                                 value: kCFBooleanTrue)
+            VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata, value: kCFBooleanTrue)
         }
         if let destinationDynamicRange = options.availableDynamicRange() {
             let pixelTransferProperties = [
