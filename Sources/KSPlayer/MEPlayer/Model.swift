@@ -77,6 +77,11 @@ protocol MEFrame: ObjectQueueItem {
     var timebase: Timebase { get set }
 }
 
+extension MEFrame {
+    mutating func set(startTime: CMTime) {
+        timestamp -= timebase.getPosition(from: startTime.seconds)
+    }
+}
 // MARK: model
 
 // for MEPlayer

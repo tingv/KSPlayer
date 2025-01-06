@@ -60,7 +60,7 @@ public final class MEPlayerItem: Sendable {
     }
 
     public var currentPlaybackTime: TimeInterval {
-        state == .seeking ? seekTime : (mainClock().time - startTime).seconds
+        state == .seeking ? seekTime : mainClock().time.seconds
     }
 
     private var seekTime = TimeInterval(0)
@@ -368,8 +368,6 @@ extension MEPlayerItem {
         seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & (AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS) != 0) && options.formatName != "ogg"
         if formatCtx.pointee.start_time != Int64.min {
             startTime = CMTime(value: formatCtx.pointee.start_time, timescale: AV_TIME_BASE)
-            videoClock.time = startTime
-            audioClock.time = startTime
         }
         initDuration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
         dynamicInfo.byteRate = formatCtx.pointee.bit_rate / 8
@@ -465,7 +463,9 @@ extension MEPlayerItem {
                 coreStream.pointee.discard = AVDISCARD_ALL
                 if let assetTrack = FFmpegAssetTrack(stream: coreStream) {
                     // 有遇到字幕的startTime不准，需要从formatCtx取，才是准的. cc字幕也会有这个问题，所以视频轨道也要改下
-                    assetTrack.startTime = startTime
+                    if assetTrack.mediaType == .subtitle || assetTrack.mediaType == .video {
+                        assetTrack.startTime = startTime
+                    }
                     if assetTrack.mediaType == .subtitle {
                         let subtitle = SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 255, options: options)
                         assetTrack.subtitle = subtitle
@@ -623,7 +623,8 @@ extension MEPlayerItem {
             if options.startPlayTime > 0, options.startPlayTime < duration {
                 var flags = options.seekFlags
                 let timestamp: Int64
-                let time = startTime + CMTime(seconds: options.startPlayTime)
+                let seekTime = CMTime(seconds: options.startPlayTime)
+                let time = startTime + seekTime
                 if seekByBytes {
                     if initFileSize > 0, initDuration > 0 {
                         flags |= AVSEEK_FLAG_BYTE
@@ -636,8 +637,8 @@ extension MEPlayerItem {
                 }
                 let seekStartTime = CACurrentMediaTime()
                 let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp, Int64.max, flags)
-                audioClock.time = time
-                videoClock.time = time
+                audioClock.time = seekTime
+                videoClock.time = seekTime
                 KSLog("start seek PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
                 if let seekingCompletionHandler {
                     DispatchQueue.main.async { [weak self] in
@@ -675,7 +676,7 @@ extension MEPlayerItem {
                     continue
                 }
                 let time = mainClock().time
-                var increase = Int64(seekTime + startTime.seconds - time.seconds)
+                var increase = Int64(seekTime - time.seconds)
                 var seekFlags = options.seekFlags
                 let timeStamp: Int64
                 /// 因为有的ts走seekByBytes的话，那会seek不会精准，自定义io的直播流和点播也会有有问题，所以先关掉，下次遇到ts seek有问题的话在看下。
@@ -704,7 +705,7 @@ extension MEPlayerItem {
                     //                avformat_flush(formatCtx)
                 } else {
                     increase *= Int64(AV_TIME_BASE)
-                    timeStamp = Int64(time.seconds) * Int64(AV_TIME_BASE) + increase
+                    timeStamp = Int64((time + startTime).seconds) * Int64(AV_TIME_BASE) + increase
                 }
                 /// 有遇到一个mov的视频，如果指定min，那seek之后，就会从0开始播放；
                 /// 并且如果seek的值大于结束时间的话，那会返回-1，到时无法加载数据，一直loading。
@@ -734,8 +735,8 @@ extension MEPlayerItem {
                 }
                 isSeek = true
                 allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
-                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
-                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale) + startTime
+                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
+                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.codecDidChangeCapacity()

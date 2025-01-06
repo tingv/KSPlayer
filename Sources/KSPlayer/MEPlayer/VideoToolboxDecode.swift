@@ -83,7 +83,7 @@ class VideoToolboxDecode: DecodeProtocol {
                 guard let imageBuffer else {
                     return
                 }
-                let frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
+                var frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
                 frame.timebase = session.assetTrack.timebase
                 if isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.maxTimestamp > 0 {
                     self.startTime = self.maxTimestamp - timestamp
@@ -91,6 +91,7 @@ class VideoToolboxDecode: DecodeProtocol {
                 self.maxTimestamp = max(self.maxTimestamp, timestamp)
                 frame.position = position
                 frame.timestamp = self.startTime + timestamp
+                frame.set(startTime: session.assetTrack.startTime)
                 frame.duration = duration
                 frame.size = size
                 if lastTimestamp == -1 || frame.timestamp - lastTimestamp < 2 * duration {

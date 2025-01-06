@@ -245,6 +245,7 @@ class FFmpegDecode: DecodeProtocol {
                     timestamp = bestEffortTimestamp
                 }
                 frame.timestamp = timestamp
+                frame.set(startTime: packet.assetTrack.startTime)
                 bestEffortTimestamp = timestamp &+ frame.duration
                 completionHandler(.success(frame))
             } catch {
