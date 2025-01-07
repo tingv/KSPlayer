@@ -78,10 +78,12 @@ protocol MEFrame: ObjectQueueItem {
 }
 
 extension MEFrame {
+    /// 有的m3u8的音频和视频的startTime不一样，所以要各自减去自己startTime
     mutating func set(startTime: CMTime) {
         timestamp -= timebase.getPosition(from: startTime.seconds)
     }
 }
+
 // MARK: model
 
 // for MEPlayer
