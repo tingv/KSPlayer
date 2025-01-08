@@ -22,7 +22,11 @@ let package = Package(
 //            type: .dynamic,
             targets: ["KSPlayer"]
         ),
-        .library(name: "MPVPlayer", targets: ["MPVPlayer"]),
+        .library(
+            name: "MPVPlayer",
+//            type: .dynamic,
+            targets: ["MPVPlayer"]
+        ),
     ],
     targets: [
         .target(

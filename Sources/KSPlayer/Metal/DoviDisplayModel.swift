@@ -5,7 +5,7 @@
 //  Created by kintan on 6/21/24.
 //
 
-import FFmpegKit
+internal import FFmpegKit
 import Foundation
 import Metal
 

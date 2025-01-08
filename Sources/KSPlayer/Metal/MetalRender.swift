@@ -6,7 +6,7 @@
 //
 import Accelerate
 import CoreVideo
-import FFmpegKit
+internal import FFmpegKit
 import Foundation
 import Metal
 import QuartzCore

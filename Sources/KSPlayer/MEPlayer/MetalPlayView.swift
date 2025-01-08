@@ -8,7 +8,7 @@
 import AVFoundation
 import Combine
 import CoreMedia
-import FFmpegKit
+internal import FFmpegKit
 import QuartzCore
 #if canImport(UIKit)
 import UIKit

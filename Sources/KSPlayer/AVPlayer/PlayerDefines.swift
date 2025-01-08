@@ -8,7 +8,8 @@
 import AVFoundation
 import CoreMedia
 import CoreServices
-import FFmpegKit
+import Libavformat
+internal import FFmpegKit
 import OSLog
 #if canImport(UIKit)
 import UIKit

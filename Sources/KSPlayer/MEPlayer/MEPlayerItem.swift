@@ -7,7 +7,7 @@
 
 import AVFoundation
 import CoreText
-import FFmpegKit
+internal import FFmpegKit
 import Libavcodec
 import Libavfilter
 import Libavformat

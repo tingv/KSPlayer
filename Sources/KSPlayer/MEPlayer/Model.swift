@@ -7,7 +7,7 @@
 
 import AVFoundation
 import CoreMedia
-import FFmpegKit
+internal import FFmpegKit
 import Libavcodec
 #if canImport(UIKit)
 import UIKit
@@ -448,7 +448,7 @@ public final class VideoVTBFrame: MEFrame {
     public let isDovi: Bool
     public var edrMetaData: EDRMetaData? = nil
     public var pixelBuffer: PixelBufferProtocol
-    public var doviData: dovi_metadata? = nil
+    var doviData: dovi_metadata? = nil
     public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
         self.pixelBuffer = pixelBuffer
         // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不对，所以统一设置下。
