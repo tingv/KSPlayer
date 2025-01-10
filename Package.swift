@@ -34,6 +34,8 @@ let package = Package(
             dependencies: [
                 "KSPlayer",
                 .product(name: "libmpv", package: "FFmpegKit"),
+//                .product(name: "libbluray", package: "FFmpegKit", condition: .when(platforms: [.macOS])),
+//                .product(name: "libzvbi", package: "FFmpegKit", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
             ],
             swiftSettings: [
                 swiftConcurrency,

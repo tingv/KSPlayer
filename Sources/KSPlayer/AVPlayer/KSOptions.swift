@@ -8,7 +8,7 @@
 import AVFoundation
 import SwiftUI
 #if os(tvOS) || os(xrOS)
-import DisplayCriteria
+internal import DisplayCriteria
 #endif
 import AVKit
 import Libavformat
