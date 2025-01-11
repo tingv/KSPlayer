@@ -36,9 +36,8 @@ public class KSSlider: UXSlider {
         return customBounds
     }
 
-    override open func thumbRect(forBounds bounds: CGRect, trackRect rect: CGRect, value: Float) -> CGRect {
-        let rect = super.thumbRect(forBounds: bounds, trackRect: rect, value: value)
-        return rect.insetBy(dx: -20, dy: -20)
+    override open func setThumbImage(_ image: UIImage?, for state: UIControl.State) {
+        super.setThumbImage(UIImage(named: "playback.slider.thumb"), for: state)
     }
 
     // MARK: - handle UI slider actions

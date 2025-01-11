@@ -267,16 +267,17 @@ public class PlayerToolBar: UIVisualEffectView {
         timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         timeLabel.text = "\(0.toString(for: timeType)) / \(0.toString(for: timeType))"
         timeSlider.minimumValue = 0
+        timeSlider.trackHeigt = CGFloat(6)
         #if os(iOS)
         if #available(macCatalyst 15.0, iOS 15.0, *) {
             timeSlider.preferredBehavioralStyle = .pad
             timeSlider.maximumTrackTintColor = focusColor.withAlphaComponent(0.2)
-            timeSlider.minimumTrackTintColor = focusColor
+            timeSlider.minimumTrackTintColor = focusColor.withAlphaComponent(0.8)
         }
         #endif
         #if !targetEnvironment(macCatalyst)
         timeSlider.maximumTrackTintColor = focusColor.withAlphaComponent(0.2)
-        timeSlider.minimumTrackTintColor = focusColor
+        timeSlider.minimumTrackTintColor = focusColor.withAlphaComponent(0.8)
         #endif
         playButton.tag = PlayerButtonType.play.rawValue
         playbackRateButton.tag = PlayerButtonType.rate.rawValue
