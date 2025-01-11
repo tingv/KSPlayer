@@ -14,7 +14,6 @@ import AppKit
 import AVKit
 
 public class PlayerToolBar: UIVisualEffectView {
-    private let vibrancyView: UIVisualEffectView
 
     public let srtButton = UIButton()
     public let timeLabel = UILabel()
@@ -222,23 +221,34 @@ public class PlayerToolBar: UIVisualEffectView {
     }
 
     override init(effect: UIVisualEffect?) {
+        super.init(effect: effect)
+
+        // 创建模糊效果
         let blurEffect = UIBlurEffect(style: .dark)
-        vibrancyView = UIVisualEffectView(effect: blurEffect)
-        super.init(effect: blurEffect)
+        self.effect = blurEffect
 
-        layer.cornerRadius = 12
-        clipsToBounds = true
+        self.layer.cornerRadius = 12
+        self.clipsToBounds = true
+        self.translatesAutoresizingMaskIntoConstraints = false
 
-        contentView.addSubview(vibrancyView)
+        // 创建活力效果
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect)
+        let vibrancyView = UIVisualEffectView(effect: vibrancyEffect)
         vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+
+        // 将 vibrancyView 添加到 toolBar 的 contentView 中
+        self.contentView.addSubview(vibrancyView)
+
+        // 设置 vibrancyView 约束
         NSLayoutConstraint.activate([
-            vibrancyView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            vibrancyView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            vibrancyView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            vibrancyView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            vibrancyView.topAnchor.constraint(equalTo: self.contentView.topAnchor),
+            vibrancyView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
+            vibrancyView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
+            vibrancyView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor)
         ])
 
         initUI()
+
     }
 
     @available(*, unavailable)
@@ -322,7 +332,7 @@ public class PlayerToolBar: UIVisualEffectView {
     }
 
     public func addToContentView(_ view: UIView) {
-        vibrancyView.contentView.addSubview(view)
+        self.contentView.addSubview(view)
         view.isHidden = false
     }
 
