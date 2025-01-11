@@ -304,6 +304,12 @@ public class PlayerToolBar: UIVisualEffectView {
         pipButton.titleFont = .systemFont(ofSize: 14, weight: .medium)
         pipButton.setTitleColor(focusColor, for: .focused)
         pipButton.setTitleColor(tintColor, for: .normal)
+
+        // 扩展设置按钮
+        extendedButton.tag = PlayerButtonType.extended.rawValue
+        extendedButton.setTitleColor(focusColor, for: .focused)
+        extendedButton.setTitleColor(tintColor, for: .normal)
+
         if #available(macOS 11.0, *) {
             pipButton.setImage(UIImage(systemName: "pip.enter"), for: .normal)
             pipButton.setImage(UIImage(systemName: "pip.exit"), for: .selected)
@@ -328,6 +334,7 @@ public class PlayerToolBar: UIVisualEffectView {
         videoSwitchButton.tintColor = .white
         srtButton.tintColor = .white
         pipButton.tintColor = .white
+        extendedButton.tintColor = .white
 
     }
 
@@ -369,6 +376,7 @@ public class PlayerToolBar: UIVisualEffectView {
         videoSwitchButton.addTarget(target, action: action, for: .primaryActionTriggered)
         srtButton.addTarget(target, action: action, for: .primaryActionTriggered)
         pipButton.addTarget(target, action: action, for: .primaryActionTriggered)
+        extendedButton.addTarget(target, action: action, for: .primaryActionTriggered)
     }
 
     public func reset() {

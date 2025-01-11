@@ -25,6 +25,7 @@ public enum PlayerButtonType: Int {
     case pictureInPicture // 画中画按钮
     case audioSwitch    // 音频切换按钮
     case videoSwitch    // 视频切换按钮
+    case extended       // 扩展设置按钮
 }
 
 /// 播放器控制器代理协议

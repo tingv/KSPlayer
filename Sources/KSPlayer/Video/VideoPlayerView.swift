@@ -723,6 +723,7 @@ extension VideoPlayerView {
         toolBar.audioSwitchButton.showsMenuAsPrimaryAction = true
         toolBar.playbackRateButton.showsMenuAsPrimaryAction = true
         toolBar.srtButton.showsMenuAsPrimaryAction = true
+        toolBar.extendedButton.showsMenuAsPrimaryAction = true
         #endif
         #endif
     }
