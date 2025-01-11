@@ -80,10 +80,18 @@ extension UIMenu {
     }
 
     @available(tvOS 15.0, *)
-    convenience init?<U>(title: String, current: U?, list: [U], addDisabled: Bool = false, titleFunc: (U) -> String, completition: @escaping (String, U?) -> Void) {
+    convenience init?<U>(
+        title: String,
+        current: U?,
+        list: [U],
+        addDisabled: Bool = false,
+        titleFunc: (U) -> String,
+        completition: @escaping (String, U?) -> Void
+    ) {
         if list.count < (addDisabled ? 1 : 2) {
             return nil
         }
+
         var actions = list.map { value in
             let item = UIAction(title: titleFunc(value)) { item in
                 completition(item.title, value)
@@ -94,10 +102,14 @@ extension UIMenu {
             }
             return item
         }
+
         if addDisabled {
-            actions.insert(UIAction(title: NSLocalizedString("Disabled", comment: "")) { item in
-                completition(item.title, nil)
-            }, at: 0)
+            actions.insert(
+                UIAction(title: NSLocalizedString("Disabled", comment: "")) { item in
+                    completition(item.title, nil)
+                },
+                at: 0
+            )
         }
 
         self.init(title: title, children: actions)
@@ -138,8 +150,21 @@ extension UIMenu {
 
 extension UIButton {
     @available(iOS 14.0, *)
-    func setMenu<U>(title: String, current: U?, list: [U], addDisabled: Bool = false, titleFunc: (U) -> String, completition handler: @escaping (U?) -> Void) {
-        menu = UIMenu(title: title, current: current, list: list, addDisabled: addDisabled, titleFunc: titleFunc) { [weak self] title, value in
+    func setMenu<U>(
+        title: String,
+        current: U?,
+        list: [U],
+        addDisabled: Bool = false,
+        titleFunc: (U) -> String,
+        completition handler: @escaping (U?) -> Void
+    ) {
+        menu = UIMenu(
+            title: title,
+            current: current,
+            list: list,
+            addDisabled: addDisabled,
+            titleFunc: titleFunc
+        ) { [weak self] title, value in
             guard let self else { return }
             handler(value)
             self.menu = self.menu?.updateActionState(actionTitle: title)
@@ -153,7 +178,11 @@ extension UIButton {
     }
 
     @available(iOS 14.0, *)
-    func updateSubMenuState<T>(subMenuTitle: String, selectedItem: T, titleFunc: (T) -> String) {
+    func updateSubMenuState<T>(
+        subMenuTitle: String,
+        selectedItem: T,
+        titleFunc: (T) -> String
+    ) {
         guard let currentMenu = menu else { return }
 
         let updatedMenuItems = currentMenu.children.map { item -> UIMenuElement in
@@ -206,6 +235,7 @@ public typealias UIMenu = NSMenu
 
 public final class UIAction: NSMenuItem {
     private let handler: (UIAction) -> Void
+
     init(title: String, handler: @escaping (UIAction) -> Void) {
         self.handler = handler
         super.init(title: title, action: #selector(menuPressed), keyEquivalent: "")
