@@ -489,6 +489,9 @@ extension MEPlayerItem {
                             fontsDir.appendPathComponent(filename)
                             try? data.write(to: fontsDir)
                             let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
+                            // 清空字体减少内存占用
+                            av_freep(&coreStream.pointee.codecpar.pointee.extradata)
+                            coreStream.pointee.codecpar.pointee.extradata_size = 0
                         }
                     }
                 }
