@@ -190,8 +190,6 @@ public final class MEPlayerItem: Sendable {
         operationQueue.maxConcurrentOperationCount = 1
         operationQueue.qualityOfService = .userInitiated
         _ = MEPlayerItem.onceInitial
-        // 一开始要清空字体，不然字体太多用ass加载的话，会内存暴涨
-        try? FileManager.default.removeItem(at: KSOptions.fontsDir)
         timer.tolerance = 0.02
         timer.fireDate = .distantFuture
     }
@@ -351,6 +349,7 @@ extension MEPlayerItem {
             avformat_close_input(&self.formatCtx)
             return
         }
+        options.fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir/\(urlString.md5())")
         // FIXME: hack, ffplay maybe should not use avio_feof() to test for the end
         formatCtx.pointee.pb?.pointee.eof_reached = 0
     }
@@ -475,7 +474,7 @@ extension MEPlayerItem {
                     }
                     assetTrack.seekByBytes = seekByBytes
                     return assetTrack
-                } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT {
+                } else if coreStream.pointee.codecpar.pointee.codec_type == AVMEDIA_TYPE_ATTACHMENT, let fontsDir = options.fontsDir {
                     // 有的字体附件的codec_id 为0
                     if coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_TTF || coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_OTF ||
                         coreStream.pointee.codecpar.pointee.codec_id == AV_CODEC_ID_NONE
@@ -484,8 +483,8 @@ extension MEPlayerItem {
                         if let filename = metadata["filename"], let extradata = coreStream.pointee.codecpar.pointee.extradata {
                             let extradataSize = coreStream.pointee.codecpar.pointee.extradata_size
                             let data = Data(bytes: extradata, count: Int(extradataSize))
-                            var fontsDir = KSOptions.fontsDir
                             try? FileManager.default.createDirectory(at: fontsDir, withIntermediateDirectories: true)
+                            var fontsDir = fontsDir
                             fontsDir.appendPathComponent(filename)
                             try? data.write(to: fontsDir)
                             let result = CTFontManagerRegisterFontsForURL(fontsDir as CFURL, .process, nil)
@@ -922,6 +921,10 @@ extension MEPlayerItem: MediaPlayback {
         // 故意循环引用。等结束了。才释放
         let closeOperation = BlockOperation {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
+            // 要清空字体，不然字体可能会一直存着
+            if let fontsDir = self.options.fontsDir {
+                try? FileManager.default.removeItem(at: fontsDir)
+            }
             self.allPlayerItemTracks.forEach { $0.shutdown() }
             KSLog("清空formatCtx")
             self.formatCtx?.pointee.interrupt_callback.opaque = nil

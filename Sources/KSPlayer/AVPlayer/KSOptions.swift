@@ -336,7 +336,7 @@ open class KSOptions {
 
     // MARK: subtile options
 
-    static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
+    var fontsDir: URL?
     public nonisolated(unsafe) static var defaultFont: URL?
     public static var enableHDRSubtitle = true
     public nonisolated(unsafe) static var isASSUseImageRender = false

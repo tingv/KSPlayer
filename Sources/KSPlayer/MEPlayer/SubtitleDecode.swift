@@ -19,7 +19,7 @@ class SubtitleDecode: DecodeProtocol {
     private var subtitle = AVSubtitle()
     private var startTime = TimeInterval(0)
     private var assParse: AssParse? = nil
-    private var assImageRenderer: AssImageRenderer? = nil
+    private var assImageRenderer: AssIncrementImageRenderer? = nil
     private let isHDR: Bool
     private let isASS: Bool
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
@@ -43,11 +43,8 @@ class SubtitleDecode: DecodeProtocol {
                     }
                     // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
                     if (KSOptions.isASSUseImageRender && isASS) || KSOptions.isSRTUseImageRender {
-                        assImageRenderer = AssImageRenderer()
+                        assImageRenderer = AssIncrementImageRenderer(fontsDir: options.fontsDir?.path, header: subtitleHeader)
                         assetTrack.subtitleRender = assImageRenderer
-                        Task(priority: .high) {
-                            await assImageRenderer?.subtitle(header: subtitleHeader)
-                        }
                     } else {
                         let assParse = AssParse()
                         if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
