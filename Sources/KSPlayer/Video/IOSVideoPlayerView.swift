@@ -30,7 +30,20 @@ open class IOSVideoPlayerView: VideoPlayerView {
     // 系统音量滑块控件
     public var volumeViewSlider = UXSlider()
     // 返回按钮
-    public var backButton = UIButton()
+    public var backButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.close"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.backgroundColor = .black.withAlphaComponent(0.1)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     // AirPlay 投屏状态视图
     public var airplayStatusView: UIView = AirplayStatusView()
     // AirPlay 路由选择按钮
@@ -80,10 +93,8 @@ open class IOSVideoPlayerView: VideoPlayerView {
         }
         // 设置返回按钮
         backButton.tag = PlayerButtonType.back.rawValue
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
         backButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .touchUpInside)
-        backButton.tintColor = .white
-        navigationBar.insertArrangedSubview(backButton, at: 0)
+        leftNavigationBarStack.insertArrangedSubview(backButton, at: 0)
 
         // 添加 AirPlay 状态视图
         addSubview(airplayStatusView)
@@ -95,7 +106,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
             volumeViewSlider = first
         }
         #endif
-        backButton.translatesAutoresizingMaskIntoConstraints = false
         landscapeButton.translatesAutoresizingMaskIntoConstraints = false
         maskImageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -103,14 +113,15 @@ open class IOSVideoPlayerView: VideoPlayerView {
             maskImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             maskImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
             maskImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 25),
+            backButton.widthAnchor.constraint(equalToConstant: 60),
+            backButton.heightAnchor.constraint(equalToConstant: 48),
             landscapeButton.widthAnchor.constraint(equalToConstant: 30),
             airplayStatusView.centerXAnchor.constraint(equalTo: centerXAnchor),
             airplayStatusView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
         #if !os(xrOS)
         routeButton.isHidden = true
-        navigationBar.addArrangedSubview(routeButton)
+        // navigationBar.addArrangedSubview(routeButton)
         routeButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             routeButton.widthAnchor.constraint(equalToConstant: 25),

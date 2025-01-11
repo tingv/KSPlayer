@@ -92,8 +92,117 @@ open class VideoPlayerView: PlayerView {
     public let contentOverlayView = UIView()
     // 控制器视图，包含各种播放控制元素
     public let controllerView = UIView()
-    // 导航栏，采用UIStackView实现
-    public var navigationBar = UIStackView()
+
+    // 左导航栏，包含 关闭/显示模式 按钮
+    public var leftNavigationBar: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.layer.cornerRadius = 12
+        blurView.clipsToBounds = true
+
+        // 添加 vibrancy 效果，让内容在模糊背景上更加清晰
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect)
+        let vibrancyView = UIVisualEffectView(effect: vibrancyEffect)
+        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+
+        // 将 vibrancyView 添加到 blurView 的 contentView 中
+        blurView.contentView.addSubview(vibrancyView)
+
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        return blurView
+    }()
+
+    // 右导航栏，包含 章节/选集 按钮
+    public var rightNavigationBar: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.layer.cornerRadius = 12
+        blurView.clipsToBounds = true
+
+        // 添加 vibrancy 效果，让内容在模糊背景上更加清晰
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect)
+        let vibrancyView = UIVisualEffectView(effect: vibrancyEffect)
+        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+
+        // 将 vibrancyView 添加到 blurView 的 contentView 中
+        blurView.contentView.addSubview(vibrancyView)
+
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        return blurView
+    }()
+
+    // 左导航栏堆栈
+    public var leftNavigationBarStack: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .equalSpacing
+        stackView.spacing = 0
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+
+    // 右导航栏堆栈
+    public var rightNavigationBarStack: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .equalSpacing
+        stackView.spacing = 0
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+
+    // 内容模式切换
+    public var contentModeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.scale.dwon"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    // 画中画按钮
+    public var pipButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.pip.start"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    // 章节
+    public var chapterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("章节", for: .normal)
+        button.setTitleColor(.lightGray, for: .normal)
+        button.tintColor = .lightGray
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    // 选集
+    public var episodesButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("选集", for: .normal)
+        button.setTitleColor(.lightGray, for: .normal)
+        button.tintColor = .lightGray
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
     // 标题标签
     public var titleLabel = UILabel()
     // 字幕标签
@@ -131,6 +240,10 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
+    // MARK: - 两套约束
+    var compactConstraints: [NSLayoutConstraint] = []   // 紧凑
+    var regularConstraints: [NSLayoutConstraint] = []   // 宽松
+
     // 播放器图层
     override public var playerLayer: KSPlayerLayer? {
         didSet {
@@ -163,6 +276,17 @@ open class VideoPlayerView: PlayerView {
         cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton)
         toolBar.onFocusUpdate = { [weak self] _ in
             self?.autoFadeOutViewWithAnimation()
+        }
+    }
+
+    open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+        }
+
+        if traitCollection.verticalSizeClass != previousTraitCollection?.verticalSizeClass ||
+            traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass {
+            updateConstraint()
         }
     }
 
@@ -206,9 +330,9 @@ open class VideoPlayerView: PlayerView {
 
         // 设置遮罩层渐变效果
         #if os(macOS)
-        topMaskView.gradientLayer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.5).cgColor]
+        topMaskView.gradientLayer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.3).cgColor]
         #else
-        topMaskView.gradientLayer.colors = [UIColor.black.withAlphaComponent(0.5).cgColor, UIColor.clear.cgColor]
+        topMaskView.gradientLayer.colors = [UIColor.black.withAlphaComponent(0.3).cgColor, UIColor.clear.cgColor]
         #endif
         bottomMaskView.gradientLayer.colors = topMaskView.gradientLayer.colors
         // 根据配置决定顶部栏显示状态
@@ -223,12 +347,24 @@ open class VideoPlayerView: PlayerView {
         loadingIndector.isHidden = true
         controllerView.addSubview(loadingIndector)
         // MARK: - 顶部视图配置
-        // 添加导航栏到顶部遮罩
-        topMaskView.addSubview(navigationBar)
-        navigationBar.addArrangedSubview(titleLabel)
+        // 标题
+        topMaskView.addSubview(titleLabel)
+
+        // 左导航栏
+        topMaskView.addSubview(leftNavigationBar)
+        leftNavigationBar.contentView.addSubview(leftNavigationBarStack)
+        leftNavigationBarStack.addArrangedSubview(contentModeButton)
+        leftNavigationBarStack.addArrangedSubview(pipButton)
+
+        // 右导航栏
+        topMaskView.addSubview(rightNavigationBar)
+        rightNavigationBar.contentView.addSubview(rightNavigationBarStack)
+        rightNavigationBarStack.addArrangedSubview(chapterButton)
+        rightNavigationBarStack.addArrangedSubview(episodesButton)
+
         // 设置标题样式
-        titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 16)
+        titleLabel.textColor = .lightGray
+        titleLabel.font = .systemFont(ofSize: 12)
 
         // MARK: - 底部视图配置
         // 添加工具栏到底部遮罩
@@ -267,6 +403,7 @@ open class VideoPlayerView: PlayerView {
         controllerView.addSubview(bottomMaskView)
         // 设置自动布局约束
         addConstraint()
+        updateConstraint()
         // 自定义UI组件
         customizeUIComponents()
         // 设置字幕控制
@@ -827,13 +964,15 @@ extension VideoPlayerView {
         toolBar.timeSlider.translatesAutoresizingMaskIntoConstraints = false
         topMaskView.translatesAutoresizingMaskIntoConstraints = false
         bottomMaskView.translatesAutoresizingMaskIntoConstraints = false
-        navigationBar.translatesAutoresizingMaskIntoConstraints = false
+
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         loadingIndector.translatesAutoresizingMaskIntoConstraints = false
         seekToView.translatesAutoresizingMaskIntoConstraints = false
         replayButton.translatesAutoresizingMaskIntoConstraints = false
         lockButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
+
+        // MARK: - 紧凑模式的约束
+        compactConstraints = [
             contentOverlayView.topAnchor.constraint(equalTo: topAnchor),
             contentOverlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
             contentOverlayView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -842,14 +981,48 @@ extension VideoPlayerView {
             controllerView.leadingAnchor.constraint(equalTo: leadingAnchor),
             controllerView.bottomAnchor.constraint(equalTo: bottomAnchor),
             controllerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            topMaskView.topAnchor.constraint(equalTo: topAnchor),
-            topMaskView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            topMaskView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            topMaskView.heightAnchor.constraint(equalToConstant: 105),
-            navigationBar.topAnchor.constraint(equalTo: topMaskView.topAnchor),
-            navigationBar.leadingAnchor.constraint(equalTo: topMaskView.safeLeadingAnchor, constant: 15),
-            navigationBar.trailingAnchor.constraint(equalTo: topMaskView.safeTrailingAnchor, constant: -15),
-            navigationBar.heightAnchor.constraint(equalToConstant: 44),
+            topMaskView.topAnchor.constraint(equalTo: controllerView.topAnchor),
+            topMaskView.leadingAnchor.constraint(equalTo: controllerView.leadingAnchor),
+            topMaskView.trailingAnchor.constraint(equalTo: controllerView.trailingAnchor),
+            topMaskView.heightAnchor.constraint(equalToConstant: 124),
+
+            // 标题
+            titleLabel.topAnchor.constraint(equalTo: topMaskView.safeTopAnchor, constant: 6),
+            titleLabel.centerXAnchor.constraint(equalTo: controllerView.centerXAnchor),
+
+            // 左侧导航栏
+            leftNavigationBar.leadingAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            leftNavigationBar.bottomAnchor.constraint(equalTo: topMaskView.bottomAnchor),
+
+            // 左侧导航栏堆栈视图
+            leftNavigationBarStack.topAnchor.constraint(equalTo: leftNavigationBar.contentView.topAnchor),
+            leftNavigationBarStack.bottomAnchor.constraint(equalTo: leftNavigationBar.contentView.bottomAnchor),
+            leftNavigationBarStack.leadingAnchor.constraint(equalTo: leftNavigationBar.contentView.leadingAnchor),
+            leftNavigationBarStack.trailingAnchor.constraint(equalTo: leftNavigationBar.contentView.trailingAnchor),
+
+            // 右侧导航栏
+            rightNavigationBar.trailingAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            rightNavigationBar.bottomAnchor.constraint(equalTo: topMaskView.bottomAnchor),
+
+            // 右侧导航栏堆栈视图
+            rightNavigationBarStack.topAnchor.constraint(equalTo: rightNavigationBar.contentView.topAnchor),
+            rightNavigationBarStack.bottomAnchor.constraint(equalTo: rightNavigationBar.contentView.bottomAnchor),
+            rightNavigationBarStack.leadingAnchor.constraint(equalTo: rightNavigationBar.contentView.leadingAnchor),
+            rightNavigationBarStack.trailingAnchor.constraint(equalTo: rightNavigationBar.contentView.trailingAnchor),
+
+            // 内容模式切换按钮
+            contentModeButton.widthAnchor.constraint(equalToConstant: 60),
+            contentModeButton.heightAnchor.constraint(equalToConstant: 48),
+
+            // 章节按钮
+            chapterButton.widthAnchor.constraint(equalToConstant: 60),
+            chapterButton.heightAnchor.constraint(equalToConstant: 48),
+
+            // 选集按钮
+            episodesButton.widthAnchor.constraint(equalToConstant: 60),
+            episodesButton.heightAnchor.constraint(equalToConstant: 48),
+
+
             bottomMaskView.bottomAnchor.constraint(equalTo: bottomAnchor),
             bottomMaskView.leadingAnchor.constraint(equalTo: leadingAnchor),
             bottomMaskView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -864,8 +1037,76 @@ extension VideoPlayerView {
             replayButton.centerXAnchor.constraint(equalTo: centerXAnchor),
             lockButton.leadingAnchor.constraint(equalTo: safeLeadingAnchor, constant: 22),
             lockButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-        ])
+        ]
 
+        // MARK: - 宽松模式的约束
+        regularConstraints = [
+            contentOverlayView.topAnchor.constraint(equalTo: topAnchor),
+            contentOverlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            contentOverlayView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            contentOverlayView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            controllerView.topAnchor.constraint(equalTo: topAnchor),
+            controllerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            controllerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            controllerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            topMaskView.topAnchor.constraint(equalTo: controllerView.topAnchor),
+            topMaskView.leadingAnchor.constraint(equalTo: controllerView.leadingAnchor),
+            topMaskView.trailingAnchor.constraint(equalTo: controllerView.trailingAnchor),
+            topMaskView.heightAnchor.constraint(equalToConstant: 80),
+
+            // 标题
+            titleLabel.topAnchor.constraint(equalTo: topMaskView.safeTopAnchor, constant: 6),
+            titleLabel.centerXAnchor.constraint(equalTo: controllerView.centerXAnchor),
+
+            // 左侧导航栏
+            leftNavigationBar.leadingAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            leftNavigationBar.bottomAnchor.constraint(equalTo: topMaskView.bottomAnchor),
+
+            // 左侧导航栏堆栈视图
+            leftNavigationBarStack.topAnchor.constraint(equalTo: leftNavigationBar.contentView.topAnchor),
+            leftNavigationBarStack.bottomAnchor.constraint(equalTo: leftNavigationBar.contentView.bottomAnchor),
+            leftNavigationBarStack.leadingAnchor.constraint(equalTo: leftNavigationBar.contentView.leadingAnchor),
+            leftNavigationBarStack.trailingAnchor.constraint(equalTo: leftNavigationBar.contentView.trailingAnchor),
+
+            // 右侧导航栏
+            rightNavigationBar.trailingAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            rightNavigationBar.bottomAnchor.constraint(equalTo: topMaskView.bottomAnchor),
+
+            // 右侧导航栏堆栈视图
+            rightNavigationBarStack.topAnchor.constraint(equalTo: rightNavigationBar.contentView.topAnchor),
+            rightNavigationBarStack.bottomAnchor.constraint(equalTo: rightNavigationBar.contentView.bottomAnchor),
+            rightNavigationBarStack.leadingAnchor.constraint(equalTo: rightNavigationBar.contentView.leadingAnchor),
+            rightNavigationBarStack.trailingAnchor.constraint(equalTo: rightNavigationBar.contentView.trailingAnchor),
+
+            // 内容模式切换按钮
+            contentModeButton.widthAnchor.constraint(equalToConstant: 60),
+            contentModeButton.heightAnchor.constraint(equalToConstant: 48),
+
+            // 章节按钮
+            chapterButton.widthAnchor.constraint(equalToConstant: 60),
+            chapterButton.heightAnchor.constraint(equalToConstant: 48),
+
+            // 选集按钮
+            episodesButton.widthAnchor.constraint(equalToConstant: 60),
+            episodesButton.heightAnchor.constraint(equalToConstant: 48),
+
+
+            bottomMaskView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            bottomMaskView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            bottomMaskView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            bottomMaskView.heightAnchor.constraint(equalToConstant: 105),
+            loadingIndector.centerYAnchor.constraint(equalTo: centerYAnchor),
+            loadingIndector.centerXAnchor.constraint(equalTo: centerXAnchor),
+            seekToView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            seekToView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            seekToView.widthAnchor.constraint(equalToConstant: 100),
+            seekToView.heightAnchor.constraint(equalToConstant: 40),
+            replayButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            replayButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            lockButton.leadingAnchor.constraint(equalTo: safeLeadingAnchor, constant: 22),
+            lockButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ]
+        
         configureToolBarConstraints()
     }
 
@@ -932,6 +1173,19 @@ extension VideoPlayerView {
         ])
         #endif
     }
+
+    // 更新约束
+    private func updateConstraint() {
+        if traitCollection.horizontalSizeClass == .compact &&
+            traitCollection.verticalSizeClass == .regular {
+            NSLayoutConstraint.deactivate(regularConstraints)
+            NSLayoutConstraint.activate(compactConstraints)
+        } else {
+            NSLayoutConstraint.deactivate(compactConstraints)
+            NSLayoutConstraint.activate(regularConstraints)
+        }
+    }
+
 
     private func preferredStyle() -> UIAlertController.Style {
         #if canImport(UIKit)
