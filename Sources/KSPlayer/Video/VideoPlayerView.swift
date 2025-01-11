@@ -49,10 +49,10 @@ open class VideoPlayerView: PlayerView {
     private var isSliderSliding = false
 
     // MARK: - UI组件
-     // 底部遮罩视图
-    public let bottomMaskView = LayerContainerView()
-    // 顶部遮罩视图
-    public let topMaskView = LayerContainerView()
+    // 顶部容器视图
+    public let topMaskView = UIView()
+     // 底部容器视图
+    public let bottomMaskView = UIView()
     // 是否播放过
     private(set) var isPlayed = false
     // Combine订阅存储
@@ -187,7 +187,7 @@ open class VideoPlayerView: PlayerView {
     public var chapterButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("章节", for: .normal)
-        button.setTitleColor(.lightGray, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.tintColor = .lightGray
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -197,14 +197,24 @@ open class VideoPlayerView: PlayerView {
     public var episodesButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("选集", for: .normal)
-        button.setTitleColor(.lightGray, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.tintColor = .lightGray
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
     // 标题标签
-    public var titleLabel = UILabel()
+    public var titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = .white
+        label.layer.shadowColor = UIColor.black.cgColor  // 阴影颜色
+        label.layer.shadowOffset = CGSize(width: 1, height: 1)  // 阴影偏移量
+        label.layer.shadowRadius = 3.0  // 阴影模糊半径
+        label.layer.shadowOpacity = 0.8  // 阴影不透明度
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     // 字幕标签
     public var subtitleLabel = UILabel()
     // 字幕背景视图
@@ -215,10 +225,52 @@ open class VideoPlayerView: PlayerView {
     public var seekToView: UIView & SeekViewProtocol = SeekView()
     /// 重播按钮
     public var replayButton = UIButton()
-    /// 锁定按钮
-    public var lockButton = UIButton()
+    /// 左工具按钮
+    public var leftToolBar: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.layer.cornerRadius = 12
+        blurView.clipsToBounds = true
+
+        // 添加 vibrancy 效果，让内容在模糊背景上更加清晰
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect)
+        let vibrancyView = UIVisualEffectView(effect: vibrancyEffect)
+        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+
+        // 将 vibrancyView 添加到 blurView 的 contentView 中
+        blurView.contentView.addSubview(vibrancyView)
+
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        return blurView
+    }()
+    /// 左工具按钮堆栈
+    public var leftToolStack: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.distribution = .equalSpacing
+        stackView.spacing = 0
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    /// 旋转锁按钮
+    public var rotateLockButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "lock.rotation"), for: .normal)
+        button.tintColor = .lightGray
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    /// 工具锁按钮
+    public var toolLockButton: UIButton = {
+        let button = UIButton(type: .custom)
+        // button.setImage(UIImage(systemName: "lock.open"), for: .normal)
+        button.tintColor = .lightGray
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     /// 是否锁定状态
-    public var isLock: Bool { lockButton.isSelected }
+    public var isLock: Bool { toolLockButton.isSelected }
     // 控制界面显示状态
     open var isMaskShow = true {
         didSet {
@@ -228,7 +280,8 @@ open class VideoPlayerView: PlayerView {
                 if self.isPlayed {
                     self.replayButton.alpha = self.isMaskShow ? 1.0 : 0.0
                 }
-                self.lockButton.alpha = self.isMaskShow ? 1.0 : 0.0
+                self.leftToolBar.alpha = self.isMaskShow ? 1.0 : 0.0
+                self.rotateLockButton.isHidden = self.isLock
                 self.topMaskView.alpha = alpha
                 self.bottomMaskView.alpha = alpha
                 self.delegate?.playerController(maskShow: self.isMaskShow)
@@ -328,20 +381,8 @@ open class VideoPlayerView: PlayerView {
         addSubview(contentOverlayView)
         addSubview(controllerView)
 
-        // 设置遮罩层渐变效果
-        #if os(macOS)
-        topMaskView.gradientLayer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.3).cgColor]
-        #else
-        topMaskView.gradientLayer.colors = [UIColor.black.withAlphaComponent(0.3).cgColor, UIColor.clear.cgColor]
-        #endif
-        bottomMaskView.gradientLayer.colors = topMaskView.gradientLayer.colors
         // 根据配置决定顶部栏显示状态
         topMaskView.isHidden = KSOptions.topBarShowInCase != .always
-        // 设置渐变方向
-        topMaskView.gradientLayer.startPoint = .zero
-        topMaskView.gradientLayer.endPoint = CGPoint(x: 0, y: 1)
-        bottomMaskView.gradientLayer.startPoint = CGPoint(x: 0, y: 1)
-        bottomMaskView.gradientLayer.endPoint = .zero
 
         // 初始化加载指示器
         loadingIndector.isHidden = true
@@ -362,10 +403,6 @@ open class VideoPlayerView: PlayerView {
         rightNavigationBarStack.addArrangedSubview(chapterButton)
         rightNavigationBarStack.addArrangedSubview(episodesButton)
 
-        // 设置标题样式
-        titleLabel.textColor = .lightGray
-        titleLabel.font = .systemFont(ofSize: 12)
-
         // MARK: - 底部视图配置
         // 添加工具栏到底部遮罩
         bottomMaskView.addSubview(toolBar)
@@ -382,23 +419,24 @@ open class VideoPlayerView: PlayerView {
         replayButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .primaryActionTriggered)
         replayButton.tag = PlayerButtonType.replay.rawValue
         // 配置锁定按钮
-        lockButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        lockButton.cornerRadius = 32
-        lockButton.tag = PlayerButtonType.lock.rawValue
-        lockButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .primaryActionTriggered)
-        lockButton.isHidden = true
+        toolLockButton.tag = PlayerButtonType.lock.rawValue
+        toolLockButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .primaryActionTriggered)
+        toolLockButton.isHidden = true
         // 设置系统图标（如果可用）
         if #available(macOS 11.0, *) {
             replayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
             replayButton.setImage(UIImage(systemName: "arrow.counterclockwise"), for: .selected)
-            lockButton.setImage(UIImage(systemName: "lock.open"), for: .normal)
-            lockButton.setImage(UIImage(systemName: "lock"), for: .selected)
+            toolLockButton.setImage(UIImage(systemName: "lock.open"), for: .normal)
+            toolLockButton.setImage(UIImage(systemName: "lock"), for: .selected)
         }
         // 设置按钮颜色
-        lockButton.tintColor = .white
-        replayButton.tintColor = .white
+        replayButton.tintColor = .lightGray
         // 添加到控制器视图
-        controllerView.addSubview(lockButton)
+        controllerView.addSubview(leftToolBar)
+        leftToolBar.contentView.addSubview(leftToolStack)
+        leftToolStack.addArrangedSubview(rotateLockButton)
+        leftToolStack.addArrangedSubview(toolLockButton)
+
         controllerView.addSubview(topMaskView)
         controllerView.addSubview(bottomMaskView)
         // 设置自动布局约束
@@ -519,7 +557,8 @@ open class VideoPlayerView: PlayerView {
         replayButton.isHidden = false
         seekToView.isHidden = true
         isPlayed = false
-        lockButton.isSelected = false
+        toolLockButton.isSelected = false
+        rotateLockButton.isSelected = false
     }
 
     // MARK: - KSSliderDelegate
@@ -965,11 +1004,9 @@ extension VideoPlayerView {
         topMaskView.translatesAutoresizingMaskIntoConstraints = false
         bottomMaskView.translatesAutoresizingMaskIntoConstraints = false
 
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         loadingIndector.translatesAutoresizingMaskIntoConstraints = false
         seekToView.translatesAutoresizingMaskIntoConstraints = false
         replayButton.translatesAutoresizingMaskIntoConstraints = false
-        lockButton.translatesAutoresizingMaskIntoConstraints = false
 
         // MARK: - 紧凑模式的约束
         compactConstraints = [
@@ -1035,8 +1072,23 @@ extension VideoPlayerView {
             seekToView.heightAnchor.constraint(equalToConstant: 40),
             replayButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             replayButton.centerXAnchor.constraint(equalTo: centerXAnchor),
-            lockButton.leadingAnchor.constraint(equalTo: safeLeadingAnchor, constant: 22),
-            lockButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            // 左工具栏
+            leftToolBar.leadingAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            leftToolBar.centerYAnchor.constraint(equalTo: controllerView.centerYAnchor),
+
+            // 左工具栏堆栈
+            leftToolStack.topAnchor.constraint(equalTo: leftToolBar.topAnchor),
+            leftToolStack.leadingAnchor.constraint(equalTo: leftToolBar.leadingAnchor),
+            leftToolStack.trailingAnchor.constraint(equalTo: leftToolBar.trailingAnchor),
+            leftToolStack.bottomAnchor.constraint(equalTo: leftToolBar.bottomAnchor),
+
+            // 旋转锁按钮
+            rotateLockButton.widthAnchor.constraint(equalToConstant: 48),
+            rotateLockButton.heightAnchor.constraint(equalToConstant: 48),
+
+            // 工具锁按钮
+            toolLockButton.widthAnchor.constraint(equalToConstant: 48),
+            toolLockButton.heightAnchor.constraint(equalToConstant: 48),
         ]
 
         // MARK: - 宽松模式的约束
@@ -1103,8 +1155,23 @@ extension VideoPlayerView {
             seekToView.heightAnchor.constraint(equalToConstant: 40),
             replayButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             replayButton.centerXAnchor.constraint(equalTo: centerXAnchor),
-            lockButton.leadingAnchor.constraint(equalTo: safeLeadingAnchor, constant: 22),
-            lockButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            // 左工具栏
+            leftToolBar.leadingAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            leftToolBar.centerYAnchor.constraint(equalTo: controllerView.centerYAnchor),
+
+            // 左工具栏堆栈
+            leftToolStack.topAnchor.constraint(equalTo: leftToolBar.topAnchor),
+            leftToolStack.leadingAnchor.constraint(equalTo: leftToolBar.leadingAnchor),
+            leftToolStack.trailingAnchor.constraint(equalTo: leftToolBar.trailingAnchor),
+            leftToolStack.bottomAnchor.constraint(equalTo: leftToolBar.bottomAnchor),
+
+            // 旋转锁按钮
+            rotateLockButton.widthAnchor.constraint(equalToConstant: 48),
+            rotateLockButton.heightAnchor.constraint(equalToConstant: 48),
+
+            // 工具锁按钮
+            toolLockButton.widthAnchor.constraint(equalToConstant: 48),
+            toolLockButton.heightAnchor.constraint(equalToConstant: 48),
         ]
         
         configureToolBarConstraints()
@@ -1139,13 +1206,13 @@ extension VideoPlayerView {
 
         #else
 
-        toolBar.playButton.tintColor = .white
-        toolBar.playbackRateButton.tintColor = .white
-        toolBar.definitionButton.tintColor = .white
-        toolBar.audioSwitchButton.tintColor = .white
-        toolBar.videoSwitchButton.tintColor = .white
-        toolBar.srtButton.tintColor = .white
-        toolBar.pipButton.tintColor = .white
+        toolBar.playButton.tintColor = .lightGray
+        toolBar.playbackRateButton.tintColor = .lightGray
+        toolBar.definitionButton.tintColor = .lightGray
+        toolBar.audioSwitchButton.tintColor = .lightGray
+        toolBar.videoSwitchButton.tintColor = .lightGray
+        toolBar.srtButton.tintColor = .lightGray
+        toolBar.pipButton.tintColor = .lightGray
 
         toolBar.spacing = 10
         toolBar.addArrangedSubview(toolBar.playButton)

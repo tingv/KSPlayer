@@ -268,8 +268,6 @@ open class IOSVideoPlayerView: VideoPlayerView {
         } else {
             landscapeButton.isHidden = true
         }
-        // 只在横屏时显示锁定按钮
-        lockButton.isHidden = !isLandscape
         // 更新手势状态
         judgePanGesture()
     }
