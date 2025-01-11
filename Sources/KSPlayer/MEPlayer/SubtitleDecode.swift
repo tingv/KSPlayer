@@ -148,9 +148,9 @@ class SubtitleDecode: DecodeProtocol {
                                 attributedString = NSMutableAttributedString()
                             }
                             attributedString?.append(NSAttributedString(string: string))
-                            continue
+                        } else {
+                            parts.append(group)
                         }
-                        parts.append(group)
                     }
                 }
             } else if rect.type == SUBTITLE_BITMAP {

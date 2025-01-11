@@ -20,6 +20,27 @@ public protocol KSSubtitleProtocol {
     func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart]
 }
 
+public extension URL {
+    func parseSubtitle(userAgent: String? = nil, encoding: String.Encoding? = nil) async throws -> KSSubtitleProtocol {
+        let string = try await string(userAgent: userAgent, encoding: encoding)
+        guard let subtitle = string else {
+            throw NSError(errorCode: .subtitleUnEncoding)
+        }
+        let scanner = Scanner(string: subtitle)
+        _ = scanner.scanCharacters(from: .controlCharacters)
+        let parse = KSOptions.subtitleParses.first { $0.canParse(scanner: scanner) }
+        if let parse {
+            return parse.parse(scanner: scanner)
+        } else {
+            throw NSError(errorCode: .subtitleFormatUnSupport)
+        }
+    }
+
+    //    public static func == (lhs: KSURLSubtitle, rhs: KSURLSubtitle) -> Bool {
+    //        lhs.url == rhs.url
+    //    }
+}
+
 public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject {
     var subtitleID: String { get }
     var name: String { get }
@@ -39,39 +60,6 @@ public extension SubtitleInfo {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.subtitleID == rhs.subtitleID
     }
-}
-
-public class KSSubtitle {
-    public var searchProtocol: KSSubtitleProtocol?
-    public init() {}
-}
-
-extension KSSubtitle: KSSubtitleProtocol {
-    /// Search for target group for time
-    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
-        await searchProtocol?.search(for: time, size: size, isHDR: isHDR) ?? []
-    }
-}
-
-public extension KSSubtitle {
-    func parse(url: URL, userAgent: String? = nil, encoding: String.Encoding? = nil) async throws {
-        let string = try await url.string(userAgent: userAgent, encoding: encoding)
-        guard let subtitle = string else {
-            throw NSError(errorCode: .subtitleUnEncoding)
-        }
-        let scanner = Scanner(string: subtitle)
-        _ = scanner.scanCharacters(from: .controlCharacters)
-        let parse = KSOptions.subtitleParses.first { $0.canParse(scanner: scanner) }
-        if let parse {
-            searchProtocol = parse.parse(scanner: scanner)
-        } else {
-            throw NSError(errorCode: .subtitleFormatUnSupport)
-        }
-    }
-
-//    public static func == (lhs: KSURLSubtitle, rhs: KSURLSubtitle) -> Bool {
-//        lhs.url == rhs.url
-//    }
 }
 
 public protocol NumericComparable {
@@ -116,13 +104,14 @@ public class EmptySubtitleInfo: SubtitleInfo {
     }
 }
 
-public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
+public class URLSubtitleInfo: KSSubtitleProtocol, SubtitleInfo {
+    private var searchProtocol: KSSubtitleProtocol?
     public var isEnabled: Bool = false {
         didSet {
             if isEnabled, searchProtocol == nil {
                 Task { [weak self] in
                     guard let self else { return }
-                    try? await self.parse(url: self.downloadURL, userAgent: self.userAgent)
+                    searchProtocol = try? await self.downloadURL.parseSubtitle(userAgent: self.userAgent)
                 }
             }
         }
@@ -144,7 +133,6 @@ public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
         self.name = name
         self.userAgent = userAgent
         downloadURL = url
-        super.init()
         if !url.isFileURL, name.isEmpty {
             url.download(userAgent: userAgent) { [weak self] filename, tmpUrl in
                 guard let self else {
@@ -158,5 +146,9 @@ public class URLSubtitleInfo: KSSubtitle, SubtitleInfo {
                 self.downloadURL = fileURL
             }
         }
+    }
+
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
+        await searchProtocol?.search(for: time, size: size, isHDR: isHDR) ?? []
     }
 }
