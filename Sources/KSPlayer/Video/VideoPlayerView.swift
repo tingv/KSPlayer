@@ -1178,34 +1178,6 @@ extension VideoPlayerView {
     }
 
     private func configureToolBarConstraints() {
-        #if os(tvOS)
-        toolBar.spacing = 10
-        toolBar.addArrangedSubview(toolBar.playButton)
-        toolBar.addArrangedSubview(toolBar.timeLabel)
-        toolBar.addArrangedSubview(toolBar.playbackRateButton)
-        toolBar.addArrangedSubview(toolBar.definitionButton)
-        toolBar.addArrangedSubview(toolBar.audioSwitchButton)
-        toolBar.addArrangedSubview(toolBar.videoSwitchButton)
-        toolBar.addArrangedSubview(toolBar.srtButton)
-        toolBar.addArrangedSubview(toolBar.pipButton)
-
-        toolBar.setCustomSpacing(20, after: toolBar.timeLabel)
-        toolBar.setCustomSpacing(20, after: toolBar.playbackRateButton)
-        toolBar.setCustomSpacing(20, after: toolBar.definitionButton)
-        toolBar.setCustomSpacing(20, after: toolBar.srtButton)
-
-        NSLayoutConstraint.activate([
-            toolBar.bottomAnchor.constraint(equalTo: bottomMaskView.safeBottomAnchor),
-            toolBar.leadingAnchor.constraint(equalTo: bottomMaskView.safeLeadingAnchor, constant: 10),
-            toolBar.trailingAnchor.constraint(equalTo: bottomMaskView.safeTrailingAnchor, constant: -15),
-            toolBar.timeSlider.bottomAnchor.constraint(equalTo: toolBar.topAnchor, constant: -8),
-            toolBar.timeSlider.leadingAnchor.constraint(equalTo: bottomMaskView.safeLeadingAnchor, constant: 15),
-            toolBar.timeSlider.trailingAnchor.constraint(equalTo: bottomMaskView.safeTrailingAnchor, constant: -15),
-            toolBar.timeSlider.heightAnchor.constraint(equalToConstant: 16),
-        ])
-
-        #else
-
         toolBar.playButton.tintColor = .lightGray
         toolBar.playbackRateButton.tintColor = .lightGray
         toolBar.definitionButton.tintColor = .lightGray
@@ -1214,31 +1186,147 @@ extension VideoPlayerView {
         toolBar.srtButton.tintColor = .lightGray
         toolBar.pipButton.tintColor = .lightGray
 
-        toolBar.spacing = 10
-        toolBar.addArrangedSubview(toolBar.playButton)
-        toolBar.addArrangedSubview(toolBar.timeLabel)
-        toolBar.addArrangedSubview(toolBar.playbackRateButton)
-        toolBar.addArrangedSubview(toolBar.definitionButton)
-        toolBar.addArrangedSubview(toolBar.audioSwitchButton)
-        toolBar.addArrangedSubview(toolBar.videoSwitchButton)
-        toolBar.addArrangedSubview(toolBar.srtButton)
-        toolBar.addArrangedSubview(toolBar.pipButton)
+        toolBar.addToContentView(toolBar.toolBarContainer)
+        toolBar.toolBarContainer.addSubview(toolBar.progressContainer)
+        toolBar.toolBarContainer.addSubview(toolBar.playButtonStack)
+        toolBar.toolBarContainer.addSubview(toolBar.extendedButton)
+        toolBar.toolBarContainer.addSubview(toolBar.airplayButton)
 
-        toolBar.setCustomSpacing(20, after: toolBar.timeLabel)
-        toolBar.setCustomSpacing(20, after: toolBar.playbackRateButton)
-        toolBar.setCustomSpacing(20, after: toolBar.definitionButton)
-        toolBar.setCustomSpacing(20, after: toolBar.srtButton)
+        toolBar.playButtonStack.addArrangedSubview(toolBar.prevButton)
+        toolBar.playButtonStack.addArrangedSubview(toolBar.playButton)
+        toolBar.playButtonStack.addArrangedSubview(toolBar.nextButton)
 
-        NSLayoutConstraint.activate([
-            toolBar.bottomAnchor.constraint(equalTo: bottomMaskView.safeBottomAnchor),
-            toolBar.leadingAnchor.constraint(equalTo: bottomMaskView.safeLeadingAnchor, constant: 10),
-            toolBar.trailingAnchor.constraint(equalTo: bottomMaskView.safeTrailingAnchor, constant: -15),
-            toolBar.timeSlider.bottomAnchor.constraint(equalTo: toolBar.topAnchor),
-            toolBar.timeSlider.leadingAnchor.constraint(equalTo: bottomMaskView.safeLeadingAnchor, constant: 15),
-            toolBar.timeSlider.trailingAnchor.constraint(equalTo: bottomMaskView.safeTrailingAnchor, constant: -15),
-            toolBar.timeSlider.heightAnchor.constraint(equalToConstant: 30),
+        toolBar.progressContainer.addSubview(toolBar.currentTimeLabel)
+        toolBar.progressContainer.addSubview(toolBar.timeSlider)
+        toolBar.progressContainer.addSubview(toolBar.totalTimeLabel)
+
+        // MARK: - 紧凑模式的约束
+        compactConstraints.append(contentsOf: [
+            toolBar.leadingAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            toolBar.trailingAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            toolBar.bottomAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            toolBar.heightAnchor.constraint(equalToConstant: 96),
+
+            // 工具栏容器
+            toolBar.toolBarContainer.topAnchor.constraint(equalTo: toolBar.topAnchor, constant: 16),
+            toolBar.toolBarContainer.leadingAnchor.constraint(equalTo: toolBar.leadingAnchor, constant: 16),
+            toolBar.toolBarContainer.trailingAnchor.constraint(equalTo: toolBar.trailingAnchor, constant: -16),
+            toolBar.toolBarContainer.bottomAnchor.constraint(equalTo: toolBar.bottomAnchor, constant: -16),
+            
+            // 进度条/时间 容器
+            toolBar.progressContainer.topAnchor.constraint(equalTo: toolBar.toolBarContainer.topAnchor),
+            toolBar.progressContainer.leadingAnchor.constraint(equalTo: toolBar.toolBarContainer.leadingAnchor),
+            toolBar.progressContainer.trailingAnchor.constraint(equalTo: toolBar.toolBarContainer.trailingAnchor),
+            toolBar.progressContainer.heightAnchor.constraint(equalToConstant: 36),
+
+            // 播放按钮堆栈
+            toolBar.playButtonStack.topAnchor.constraint(equalTo: toolBar.progressContainer.bottomAnchor),
+            toolBar.playButtonStack.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
+            toolBar.playButtonStack.heightAnchor.constraint(equalToConstant: 24),
+
+            // 上一集按钮
+            toolBar.prevButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.prevButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 播放按钮
+            toolBar.playButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.playButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 下一集按钮
+            toolBar.nextButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.nextButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 播放设置按钮
+            toolBar.extendedButton.trailingAnchor.constraint(equalTo: toolBar.toolBarContainer.trailingAnchor),
+            toolBar.extendedButton.bottomAnchor.constraint(equalTo: toolBar.toolBarContainer.bottomAnchor),
+            toolBar.extendedButton.widthAnchor.constraint(equalToConstant: 24),
+            toolBar.extendedButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // AirPlay按钮
+            toolBar.airplayButton.leadingAnchor.constraint(equalTo: toolBar.toolBarContainer.leadingAnchor),
+            toolBar.airplayButton.bottomAnchor.constraint(equalTo: toolBar.toolBarContainer.bottomAnchor),
+            toolBar.airplayButton.widthAnchor.constraint(equalToConstant: 24),
+            toolBar.airplayButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 时间滑块容器
+            toolBar.timeSlider.topAnchor.constraint(equalTo: toolBar.progressContainer.topAnchor),
+            toolBar.timeSlider.leadingAnchor.constraint(equalTo: toolBar.progressContainer.leadingAnchor),
+            toolBar.timeSlider.trailingAnchor.constraint(equalTo: toolBar.progressContainer.trailingAnchor),
+            toolBar.timeSlider.heightAnchor.constraint(equalToConstant: 16),
+
+            // 当前时间
+            toolBar.currentTimeLabel.leadingAnchor.constraint(equalTo: toolBar.progressContainer.leadingAnchor),
+            toolBar.currentTimeLabel.bottomAnchor.constraint(equalTo: toolBar.progressContainer.bottomAnchor),
+
+            // 总时间
+            toolBar.totalTimeLabel.trailingAnchor.constraint(equalTo: toolBar.progressContainer.trailingAnchor),
+            toolBar.totalTimeLabel.bottomAnchor.constraint(equalTo: toolBar.progressContainer.bottomAnchor),
         ])
-        #endif
+
+        // MARK: - 宽松模式的约束
+        regularConstraints.append(contentsOf: [
+            toolBar.leadingAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            toolBar.trailingAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            toolBar.bottomAnchor.constraint(equalTo: controllerView.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            toolBar.heightAnchor.constraint(equalToConstant: 48),
+
+            // 工具栏容器
+            toolBar.toolBarContainer.topAnchor.constraint(equalTo: toolBar.topAnchor, constant: 12),
+            toolBar.toolBarContainer.leadingAnchor.constraint(equalTo: toolBar.leadingAnchor, constant: 20),
+            toolBar.toolBarContainer.trailingAnchor.constraint(equalTo: toolBar.trailingAnchor, constant: -20),
+            toolBar.toolBarContainer.bottomAnchor.constraint(equalTo: toolBar.bottomAnchor, constant: -12),
+
+            // 进度条/时间 容器
+            toolBar.progressContainer.topAnchor.constraint(equalTo: toolBar.toolBarContainer.topAnchor),
+            toolBar.progressContainer.leadingAnchor.constraint(equalTo: toolBar.playButtonStack.trailingAnchor, constant: 24),
+            toolBar.progressContainer.trailingAnchor.constraint(equalTo: toolBar.airplayButton.leadingAnchor, constant: -24),
+            toolBar.progressContainer.heightAnchor.constraint(equalToConstant: 24),
+
+            // 播放按钮堆栈
+            toolBar.playButtonStack.topAnchor.constraint(equalTo: toolBar.progressContainer.topAnchor),
+            toolBar.playButtonStack.leadingAnchor.constraint(equalTo: toolBar.toolBarContainer.leadingAnchor),
+            toolBar.playButtonStack.heightAnchor.constraint(equalToConstant: 24),
+
+            // 上一集按钮
+            toolBar.prevButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.prevButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 播放按钮
+            toolBar.playButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.playButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 下一集按钮
+            toolBar.nextButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.nextButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 播放设置按钮
+            toolBar.extendedButton.trailingAnchor.constraint(equalTo: toolBar.toolBarContainer.trailingAnchor),
+            toolBar.extendedButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.extendedButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // AirPlay按钮
+            toolBar.airplayButton.trailingAnchor.constraint(equalTo: toolBar.extendedButton.leadingAnchor, constant: -16),
+            toolBar.airplayButton.widthAnchor.constraint(equalToConstant: 32),
+            toolBar.airplayButton.heightAnchor.constraint(equalToConstant: 24),
+
+            // 当前时间
+            toolBar.currentTimeLabel.widthAnchor.constraint(equalToConstant: toolBar.currentTimeLabel.intrinsicContentSize.width + 20),
+            toolBar.currentTimeLabel.topAnchor.constraint(equalTo: toolBar.progressContainer.topAnchor),
+            toolBar.currentTimeLabel.leadingAnchor.constraint(equalTo: toolBar.progressContainer.leadingAnchor),
+            toolBar.currentTimeLabel.bottomAnchor.constraint(equalTo: toolBar.progressContainer.bottomAnchor),
+
+            // 总时间
+            toolBar.totalTimeLabel.widthAnchor.constraint(equalToConstant: toolBar.totalTimeLabel.intrinsicContentSize.width + 20),
+            toolBar.totalTimeLabel.topAnchor.constraint(equalTo: toolBar.progressContainer.topAnchor),
+            toolBar.totalTimeLabel.trailingAnchor.constraint(equalTo: toolBar.progressContainer.trailingAnchor),
+            toolBar.totalTimeLabel.bottomAnchor.constraint(equalTo: toolBar.progressContainer.bottomAnchor),
+
+            // 时间滑块容器
+            toolBar.timeSlider.topAnchor.constraint(equalTo: toolBar.progressContainer.topAnchor),
+            toolBar.timeSlider.leadingAnchor.constraint(equalTo: toolBar.currentTimeLabel.trailingAnchor, constant: 6),
+            toolBar.timeSlider.trailingAnchor.constraint(equalTo: toolBar.totalTimeLabel.leadingAnchor, constant: -6),
+            toolBar.timeSlider.bottomAnchor.constraint(equalTo: toolBar.progressContainer.bottomAnchor),
+        ])
     }
 
     // 更新约束

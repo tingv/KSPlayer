@@ -14,11 +14,10 @@ open class AudioPlayerView: PlayerView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         toolBar.timeType = .min
-        toolBar.spacing = 5
-        toolBar.addArrangedSubview(toolBar.playButton)
-        toolBar.addArrangedSubview(toolBar.currentTimeLabel)
-        toolBar.addArrangedSubview(toolBar.timeSlider)
-        toolBar.addArrangedSubview(toolBar.totalTimeLabel)
+        toolBar.addToContentView(toolBar.playButton)
+        toolBar.addToContentView(toolBar.currentTimeLabel)
+        toolBar.addToContentView(toolBar.timeSlider)
+        toolBar.addToContentView(toolBar.totalTimeLabel)
         toolBar.playButton.tintColor = UIColor(rgb: 0x2166FF)
         toolBar.timeSlider.setThumbImage(UIColor(rgb: 0x2980FF).createImage(size: CGSize(width: 2, height: 15)), for: .normal)
         toolBar.timeSlider.minimumTrackTintColor = UIColor(rgb: 0xC8C7CC)

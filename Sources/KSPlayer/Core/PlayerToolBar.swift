@@ -13,12 +13,136 @@ import AppKit
 #endif
 import AVKit
 
-public class PlayerToolBar: UIStackView {
+public class PlayerToolBar: UIVisualEffectView {
+    private let vibrancyView: UIVisualEffectView
+
     public let srtButton = UIButton()
     public let timeLabel = UILabel()
-    public let currentTimeLabel = UILabel()
-    public let totalTimeLabel = UILabel()
-    public let playButton = UIButton()
+
+    // 工具栏器容器示图
+    public var toolBarContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    // 进度条/时间 容器
+    public var progressContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    public let currentTimeLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .lightGray
+        label.textAlignment = .right
+        label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    public let totalTimeLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .lightGray
+        label.textAlignment = .left
+        label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    // 时间滑块容器
+    public var timeSliderContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemGreen.withAlphaComponent(0.3)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    // 播放按钮堆栈
+    public var playButtonStack: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .fill
+        stackView.distribution = .fillProportionally
+        stackView.spacing = 12
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+
+    // 上一集按钮
+    public var prevButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.prev"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    // 播放按钮
+    public var playButton: UIButton = {
+        let button = UIButton(type: .custom)
+        // button.setImage(UIImage(named: "playback.pause"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    //  下一集按钮
+    public var nextButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.next"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    // 播放设置按钮
+    public var extendedButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.settings"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    // AirPlay按钮
+    public var airplayButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(named: "playback.airplay"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     public let timeSlider = KSSlider()
     public let playbackRateButton = UIButton()
     public let videoSwitchButton = UIButton()
@@ -97,8 +221,23 @@ public class PlayerToolBar: UIStackView {
         }
     }
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(effect: UIVisualEffect?) {
+        let blurEffect = UIBlurEffect(style: .dark)
+        vibrancyView = UIVisualEffectView(effect: blurEffect)
+        super.init(effect: blurEffect)
+
+        layer.cornerRadius = 12
+        clipsToBounds = true
+
+        contentView.addSubview(vibrancyView)
+        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            vibrancyView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            vibrancyView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            vibrancyView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            vibrancyView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
+
         initUI()
     }
 
@@ -110,14 +249,9 @@ public class PlayerToolBar: UIStackView {
     private func initUI() {
         let focusColor = UIColor.white
         let tintColor = UIColor.gray
-        distribution = .fill
-        currentTimeLabel.textColor = UIColor(rgb: 0x9B9B9B)
-        currentTimeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
-        currentTimeLabel.text = 0.toString(for: timeType)
-        totalTimeLabel.textColor = UIColor(rgb: 0x9B9B9B)
-        totalTimeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
-        totalTimeLabel.text = 0.toString(for: timeType)
 
+        currentTimeLabel.text = 0.toString(for: timeType)
+        totalTimeLabel.text = 0.toString(for: timeType)
         timeLabel.textColor = UIColor(rgb: 0x9B9B9B)
         timeLabel.textAlignment = .left
         timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)
@@ -135,8 +269,6 @@ public class PlayerToolBar: UIStackView {
         timeSlider.minimumTrackTintColor = focusColor
         #endif
         playButton.tag = PlayerButtonType.play.rawValue
-        playButton.setTitleColor(focusColor, for: .focused)
-        playButton.setTitleColor(tintColor, for: .normal)
         playbackRateButton.tag = PlayerButtonType.rate.rawValue
         playbackRateButton.titleFont = .systemFont(ofSize: 14, weight: .medium)
         playbackRateButton.setTitleColor(focusColor, for: .focused)
@@ -164,65 +296,33 @@ public class PlayerToolBar: UIStackView {
         if #available(macOS 11.0, *) {
             pipButton.setImage(UIImage(systemName: "pip.enter"), for: .normal)
             pipButton.setImage(UIImage(systemName: "pip.exit"), for: .selected)
-            playButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
-            playButton.setImage(UIImage(systemName: "pause.fill"), for: .selected)
+            playButton.setImage(UIImage(named: "playback.play"), for: .normal)
+            playButton.setImage(UIImage(named: "playback.pause"), for: .selected)
             srtButton.setImage(UIImage(systemName: "captions.bubble"), for: .normal)
             definitionButton.setImage(UIImage(systemName: "arrow.up.right.video"), for: .normal)
             audioSwitchButton.setImage(UIImage(systemName: "waveform"), for: .normal)
             videoSwitchButton.setImage(UIImage(systemName: "video.badge.ellipsis"), for: .normal)
             playbackRateButton.setImage(UIImage(systemName: "speedometer"), for: .normal)
         }
-        playButton.translatesAutoresizingMaskIntoConstraints = false
+
         srtButton.translatesAutoresizingMaskIntoConstraints = false
         translatesAutoresizingMaskIntoConstraints = false
         if #available(tvOS 14.0, *) {
             pipButton.isHidden = !AVPictureInPictureController.isPictureInPictureSupported()
         }
-        #if os(tvOS)
-        srtButton.fillImage()
-        pipButton.fillImage()
-        playButton.fillImage()
-        definitionButton.fillImage()
-        audioSwitchButton.fillImage()
-        videoSwitchButton.fillImage()
-        playbackRateButton.fillImage()
-        playButton.tintColor = tintColor
-        playbackRateButton.tintColor = tintColor
-        definitionButton.tintColor = tintColor
-        audioSwitchButton.tintColor = tintColor
-        videoSwitchButton.tintColor = tintColor
-        srtButton.tintColor = tintColor
-        pipButton.tintColor = tintColor
-        timeSlider.tintColor = tintColor
-        NSLayoutConstraint.activate([
-            playButton.widthAnchor.constraint(equalTo: playButton.heightAnchor),
-            playbackRateButton.widthAnchor.constraint(equalTo: playbackRateButton.heightAnchor),
-            definitionButton.widthAnchor.constraint(equalTo: definitionButton.heightAnchor),
-            audioSwitchButton.widthAnchor.constraint(equalTo: audioSwitchButton.heightAnchor),
-            videoSwitchButton.widthAnchor.constraint(equalTo: videoSwitchButton.heightAnchor),
-            srtButton.widthAnchor.constraint(equalTo: srtButton.heightAnchor),
-            pipButton.widthAnchor.constraint(equalTo: pipButton.heightAnchor),
-            heightAnchor.constraint(equalToConstant: 40),
-        ])
-        #else
+
         timeSlider.tintColor = .white
-        playButton.tintColor = .white
         playbackRateButton.tintColor = .white
         definitionButton.tintColor = .white
         audioSwitchButton.tintColor = .white
         videoSwitchButton.tintColor = .white
         srtButton.tintColor = .white
         pipButton.tintColor = .white
-        NSLayoutConstraint.activate([
-            playButton.widthAnchor.constraint(equalToConstant: 30),
-            heightAnchor.constraint(equalToConstant: 49),
-            srtButton.widthAnchor.constraint(equalToConstant: 40),
-        ])
-        #endif
+
     }
 
-    override public func addArrangedSubview(_ view: UIView) {
-        super.addArrangedSubview(view)
+    public func addToContentView(_ view: UIView) {
+        vibrancyView.contentView.addSubview(view)
         view.isHidden = false
     }
 

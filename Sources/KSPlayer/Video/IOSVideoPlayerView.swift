@@ -83,7 +83,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
         insertSubview(maskImageView, at: 0)
         maskImageView.contentMode = .scaleAspectFit
         // 设置工具栏的横屏切换按钮
-        toolBar.addArrangedSubview(landscapeButton)
+        toolBar.addToContentView(landscapeButton)
         landscapeButton.tag = PlayerButtonType.landscape.rawValue
         landscapeButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .touchUpInside)
         landscapeButton.tintColor = .white
