@@ -102,20 +102,17 @@ class VideoToolboxDecode: DecodeProtocol {
                     frames.sort {
                         $0.timestamp < $1.timestamp
                     }
-                    var index = 0
-                    while index < frames.count {
-                        let frame = frames[index]
+                    while frames.count > 0 {
+                        let frame = frames[0]
                         if frame.timestamp - self.lastTimestamp < 2 * duration
-                            || (index == 0 && frames.count > 4)
+                            || frames.count > 4
                         {
                             self.lastTimestamp = frame.timestamp
-                            completionHandler(.success(frame))
-                            index += 1
+                            completionHandler(.success(frames.removeFirst()))
                         } else {
                             break
                         }
                     }
-                    frames.removeFirst(index)
                 }
             }
             // 要在VTDecompressionSessionDecodeFrame之后才进行释放内容，不然在tvos上会crash
