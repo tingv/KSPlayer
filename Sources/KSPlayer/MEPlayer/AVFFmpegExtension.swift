@@ -268,7 +268,7 @@ extension AVPixelFormat {
 //        case AV_PIX_FMT_PAL8: return kCVPixelFormatType_32RGBA
         case AV_PIX_FMT_GRAY8: return kCVPixelFormatType_OneComponent8
         case AV_PIX_FMT_RGB555BE: return kCVPixelFormatType_16BE555
-        case AV_PIX_FMT_RGB555LE: return kCVPixelFormatType_16LE555
+//        case AV_PIX_FMT_RGB555LE: return kCVPixelFormatType_16LE555
         case AV_PIX_FMT_RGB565BE: return kCVPixelFormatType_16BE565
         case AV_PIX_FMT_RGB565LE: return kCVPixelFormatType_16LE565
 //             PixelBufferPool 无法支持24BGR

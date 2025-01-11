@@ -46,14 +46,23 @@ public final actor AssImageRenderer {
     private let library: OpaquePointer?
     private let renderer: OpaquePointer?
     private var currentTrack: UnsafeMutablePointer<ASS_Track>?
+    public var isEnabled: Bool = false {
+        didSet {
+            if oldValue != isEnabled, !oldValue {
+                /// 用FONTCONFIG会比较耗时，并且文字可能会大小不一致，
+                /// 用ASS_FONTPROVIDER_AUTODETECT会导致数字和中文的大小不一致。
+                /// 等字幕真正需要输出图片的时候，才设置这个，因为这个会去加载字体，导致内存增加
+                ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
+            }
+        }
+    }
+
     public init(content: String? = nil) {
         library = ass_library_init()
-        renderer = ass_renderer_init(library)
         ass_set_extract_fonts(library, 1)
         // 这个是用内存来加载字体，如果字体多的话，会导致内存暴涨，用系统的方法还是无法加载字体，所以只能用这个方法来加载
         ass_set_fonts_dir(library, KSOptions.fontsDir.path)
-        // 用FONTCONFIG会比较耗时，并且文字可能会大小不一致，用ASS_FONTPROVIDER_AUTODETECT会导致数字和中文的大小不一致。
-        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
+        renderer = ass_renderer_init(library)
         if let content, var buffer = content.cString(using: .utf8) {
             currentTrack = ass_read_memory(library, &buffer, buffer.count, nil)
         } else {
@@ -96,6 +105,7 @@ public final actor AssImageRenderer {
 
 extension AssImageRenderer: KSSubtitleProtocol {
     public func image(for time: TimeInterval, changed: inout Int32, isHDR: Bool) -> (CGRect, CGImage)? {
+        isEnabled = true
         let millisecond = Int64(time * 1000)
 //        let start = CACurrentMediaTime()
         guard let frame = ass_render_frame(renderer, currentTrack, millisecond, &changed) else {
