@@ -989,7 +989,8 @@ extension VideoPlayerView {
         subtitleBackView.cornerRadius = 2 // 设置圆角半径
         subtitleBackView.addSubview(subtitleLabel) // 将字幕标签添加到背景视图
         subtitleBackView.isHidden = true // 初始状态下隐藏字幕背景
-        addSubview(subtitleBackView) // 将字幕背景视图添加到播放器视图
+        // addSubview(subtitleBackView) // 将字幕背景视图添加到播放器视图
+        insertSubview(subtitleBackView, belowSubview: controllerView)
         // 设置自动布局属性
         subtitleBackView.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
