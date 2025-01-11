@@ -717,6 +717,29 @@ extension VideoPlayerView {
             guard let self else { return }
             self.srtControl.selectedSubtitleInfo = value
         }
+
+        let subtitleGroup = KSMenuGroup(
+            type: .subtitle,
+            title: NSLocalizedString("Subtitle", comment: ""),
+            current: srtControl.selectedSubtitleInfo,
+            list: srtControl.subtitleInfos,
+            addDisabled: true
+        )
+
+        toolBar.extendedButton.setMenuWithSubmenu(title: "更多设置", submenuGroups: [subtitleGroup], titleFunc: { value in
+            return value.name
+        }, settingHandler: {
+            // 处理设置选项
+            print("Open settings...")
+        }) { [weak self] menuType, selectedOption in
+            guard let self else { return }
+            // 根据选中的菜单项进行处理
+            switch menuType {
+            case .subtitle:
+                self.srtControl.selectedSubtitleInfo = selectedOption
+            default: break
+            }
+        }
         #if os(iOS)
         toolBar.definitionButton.showsMenuAsPrimaryAction = true
         toolBar.videoSwitchButton.showsMenuAsPrimaryAction = true

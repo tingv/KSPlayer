@@ -116,8 +116,29 @@ extension UIButton {
                 list: group.list,
                 addDisabled: group.addDisabled,
                 titleFunc: titleFunc
-            ) { title, value in
+            ) { [weak self] title, value in
                 handler(group.type, value)
+                // 更新选中状态
+                if let submenu = self?.menu?.children.first(where: { $0.title == group.title }) as? UIMenu {
+                    self?.menu = UIMenu(
+                        title: self?.menu?.title ?? "",
+                        children: self?.menu?.children.map { menuItem in
+                            if menuItem.title == group.title {
+                                return UIMenu(
+                                    title: submenu.title,
+                                    image: group.type.image,
+                                    children: submenu.children.map { action in
+                                        if let action = action as? UIAction {
+                                            action.state = action.title == title ? .on : .off
+                                        }
+                                        return action
+                                    }
+                                )
+                            }
+                            return menuItem
+                        } ?? []
+                    )
+                }
             }
         }
 
