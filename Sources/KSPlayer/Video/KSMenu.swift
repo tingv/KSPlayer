@@ -48,6 +48,40 @@ extension UIMenu {
 }
 
 #if !os(tvOS)
+enum KSMenuType {
+    case quality        // 资源版本
+    case rate          // 播放速度
+    case video         // 视频
+    case audio         // 音轨
+    case subtitle      // 字幕
+    case setting       // 设置
+
+    var image: UIImage? {
+        switch self {
+        case .quality:
+            return UIImage(systemName: "list.and.film")
+        case .rate:
+            return UIImage(systemName: "circle.dashed")
+        case .video:
+            return UIImage(systemName: "video")
+        case .audio:
+            return UIImage(systemName: "speaker.wave.2")
+        case .subtitle:
+            return UIImage(systemName: "captions.bubble")
+        case .setting:
+            return UIImage(systemName: "gearshape.fill")
+        }
+    }
+}
+
+struct KSMenuGroup<U> {
+    let type: KSMenuType
+    let title: String
+    let current: U?
+    let list: [U]
+    let addDisabled: Bool
+}
+
 extension UIButton {
     @available(iOS 14.0, *)
     func setMenu<U>(title: String, current: U?, list: [U], addDisabled: Bool = false, titleFunc: (U) -> String, completition handler: @escaping (U?) -> Void) {
@@ -56,6 +90,52 @@ extension UIButton {
             handler(value)
             self.menu = self.menu?.updateActionState(actionTitle: title)
         }
+    }
+
+    @available(iOS 14.0, *)
+    func setMenuWithSubmenu<U>(
+        title: String,
+        submenuGroups: [KSMenuGroup<U>],
+        titleFunc: (U) -> String,
+        settingHandler: (() -> Void)? = nil,
+        completition handler: @escaping (KSMenuType, U?) -> Void
+    ) {
+        let submenus = submenuGroups.compactMap { group -> UIMenuElement? in
+            if group.type == .setting {
+                return UIAction(
+                    title: group.title,
+                    image: group.type.image
+                ) { _ in
+                    settingHandler?()
+                }
+            }
+
+            return UIMenu(
+                title: group.title,
+                current: group.current,
+                list: group.list,
+                addDisabled: group.addDisabled,
+                titleFunc: titleFunc
+            ) { title, value in
+                handler(group.type, value)
+            }
+        }
+
+        let menuItems = submenus.reversed().map { element -> UIMenuElement in
+            if let action = element as? UIAction {
+                return action
+            }
+
+            let submenu = element as! UIMenu
+            let type = submenuGroups.first { $0.title == submenu.title }?.type
+            return UIMenu(
+                title: submenu.title,
+                image: type?.image,
+                children: submenu.children
+            )
+        }
+
+        menu = UIMenu(title: title, children: menuItems)
     }
 }
 #endif
