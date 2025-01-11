@@ -11,6 +11,63 @@ import UIKit
 import AppKit
 #endif
 
+// 定义菜单配置的基础协议
+protocol MenuConfigurable {
+    associatedtype ValueType
+    var title: String { get }
+    var current: ValueType? { get }
+    var items: [ValueType] { get }
+    var titleFunc: (ValueType) -> String { get }
+    var handler: (ValueType?) -> Void { get }
+    var addDisabled: Bool { get }
+}
+
+// 基础菜单配置结构
+struct MenuConfig<T>: MenuConfigurable {
+    typealias ValueType = T
+
+    let title: String
+    let current: T?
+    let items: [T]
+    let titleFunc: (T) -> String
+    let handler: (T?) -> Void
+    let addDisabled: Bool
+}
+
+// 类型擦除包装器，用于处理不同类型的菜单配置
+struct AnyMenuConfig {
+    private let _createMenu: () -> UIMenu?
+    let title: String
+
+    init<T>(_ config: MenuConfig<T>) {
+        self.title = config.title
+        self._createMenu = { UIMenu.create(from: config) }
+    }
+
+    func createMenu() -> UIMenu? {
+        _createMenu()
+    }
+}
+
+// 嵌套菜单结构
+struct NestedMenu {
+    let title: String
+    let submenus: [AnyMenuConfig]
+
+    init(title: String, submenus: [AnyMenuConfig]) {
+        self.title = title
+        self.submenus = submenus
+    }
+
+    // 便利构建方法
+    static func build(
+        title: String,
+        @MenuBuilder _ builder: () -> [AnyMenuConfig]
+    ) -> NestedMenu {
+        NestedMenu(title: title, submenus: builder())
+    }
+}
+
 extension UIMenu {
     func updateActionState(actionTitle: String? = nil) -> UIMenu {
         for action in children {
@@ -38,49 +95,46 @@ extension UIMenu {
             return item
         }
         if addDisabled {
-            actions.insert(UIAction(title: "Disabled") { item in
+            actions.insert(UIAction(title: NSLocalizedString("Disabled", comment: "")) { item in
                 completition(item.title, nil)
             }, at: 0)
         }
 
         self.init(title: title, children: actions)
     }
-}
 
-#if !os(tvOS)
-enum KSMenuType {
-    case quality        // 资源版本
-    case rate          // 播放速度
-    case video         // 视频
-    case audio         // 音轨
-    case subtitle      // 字幕
-    case setting       // 设置
-
-    var image: UIImage? {
-        switch self {
-        case .quality:
-            return UIImage(systemName: "list.and.film")
-        case .rate:
-            return UIImage(systemName: "circle.dashed")
-        case .video:
-            return UIImage(systemName: "video")
-        case .audio:
-            return UIImage(systemName: "speaker.wave.2")
-        case .subtitle:
-            return UIImage(systemName: "captions.bubble")
-        case .setting:
-            return UIImage(systemName: "gearshape.fill")
+    // 泛型方法：从任何符合 MenuConfigurable 协议的配置创建菜单
+    static func create<Config: MenuConfigurable>(from config: Config) -> UIMenu? {
+        guard config.items.count >= (config.addDisabled ? 1 : 2) else {
+            return nil
         }
+
+        var actions = config.items.reversed().map { value in
+            let item = UIAction(title: config.titleFunc(value)) { action in
+                config.handler(value)
+            }
+
+            if let current = config.current,
+               config.titleFunc(current) == config.titleFunc(value) {
+                item.state = .on
+            }
+            return item
+        }
+
+        if config.addDisabled {
+            actions.insert(
+                UIAction(title: "Disabled") { _ in
+                    config.handler(nil)
+                },
+                at: 0
+            )
+        }
+
+        return UIMenu(title: config.title, children: actions)
     }
 }
 
-struct KSMenuGroup<U> {
-    let type: KSMenuType
-    let title: String
-    let current: U?
-    let list: [U]
-    let addDisabled: Bool
-}
+#if !os(tvOS)
 
 extension UIButton {
     @available(iOS 14.0, *)
@@ -93,73 +147,57 @@ extension UIButton {
     }
 
     @available(iOS 14.0, *)
-    func setMenuWithSubmenu<U>(
-        title: String,
-        submenuGroups: [KSMenuGroup<U>],
-        titleFunc: (U) -> String,
-        settingHandler: (() -> Void)? = nil,
-        completition handler: @escaping (KSMenuType, U?) -> Void
-    ) {
-        let submenus = submenuGroups.compactMap { group -> UIMenuElement? in
-            if group.type == .setting {
-                return UIAction(
-                    title: group.title,
-                    image: group.type.image
-                ) { _ in
-                    settingHandler?()
-                }
-            }
+    func setNestedMenu(_ nestedMenu: NestedMenu) {
+        let menuItems = nestedMenu.submenus.reversed().compactMap { $0.createMenu() }
+        menu = UIMenu(title: nestedMenu.title, children: menuItems)
+    }
 
-            return UIMenu(
-                title: group.title,
-                current: group.current,
-                list: group.list,
-                addDisabled: group.addDisabled,
-                titleFunc: titleFunc
-            ) { [weak self] title, value in
-                handler(group.type, value)
-                // 更新选中状态
-                if let submenu = self?.menu?.children.first(where: { $0.title == group.title }) as? UIMenu {
-                    self?.menu = UIMenu(
-                        title: self?.menu?.title ?? "",
-                        children: self?.menu?.children.map { menuItem in
-                            if menuItem.title == group.title {
-                                return UIMenu(
-                                    title: submenu.title,
-                                    image: group.type.image,
-                                    children: submenu.children.map { action in
-                                        if let action = action as? UIAction {
-                                            action.state = action.title == title ? .on : .off
-                                        }
-                                        return action
-                                    }
-                                )
-                            }
-                            return menuItem
-                        } ?? []
-                    )
-                }
+    @available(iOS 14.0, *)
+    func updateSubMenuState<T>(subMenuTitle: String, selectedItem: T, titleFunc: (T) -> String) {
+        guard let currentMenu = menu else { return }
+
+        let updatedMenuItems = currentMenu.children.map { item -> UIMenuElement in
+            guard let submenu = item as? UIMenu,
+                  submenu.title == subMenuTitle else {
+                return item
             }
+            return submenu.updateActionState(actionTitle: titleFunc(selectedItem))
         }
 
-        let menuItems = submenus.reversed().map { element -> UIMenuElement in
-            if let action = element as? UIAction {
-                return action
-            }
-
-            let submenu = element as! UIMenu
-            let type = submenuGroups.first { $0.title == submenu.title }?.type
-            return UIMenu(
-                title: submenu.title,
-                image: type?.image,
-                children: submenu.children
-            )
-        }
-
-        menu = UIMenu(title: title, children: menuItems)
+        menu = UIMenu(title: currentMenu.title, children: updatedMenuItems)
     }
 }
+
 #endif
+
+// 菜单构建器，提供声明式语法
+@resultBuilder
+struct MenuBuilder {
+    static func buildBlock(_ components: AnyMenuConfig...) -> [AnyMenuConfig] {
+        components
+    }
+}
+
+// 便利扩展：为常见类型提供快捷创建方法
+extension MenuConfig {
+    static func create(
+        title: String,
+        current: T?,
+        items: [T],
+        titleFunc: @escaping (T) -> String = { "\($0)" },
+        addDisabled: Bool = false,
+        handler: @escaping (T?) -> Void
+    ) -> MenuConfig<T> {
+        MenuConfig(
+            title: title,
+            current: current,
+            items: items,
+            titleFunc: titleFunc,
+            handler: handler,
+            addDisabled: addDisabled
+        )
+    }
+}
 
 #if canImport(UIKit)
 

@@ -677,69 +677,102 @@ extension VideoPlayerView {
     @available(iOS 14.0, tvOS 15.0, *)
     func buildMenusForButtons() {
         #if !os(tvOS)
-        toolBar.definitionButton.setMenu(title: NSLocalizedString("video quality", comment: ""), current: resource?.definitions[currentDefinition], list: resource?.definitions ?? []) { value in
-            value.definition
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value, let index = self.resource?.definitions.firstIndex(of: value) {
-                self.change(definitionIndex: index)
-            }
-        }
         let videoTracks = playerLayer?.player.tracks(mediaType: .video) ?? []
-        toolBar.videoSwitchButton.setMenu(title: NSLocalizedString("switch video", comment: ""), current: videoTracks.first(where: { $0.isEnabled }), list: videoTracks) { value in
-            value.name + " \(value.naturalSize.width)x\(value.naturalSize.height)"
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value {
-                self.playerLayer?.player.select(track: value)
-            }
-        }
         let audioTracks = playerLayer?.player.tracks(mediaType: .audio) ?? []
-        toolBar.audioSwitchButton.setMenu(title: NSLocalizedString("switch audio", comment: ""), current: audioTracks.first(where: { $0.isEnabled }), list: audioTracks) { value in
-            value.description
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value {
-                self.playerLayer?.player.select(track: value)
-            }
-        }
-        toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed", comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
-            "\(value) x"
-        } completition: { [weak self] value in
-            guard let self else { return }
-            if let value {
-                self.playerLayer?.player.playbackRate = value
-            }
-        }
-        toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle", comment: ""), current: srtControl.selectedSubtitleInfo, list: srtControl.subtitleInfos, addDisabled: true) { value in
-            value.name
-        } completition: { [weak self] value in
-            guard let self else { return }
-            self.srtControl.selectedSubtitleInfo = value
-        }
 
-        let subtitleGroup = KSMenuGroup(
-            type: .subtitle,
-            title: NSLocalizedString("Subtitle", comment: ""),
-            current: srtControl.selectedSubtitleInfo,
-            list: srtControl.subtitleInfos,
-            addDisabled: true
-        )
+        let menu = NestedMenu.build(title: NSLocalizedString("Settings", comment: "")) {
 
-        toolBar.extendedButton.setMenuWithSubmenu(title: "更多设置", submenuGroups: [subtitleGroup], titleFunc: { value in
-            return value.name
-        }, settingHandler: {
-            // 处理设置选项
-            print("Open settings...")
-        }) { [weak self] menuType, selectedOption in
-            guard let self else { return }
-            // 根据选中的菜单项进行处理
-            switch menuType {
-            case .subtitle:
-                self.srtControl.selectedSubtitleInfo = selectedOption
-            default: break
-            }
+            AnyMenuConfig(MenuConfig.create(
+                title: NSLocalizedString("Quality", comment: ""),
+                current: resource?.definitions[currentDefinition],
+                items: resource?.definitions ?? [],
+                titleFunc: { $0.definition }
+            ) { [weak self] selected in
+                guard let self else { return }
+                if let selected, let index = self.resource?.definitions.firstIndex(of: selected) {
+                    self.change(definitionIndex: index)
+
+                    self.toolBar.extendedButton.updateSubMenuState(
+                        subMenuTitle: NSLocalizedString("Quality", comment: ""),
+                        selectedItem: selected,
+                        titleFunc: { $0.definition }
+                    )
+                }
+            })
+
+            AnyMenuConfig(MenuConfig.create(
+                title: NSLocalizedString("Speed", comment: ""),
+                current: playerLayer?.player.playbackRate ?? 1,
+                items: [0.75, 1.0, 1.25, 1.5, 2.0, 3.0],
+                titleFunc: { "\($0) X" }
+            ) { [weak self] selected in
+                guard let self else { return }
+                if let selected = selected {
+                    self.playerLayer?.player.playbackRate = selected as! Float
+
+                    self.toolBar.extendedButton.updateSubMenuState(
+                        subMenuTitle: NSLocalizedString("Speed", comment: ""),
+                        selectedItem: selected, titleFunc: { "\($0) X" }
+                    )
+                }
+            })
+
+            AnyMenuConfig(MenuConfig.create(
+                title: NSLocalizedString("Video", comment: ""),
+                current: videoTracks.first(where: { $0.isEnabled }),
+                items: videoTracks,
+                titleFunc: { $0.name }
+            ) { [weak self] selected in
+                guard let self else { return }
+                if let selected = selected {
+                    self.playerLayer?.player.select(track: selected)
+
+                    self.toolBar.extendedButton.updateSubMenuState(
+                        subMenuTitle: NSLocalizedString("Video", comment: ""),
+                        selectedItem: selected,
+                        titleFunc: { $0.name }
+                    )
+                }
+            })
+
+            AnyMenuConfig(MenuConfig.create(
+                title: NSLocalizedString("Audio", comment: ""),
+                current: audioTracks.first(where: { $0.isEnabled }),
+                items: audioTracks,
+                titleFunc: { $0.name }
+            ) { [weak self] selected in
+                guard let self else { return }
+                if let selected = selected {
+                    self.playerLayer?.player.select(track: selected)
+
+                    self.toolBar.extendedButton.updateSubMenuState(
+                        subMenuTitle: NSLocalizedString("Audio", comment: ""),
+                        selectedItem: selected,
+                        titleFunc: { $0.name }
+                    )
+                }
+            })
+
+            AnyMenuConfig(MenuConfig.create(
+                title: NSLocalizedString("Subtitle", comment: ""),
+                current: srtControl.selectedSubtitleInfo,
+                items: srtControl.subtitleInfos,
+                titleFunc: { $0.name }
+            ) { [weak self] selected in
+                guard let self else { return }
+                if let selected = selected {
+                    self.srtControl.selectedSubtitleInfo = selected
+
+                    self.toolBar.extendedButton.updateSubMenuState(
+                        subMenuTitle: NSLocalizedString("Subtitle", comment: ""),
+                        selectedItem: selected,
+                        titleFunc: { $0.name }
+                    )
+                }
+            })
         }
+        
+        toolBar.extendedButton.setNestedMenu(menu)
         #if os(iOS)
         toolBar.definitionButton.showsMenuAsPrimaryAction = true
         toolBar.videoSwitchButton.showsMenuAsPrimaryAction = true
