@@ -136,6 +136,7 @@ extension Scanner {
         Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         """
+        var textPosition = TextPosition()
         while !isAtEnd {
             if let (start, end, text) = SrtParse.parsePart(scanner: self) {
                 var start = start.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
@@ -144,7 +145,7 @@ extension Scanner {
                 end.removeLast()
                 // \n只在 WrapStyle: 2是会换行，其他模式下都相当于一个空格。\N在任何模式下都会强制换行。所以要进行转换
                 var text = text.replacingOccurrences(of: "\n", with: "\\N")
-                ass += "Dialogue: 0,\(start),\(end),Default,,0,0,0,,\(text)\n"
+                ass += "Dialogue: 0,\(start),\(end),Default,,0,0,0,,\(text.build(textPosition: &textPosition).string)\n"
             }
         }
         return ass

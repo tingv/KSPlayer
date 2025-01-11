@@ -168,8 +168,11 @@ extension String {
                 if attributedStr.length != 0 {
                     attributedStr.append(NSAttributedString(string: String("\n")))
                 }
-                if string.hasPrefix("<"), string.hasSuffix(">") {
+                if string.contains("<"), string.contains(">") {
                     let scanner = Scanner(string: String(string))
+                    if let text = scanner.scanUpToString("<") {
+                        attributedStr.append(NSAttributedString(string: text))
+                    }
                     if scanner.scanString("<font ") != nil {
                         if scanner.scanString("size=\"") != nil, let fontSize = scanner.scanFloat(), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
                             var attributes = attributes
