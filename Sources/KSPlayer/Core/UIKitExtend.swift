@@ -37,7 +37,17 @@ public class KSSlider: UXSlider {
     }
 
     override open func setThumbImage(_ image: UIImage?, for state: UIControl.State) {
-        super.setThumbImage(UIImage(named: "playback.slider.thumb"), for: state)
+        // 创建12x12的圆形滑块图片
+        let thumbSize = CGSize(width: 12, height: 12)
+        UIGraphicsBeginImageContextWithOptions(thumbSize, false, 0)
+        let context = UIGraphicsGetCurrentContext()!
+        context.setFillColor(UIColor.white.cgColor)
+        context.addEllipse(in: CGRect(origin: .zero, size: thumbSize))
+        context.fillPath()
+        let thumbImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        super.setThumbImage(thumbImage, for: state)
     }
 
     // MARK: - handle UI slider actions
