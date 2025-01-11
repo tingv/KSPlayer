@@ -322,7 +322,6 @@ public class PlayerToolBar: UIVisualEffectView {
             pipButton.isHidden = !AVPictureInPictureController.isPictureInPictureSupported()
         }
 
-        timeSlider.tintColor = .white
         playbackRateButton.tintColor = .white
         definitionButton.tintColor = .white
         audioSwitchButton.tintColor = .white
