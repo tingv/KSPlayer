@@ -153,25 +153,10 @@ open class VideoPlayerView: PlayerView {
         return stackView
     }()
 
-    // 内容模式切换
-    public var contentModeButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.scale.dwon"), for: .normal)
-        if let imageView = button.imageView {
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                imageView.widthAnchor.constraint(equalToConstant: 24),
-                imageView.heightAnchor.constraint(equalToConstant: 24)
-            ])
-        }
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
     // 画中画按钮
     public var pipButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.pip.start"), for: .normal)
+        button.setImage(KSOptions.image(named: "playback.pip.start"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
