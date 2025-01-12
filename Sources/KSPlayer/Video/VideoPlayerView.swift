@@ -193,8 +193,9 @@ open class VideoPlayerView: PlayerView {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12)
         label.textColor = .white
+        label.textAlignment = .center  // 确保文本在 label 内部居中对齐
         label.layer.shadowColor = UIColor.black.cgColor  // 阴影颜色
-        label.layer.shadowOffset = CGSize(width: 1, height: 1)  // 阴影偏移量
+        label.layer.shadowOffset = .zero  // 阴影偏移量
         label.layer.shadowRadius = 3.0  // 阴影模糊半径
         label.layer.shadowOpacity = 0.8  // 阴影不透明度
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -1082,8 +1083,10 @@ extension VideoPlayerView {
             topMaskView.heightAnchor.constraint(equalToConstant: 132),
 
             // 标题
-            titleLabel.topAnchor.constraint(equalTo: topMaskView.safeTopAnchor, constant: 6),
+            titleLabel.topAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.topAnchor, constant: 6),
             titleLabel.centerXAnchor.constraint(equalTo: controllerView.centerXAnchor),
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: topMaskView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(greaterThanOrEqualTo: topMaskView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
 
             // 左侧导航栏
             leftNavigationBar.leadingAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
@@ -1165,8 +1168,10 @@ extension VideoPlayerView {
             topMaskView.heightAnchor.constraint(equalToConstant: 80),
 
             // 标题
-            titleLabel.topAnchor.constraint(equalTo: topMaskView.safeTopAnchor, constant: 6),
+            titleLabel.topAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.topAnchor, constant: 6),
             titleLabel.centerXAnchor.constraint(equalTo: controllerView.centerXAnchor),
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: topMaskView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(greaterThanOrEqualTo: topMaskView.safeAreaLayoutGuide.trailingAnchor, constant: -16),
 
             // 左侧导航栏
             leftNavigationBar.leadingAnchor.constraint(equalTo: topMaskView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
