@@ -293,7 +293,8 @@ public extension [String: String] {
             if italic {
                 symbolicTraits = symbolicTraits.union(.traitItalic)
             }
-            let font = UIFont(descriptor: fontDescriptor.withSymbolicTraits(symbolicTraits), size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
+            let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits) ?? fontDescriptor
+            let font = UIFont(descriptor: descriptor, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
             attributes[.font] = font
         }
         // 创建字体样式
@@ -365,13 +366,15 @@ extension UIFont {
         if italic {
             symbolicTraits = symbolicTraits.union(.traitItalic)
         }
-        self.init(descriptor: fontDescriptor.withSymbolicTraits(symbolicTraits), size: size)
+        let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits) ?? fontDescriptor
+        self.init(descriptor: descriptor, size: size)
     }
 
     func union(symbolicTrait: UIFontDescriptor.SymbolicTraits) -> UIFont {
         var fontDescriptor = fontDescriptor
         var symbolicTraits = fontDescriptor.symbolicTraits
         symbolicTraits = symbolicTraits.union(symbolicTrait)
-        return UIFont(descriptor: fontDescriptor.withSymbolicTraits(symbolicTraits), size: pointSize) ?? self
+        let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits) ?? fontDescriptor
+        return UIFont(descriptor: descriptor, size: pointSize) ?? self
     }
 }
