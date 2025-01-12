@@ -1079,7 +1079,7 @@ extension VideoPlayerView {
             topMaskView.topAnchor.constraint(equalTo: controllerView.topAnchor),
             topMaskView.leadingAnchor.constraint(equalTo: controllerView.leadingAnchor),
             topMaskView.trailingAnchor.constraint(equalTo: controllerView.trailingAnchor),
-            topMaskView.heightAnchor.constraint(equalToConstant: 124),
+            topMaskView.heightAnchor.constraint(equalToConstant: 136),
 
             // 标题
             titleLabel.topAnchor.constraint(equalTo: topMaskView.safeTopAnchor, constant: 6),
