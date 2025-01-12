@@ -618,42 +618,7 @@ extension MEPlayerItem {
 
     private func readThread() {
         if state == .opened {
-            /// File has a CUES element, but we defer parsing until it is needed.
-            /// 因为mkv只会在第一次seek的时候请求index信息，
-            /// 所以为了让预加载不会在第一次seek有缓冲，就手动seek提前请求index。(比较trick，但是没想到更好的方案)
-            if options.formatName.contains("matroska"), ioContext as? PreLoadProtocol != nil, options.startPlayTime == 0 {
-                options.startPlayTime = 0.0001
-//                options.seekFlags |= AVSEEK_FLAG_ANY
-            }
-            if options.startPlayTime > 0, options.startPlayTime < duration {
-                var flags = options.seekFlags
-                let timestamp: Int64
-                let seekTime = CMTime(seconds: options.startPlayTime)
-                let time = startTime + seekTime
-                if seekByBytes {
-                    if initFileSize > 0, initDuration > 0 {
-                        flags |= AVSEEK_FLAG_BYTE
-                        timestamp = Int64(Double(initFileSize) * options.startPlayTime / initDuration)
-                    } else {
-                        timestamp = time.value
-                    }
-                } else {
-                    timestamp = time.value
-                }
-                let seekStartTime = CACurrentMediaTime()
-                let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp, Int64.max, flags)
-                audioClock.time = seekTime
-                videoClock.time = seekTime
-                KSLog("start seek PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
-                if let seekingCompletionHandler {
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self else { return }
-                        self.seekingCompletionHandler?(result >= 0)
-                        self.seekingCompletionHandler = nil
-                    }
-                }
-            }
-            state = .reading
+            opened()
         }
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
@@ -669,92 +634,137 @@ extension MEPlayerItem {
                     condition.wait()
                 }
             } else if state == .seeking {
-                let seekToTime = seekTime
-                let seekSuccess = seekUsePacketCache(seconds: seekToTime)
-                if seekSuccess {
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self else { return }
-                        self.seekingCompletionHandler?(true)
-                        self.seekingCompletionHandler = nil
-                    }
-                    state = .reading
-                    continue
-                }
-                let time = mainClock().time
-                var increase = Int64(seekTime - time.seconds)
-                var seekFlags = options.seekFlags
-                let timeStamp: Int64
-                /// 因为有的ts走seekByBytes的话，那会seek不会精准，自定义io的直播流和点播也会有有问题，所以先关掉，下次遇到ts seek有问题的话在看下。
-                if false, seekByBytes, let formatCtx {
-                    seekFlags |= AVSEEK_FLAG_BYTE
-                    if fileSize > 0, duration > 0 {
-                        timeStamp = Int64(Double(fileSize) * seekToTime / duration)
-                    } else {
-                        var byteRate = formatCtx.pointee.bit_rate / 8
-                        if byteRate == 0 {
-                            byteRate = dynamicInfo.byteRate
-                        }
-                        increase *= byteRate
-                        var position = Int64(-1)
-                        if position < 0 {
-                            position = videoClock.position
-                        }
-                        if position < 0 {
-                            position = audioClock.position
-                        }
-                        if position < 0 {
-                            position = avio_tell(formatCtx.pointee.pb)
-                        }
-                        timeStamp = position + increase
-                    }
-                    //                avformat_flush(formatCtx)
-                } else {
-                    increase *= Int64(AV_TIME_BASE)
-                    timeStamp = Int64((time + startTime).seconds) * Int64(AV_TIME_BASE) + increase
-                }
-                /// 有遇到一个mov的视频，如果指定min，那seek之后，就会从0开始播放；
-                /// 并且如果seek的值大于结束时间的话，那会返回-1，到时无法加载数据，一直loading。
-//                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
-                let seekMin = Int64.min
-                let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
-//                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
-                // can not seek to key frame
-                let seekStartTime = CACurrentMediaTime()
-                var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
-//                var result = av_seek_frame(formatCtx, -1, timeStamp, seekFlags)
-                // When seeking before the beginning of the file, and seeking fails,
-                // try again without the backwards flag to make it seek to the
-                // beginning.
-                if result < 0, seekFlags & AVSEEK_FLAG_BACKWARD == AVSEEK_FLAG_BACKWARD {
-                    KSLog("seek to \(seekToTime) failed. seekFlags remove BACKWARD")
-                    options.seekFlags &= ~AVSEEK_FLAG_BACKWARD
-                    seekFlags &= ~AVSEEK_FLAG_BACKWARD
-                    result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
-                }
-                KSLog("seek to \(seekToTime) spend Time: \(CACurrentMediaTime() - seekStartTime)")
-                if state == .closed {
-                    break
-                }
-                if seekToTime != seekTime {
-                    continue
-                }
-                isSeek = true
-                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
-                audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
-                videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
-                    self.codecDidChangeCapacity()
-                    self.seekingCompletionHandler?(result >= 0)
-                    self.seekingCompletionHandler = nil
-                }
-                state = .reading
+                seeking()
             } else if state == .reading {
                 autoreleasepool {
                     _ = reading()
                 }
             }
         }
+    }
+
+    private func opened() {
+        /// File has a CUES element, but we defer parsing until it is needed.
+        /// 因为mkv只会在第一次seek的时候请求index信息，
+        /// 所以为了让预加载不会在第一次seek有缓冲，就手动seek提前请求index。(比较trick，但是没想到更好的方案)
+        if options.formatName.contains("matroska"), ioContext as? PreLoadProtocol != nil, options.startPlayTime == 0 {
+            options.startPlayTime = 0.0001
+            //                options.seekFlags |= AVSEEK_FLAG_ANY
+        }
+        if options.startPlayTime > 0, options.startPlayTime < duration {
+            // 有的rmvb需要先读取第一个视频帧，这样当startPlayTime小于30s才不会解码失败。
+            _ = reading()
+            var flags = options.seekFlags
+            let timestamp: Int64
+            let seekTime = CMTime(seconds: options.startPlayTime)
+            let time = startTime + seekTime
+            if seekByBytes {
+                if initFileSize > 0, initDuration > 0 {
+                    flags |= AVSEEK_FLAG_BYTE
+                    timestamp = Int64(Double(initFileSize) * options.startPlayTime / initDuration)
+                } else {
+                    timestamp = time.value
+                }
+            } else {
+                timestamp = time.value
+            }
+            let seekStartTime = CACurrentMediaTime()
+            let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp, Int64.max, flags)
+            audioClock.time = seekTime
+            videoClock.time = seekTime
+            KSLog("start seek PlayTime: \(time.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+            if let seekingCompletionHandler {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.seekingCompletionHandler?(result >= 0)
+                    self.seekingCompletionHandler = nil
+                }
+            }
+        }
+        state = .reading
+    }
+
+    private func seeking() {
+        let seekToTime = seekTime
+        let seekSuccess = seekUsePacketCache(seconds: seekToTime)
+        if seekSuccess {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.seekingCompletionHandler?(true)
+                self.seekingCompletionHandler = nil
+            }
+            state = .reading
+            return
+        }
+        let time = mainClock().time
+        var increase = Int64(seekTime - time.seconds)
+        var seekFlags = options.seekFlags
+        let timeStamp: Int64
+        /// 因为有的ts走seekByBytes的话，那会seek不会精准，自定义io的直播流和点播也会有有问题，所以先关掉，下次遇到ts seek有问题的话在看下。
+        if false, seekByBytes, let formatCtx {
+            seekFlags |= AVSEEK_FLAG_BYTE
+            if fileSize > 0, duration > 0 {
+                timeStamp = Int64(Double(fileSize) * seekToTime / duration)
+            } else {
+                var byteRate = formatCtx.pointee.bit_rate / 8
+                if byteRate == 0 {
+                    byteRate = dynamicInfo.byteRate
+                }
+                increase *= byteRate
+                var position = Int64(-1)
+                if position < 0 {
+                    position = videoClock.position
+                }
+                if position < 0 {
+                    position = audioClock.position
+                }
+                if position < 0 {
+                    position = avio_tell(formatCtx.pointee.pb)
+                }
+                timeStamp = position + increase
+            }
+            //                avformat_flush(formatCtx)
+        } else {
+            increase *= Int64(AV_TIME_BASE)
+            timeStamp = Int64((time + startTime).seconds) * Int64(AV_TIME_BASE) + increase
+        }
+        /// 有遇到一个mov的视频，如果指定min，那seek之后，就会从0开始播放；
+        /// 并且如果seek的值大于结束时间的话，那会返回-1，到时无法加载数据，一直loading。
+        //                let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
+        let seekMin = Int64.min
+        let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
+        //                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
+        // can not seek to key frame
+        let seekStartTime = CACurrentMediaTime()
+        var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
+        //                var result = av_seek_frame(formatCtx, -1, timeStamp, seekFlags)
+        // When seeking before the beginning of the file, and seeking fails,
+        // try again without the backwards flag to make it seek to the
+        // beginning.
+        if result < 0, seekFlags & AVSEEK_FLAG_BACKWARD == AVSEEK_FLAG_BACKWARD {
+            KSLog("seek to \(seekToTime) failed. seekFlags remove BACKWARD")
+            options.seekFlags &= ~AVSEEK_FLAG_BACKWARD
+            seekFlags &= ~AVSEEK_FLAG_BACKWARD
+            result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
+        }
+        KSLog("seek to \(seekToTime) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+        if state == .closed {
+            return
+        }
+        if seekToTime != seekTime {
+            return
+        }
+        isSeek = true
+        allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
+        audioClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
+        videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.codecDidChangeCapacity()
+            self.seekingCompletionHandler?(result >= 0)
+            self.seekingCompletionHandler = nil
+        }
+        state = .reading
     }
 
     private func seekUsePacketCache(seconds: Double) -> Bool {
