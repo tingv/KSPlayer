@@ -220,7 +220,12 @@ open class VideoPlayerView: PlayerView {
     // 字幕背景视图
     public var subtitleBackView = UIImageView()
     /// 加载指示器，显示加载状态
-    public var loadingIndector: UIView & LoadingIndector = UIActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
+    public var loadingIndector: UIView & LoadingIndector = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.color = .white
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
     /// 快进快退提示视图
     public var seekToView: UIView & SeekViewProtocol = SeekView()
     /// 重播按钮
