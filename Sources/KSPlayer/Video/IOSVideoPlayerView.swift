@@ -32,7 +32,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
     // 返回按钮
     public var backButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.close"), for: .normal)
+        button.setImage(KSOptions.image(named: "playback.close"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -95,6 +95,10 @@ open class IOSVideoPlayerView: VideoPlayerView {
         backButton.tag = PlayerButtonType.back.rawValue
         backButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .touchUpInside)
         leftNavigationBarStack.insertArrangedSubview(backButton, at: 0)
+
+        // 内容模式按钮
+        contentModeButton.tag = PlayerButtonType.contentMode.rawValue
+        contentModeButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .touchUpInside)
 
         // 添加 AirPlay 状态视图
         addSubview(airplayStatusView)

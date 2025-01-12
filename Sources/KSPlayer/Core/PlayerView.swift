@@ -26,6 +26,7 @@ public enum PlayerButtonType: Int {
     case audioSwitch    // 音频切换按钮
     case videoSwitch    // 视频切换按钮
     case extended       // 扩展设置按钮
+    case contentMode    // 内容模式按钮
 }
 
 /// 播放器控制器代理协议
@@ -62,6 +63,20 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
 
     /// 控制器代理
     public weak var delegate: ControllerDelegate?
+    // 内容模式切换
+    public var contentModeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(KSOptions.image(named: "playback.scale.aspectfit"), for: .normal)
+        if let imageView = button.imageView {
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                imageView.widthAnchor.constraint(equalToConstant: 24),
+                imageView.heightAnchor.constraint(equalToConstant: 24)
+            ])
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     /// 工具栏，包含播放控制按钮等界面元素
     public let toolBar = PlayerToolBar()
     /// 字幕控制器
@@ -131,6 +146,8 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
             play()
         case .pause:
             pause()
+        case .contentMode:
+            switchContentMode()
         default:
             break
         }
@@ -163,6 +180,32 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     /// 暂停播放
     open func pause() {
         playerLayer?.pause()
+    }
+
+    /// 切换内容模式
+    open func switchContentMode() {
+        guard let currentMode = playerLayer?.player.contentMode else { return }
+
+        // 根据当前模式设置下一个模式
+        let nextMode: UIViewContentMode = {
+            switch currentMode {
+            case .scaleToFill:
+                contentModeButton.setImage(KSOptions.image(named: "playback.scale.aspectfit"), for: .normal)
+                return .scaleAspectFit
+            case .scaleAspectFit:
+                contentModeButton.setImage(KSOptions.image(named: "playback.scale.aspectfill"), for: .normal)
+                return .scaleAspectFill
+            case .scaleAspectFill:
+                contentModeButton.setImage(KSOptions.image(named: "playback.scale.tofill"), for: .normal)
+                return .scaleToFill
+            @unknown default:
+                contentModeButton.setImage(KSOptions.image(named: "playback.scale.aspectfit"), for: .normal)
+                return .scaleAspectFit
+            }
+        }()
+
+        // 设置新的模式
+        playerLayer?.player.contentMode = nextMode
     }
 
     /// 跳转到指定时间点

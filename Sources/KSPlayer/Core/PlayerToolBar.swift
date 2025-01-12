@@ -71,7 +71,7 @@ public class PlayerToolBar: UIVisualEffectView {
     // 上一集按钮
     public var prevButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.prev"), for: .normal)
+        button.setImage(KSOptions.image(named:"playback.prev"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -86,7 +86,7 @@ public class PlayerToolBar: UIVisualEffectView {
     // 播放按钮
     public var playButton: UIButton = {
         let button = UIButton(type: .custom)
-        // button.setImage(UIImage(named: "playback.pause"), for: .normal)
+        // button.setImage(KSOptions.image(named: "playback.pause"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -101,7 +101,7 @@ public class PlayerToolBar: UIVisualEffectView {
     //  下一集按钮
     public var nextButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.next"), for: .normal)
+        button.setImage(KSOptions.image(named: "playback.next"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -116,7 +116,7 @@ public class PlayerToolBar: UIVisualEffectView {
     // 播放设置按钮
     public var extendedButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.settings"), for: .normal)
+        button.setImage(KSOptions.image(named: "playback.settings"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -131,7 +131,7 @@ public class PlayerToolBar: UIVisualEffectView {
     // AirPlay按钮
     public var airplayButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(named: "playback.airplay"), for: .normal)
+        button.setImage(KSOptions.image(named: "playback.airplay"), for: .normal)
         if let imageView = button.imageView {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
@@ -313,8 +313,8 @@ public class PlayerToolBar: UIVisualEffectView {
         if #available(macOS 11.0, *) {
             pipButton.setImage(UIImage(systemName: "pip.enter"), for: .normal)
             pipButton.setImage(UIImage(systemName: "pip.exit"), for: .selected)
-            playButton.setImage(UIImage(named: "playback.play"), for: .normal)
-            playButton.setImage(UIImage(named: "playback.pause"), for: .selected)
+            playButton.setImage(KSOptions.image(named: "playback.play"), for: .normal)
+            playButton.setImage(KSOptions.image(named: "playback.pause"), for: .selected)
             srtButton.setImage(UIImage(systemName: "captions.bubble"), for: .normal)
             definitionButton.setImage(UIImage(systemName: "arrow.up.right.video"), for: .normal)
             audioSwitchButton.setImage(UIImage(systemName: "waveform"), for: .normal)
