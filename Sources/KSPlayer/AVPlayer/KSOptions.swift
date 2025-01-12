@@ -352,9 +352,29 @@ open class KSOptions {
     public static var textBackgroundColor: Color = .clear
     @MainActor
     public static var textFont: UIFont {
-        textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
+        var font: UIFont?
+        if let textFontName {
+            font = UIFont(name: textFontName, size: textFontSize, bold: textBold, italic: textItalic)
+        }
+        if let font {
+            return font
+        } else {
+            var font = UIFont.systemFont(ofSize: textFontSize)
+            if textBold || textItalic {
+                var symbolicTrait = UIFontDescriptor.SymbolicTraits()
+                if textBold {
+                    symbolicTrait = symbolicTrait.union(.traitBold)
+                }
+                if textItalic {
+                    symbolicTrait = symbolicTrait.union(.traitItalic)
+                }
+                font = font.union(symbolicTrait: symbolicTrait)
+            }
+            return font
+        }
     }
 
+    public nonisolated(unsafe) static var textFontName: String?
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false

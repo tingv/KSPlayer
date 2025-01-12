@@ -272,7 +272,7 @@ public extension [String: String] {
     func parseASSStyle() -> ASSStyle {
         var attributes: [NSAttributedString.Key: Any] = [:]
         if let fontName = self["Fontname"], let fontSize = self["Fontsize"].flatMap(Double.init) {
-            var font = UIFont(name: fontName, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
+            let fontDescriptor: UIFontDescriptor
             if let degrees = self["Angle"].flatMap(Double.init), degrees != 0 {
                 let radians = CGFloat(degrees * .pi / 180.0)
                 #if !canImport(UIKit)
@@ -280,9 +280,20 @@ public extension [String: String] {
                 #else
                 let matrix = CGAffineTransform(rotationAngle: radians)
                 #endif
-                let fontDescriptor = UIFontDescriptor(name: fontName, matrix: matrix)
-                font = UIFont(descriptor: fontDescriptor, size: fontSize) ?? font
+                fontDescriptor = UIFontDescriptor(name: fontName, matrix: matrix)
+            } else {
+                fontDescriptor = UIFontDescriptor(name: fontName, size: fontSize)
             }
+            let bold = self["Bold"] == "1"
+            let italic = self["Italic"] == "1"
+            var symbolicTraits = fontDescriptor.symbolicTraits
+            if bold {
+                symbolicTraits = symbolicTraits.union(.traitBold)
+            }
+            if italic {
+                symbolicTraits = symbolicTraits.union(.traitItalic)
+            }
+            let font = UIFont(descriptor: fontDescriptor.withSymbolicTraits(symbolicTraits), size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
             attributes[.font] = font
         }
         // 创建字体样式
@@ -292,12 +303,6 @@ public extension [String: String] {
         // 还不知道这个要设置到什么颜色上
         if let assColor = self["SecondaryColour"] {
             //            attributes[.backgroundColor] = UIColor(assColor: assColor)
-        }
-        if self["Bold"] == "1" {
-            attributes[.expansion] = 1
-        }
-        if self["Italic"] == "1" {
-            attributes[.obliqueness] = 1
         }
         if self["Underline"] == "1" {
             attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
@@ -348,4 +353,25 @@ public extension [String: String] {
         return ASSStyle(attrs: attributes, textPosition: textPosition)
     }
     // swiftlint:enable cyclomatic_complexity
+}
+
+extension UIFont {
+    convenience init?(name: String, size: Double, bold: Bool, italic: Bool) {
+        let fontDescriptor = UIFontDescriptor(name: name, size: size)
+        var symbolicTraits = fontDescriptor.symbolicTraits
+        if bold {
+            symbolicTraits = symbolicTraits.union(.traitBold)
+        }
+        if italic {
+            symbolicTraits = symbolicTraits.union(.traitItalic)
+        }
+        self.init(descriptor: fontDescriptor.withSymbolicTraits(symbolicTraits), size: size)
+    }
+
+    func union(symbolicTrait: UIFontDescriptor.SymbolicTraits) -> UIFont {
+        var fontDescriptor = fontDescriptor
+        var symbolicTraits = fontDescriptor.symbolicTraits
+        symbolicTraits = symbolicTraits.union(symbolicTrait)
+        return UIFont(descriptor: fontDescriptor.withSymbolicTraits(symbolicTraits), size: pointSize) ?? self
+    }
 }
