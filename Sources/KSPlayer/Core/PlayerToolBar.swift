@@ -300,10 +300,12 @@ public class PlayerToolBar: UIVisualEffectView {
         srtButton.titleFont = .systemFont(ofSize: 14, weight: .medium)
         srtButton.setTitleColor(focusColor, for: .focused)
         srtButton.setTitleColor(tintColor, for: .normal)
+        /*
         pipButton.tag = PlayerButtonType.pictureInPicture.rawValue
         pipButton.titleFont = .systemFont(ofSize: 14, weight: .medium)
         pipButton.setTitleColor(focusColor, for: .focused)
         pipButton.setTitleColor(tintColor, for: .normal)
+         */
 
         // 扩展设置按钮
         extendedButton.tag = PlayerButtonType.extended.rawValue
@@ -311,8 +313,10 @@ public class PlayerToolBar: UIVisualEffectView {
         extendedButton.setTitleColor(tintColor, for: .normal)
 
         if #available(macOS 11.0, *) {
+            /*
             pipButton.setImage(UIImage(systemName: "pip.enter"), for: .normal)
             pipButton.setImage(UIImage(systemName: "pip.exit"), for: .selected)
+             */
             playButton.setImage(KSOptions.image(named: "playback.play"), for: .normal)
             playButton.setImage(KSOptions.image(named: "playback.pause"), for: .selected)
             srtButton.setImage(UIImage(systemName: "captions.bubble"), for: .normal)
@@ -325,7 +329,7 @@ public class PlayerToolBar: UIVisualEffectView {
         srtButton.translatesAutoresizingMaskIntoConstraints = false
         translatesAutoresizingMaskIntoConstraints = false
         if #available(tvOS 14.0, *) {
-            pipButton.isHidden = !AVPictureInPictureController.isPictureInPictureSupported()
+            // pipButton.isHidden = !AVPictureInPictureController.isPictureInPictureSupported()
         }
 
         playbackRateButton.tintColor = .white
@@ -333,7 +337,7 @@ public class PlayerToolBar: UIVisualEffectView {
         audioSwitchButton.tintColor = .white
         videoSwitchButton.tintColor = .white
         srtButton.tintColor = .white
-        pipButton.tintColor = .white
+        // pipButton.tintColor = .white
         extendedButton.tintColor = .white
 
     }
@@ -375,7 +379,7 @@ public class PlayerToolBar: UIVisualEffectView {
         audioSwitchButton.addTarget(target, action: action, for: .primaryActionTriggered)
         videoSwitchButton.addTarget(target, action: action, for: .primaryActionTriggered)
         srtButton.addTarget(target, action: action, for: .primaryActionTriggered)
-        pipButton.addTarget(target, action: action, for: .primaryActionTriggered)
+        // pipButton.addTarget(target, action: action, for: .primaryActionTriggered)
         extendedButton.addTarget(target, action: action, for: .primaryActionTriggered)
     }
 

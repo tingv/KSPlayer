@@ -316,7 +316,7 @@ open class VideoPlayerView: PlayerView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         setupUIComponents()
-        cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: toolBar.pipButton)
+        cancellable = playerLayer?.$isPipActive.assign(to: \.isSelected, on: pipButton)
         toolBar.onFocusUpdate = { [weak self] _ in
             self?.autoFadeOutViewWithAnimation()
         }
@@ -408,16 +408,25 @@ open class VideoPlayerView: PlayerView {
         replayButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         replayButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .primaryActionTriggered)
         replayButton.tag = PlayerButtonType.replay.rawValue
+
         // 配置锁定按钮
         toolLockButton.tag = PlayerButtonType.lock.rawValue
         toolLockButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .primaryActionTriggered)
         toolLockButton.isHidden = true
+
+        // 画中画按钮
+        pipButton.tag = PlayerButtonType.pictureInPicture.rawValue
+        pipButton.addTarget(self, action: #selector(onButtonPressed(_:)), for: .primaryActionTriggered)
+        pipButton.isHidden = !AVPictureInPictureController.isPictureInPictureSupported()
+
         // 设置系统图标（如果可用）
         if #available(macOS 11.0, *) {
             replayButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
             replayButton.setImage(UIImage(systemName: "arrow.counterclockwise"), for: .selected)
             toolLockButton.setImage(UIImage(systemName: "lock.open"), for: .normal)
             toolLockButton.setImage(UIImage(systemName: "lock"), for: .selected)
+            pipButton.setImage(KSOptions.image(named: "playback.pip.start"), for: .normal)
+            pipButton.setImage(KSOptions.image(named: "playback.pip.stop"), for: .selected)
         }
         // 设置按钮颜色
         replayButton.tintColor = .lightGray
@@ -549,6 +558,7 @@ open class VideoPlayerView: PlayerView {
         isPlayed = false
         toolLockButton.isSelected = false
         rotateLockButton.isSelected = false
+        pipButton.isSelected = false
     }
 
     // MARK: - KSSliderDelegate
@@ -1232,7 +1242,7 @@ extension VideoPlayerView {
         toolBar.audioSwitchButton.tintColor = .lightGray
         toolBar.videoSwitchButton.tintColor = .lightGray
         toolBar.srtButton.tintColor = .lightGray
-        toolBar.pipButton.tintColor = .lightGray
+        // toolBar.pipButton.tintColor = .lightGray
 
         toolBar.addToContentView(toolBar.toolBarContainer)
         toolBar.toolBarContainer.addSubview(toolBar.progressContainer)
