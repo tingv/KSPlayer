@@ -35,7 +35,7 @@ public struct PlayBackCommands: Commands {
 }
 #endif
 
-@available(iOS 15, tvOS 16, macOS 12, *)
+@available(iOS 15, tvOS 16, macOS 13, *)
 public struct MenuView<Label, SelectionValue, Content>: View where Label: View, SelectionValue: Hashable, Content: View {
     public let selection: Binding<SelectionValue>
     @ViewBuilder
@@ -45,7 +45,7 @@ public struct MenuView<Label, SelectionValue, Content>: View where Label: View, 
     @State
     private var showMenu = false
     public var body: some View {
-        if #available(tvOS 17, *) {
+        if #available(tvOS 17, iOS 16, macOS 13.0, *) {
             Menu {
                 Picker(selection: selection) {
                     content()
@@ -55,18 +55,82 @@ public struct MenuView<Label, SelectionValue, Content>: View where Label: View, 
                 .pickerStyle(.inline)
             } label: {
                 label()
+                    .menuLabelStyle()
             }
             .menuIndicator(.hidden)
+            .menuStyle(.borderlessButton)
         } else {
-            Picker(selection: selection, content: content, label: label)
-            #if !os(macOS)
-                .pickerStyle(.navigationLink)
-            #endif
-                .frame(height: 50)
-            #if os(tvOS)
-                .frame(width: 110)
-            #endif
+            Picker(selection: selection, content: content) {
+                label()
+                    .menuLabelStyle()
+            }
         }
+    }
+}
+
+extension View {
+    public func menuLabelStyle() -> some View {
+        Group {
+            if #available(tvOS 16, iOS 15, macOS 13, *) {
+                self
+                    .modifier(MenuLabelStyleModifier())
+            } else {
+                self
+            }
+        }
+    }
+
+    public func whenFocused(_ focused: Binding<Bool>) -> some View {
+        Group {
+            if #available(tvOS 16, iOS 15, macOS 13, *) {
+                modifier(WhenFocusedModifier(isFocuse: focused))
+            } else {
+                self
+            }
+        }
+        
+    }
+}
+
+@available(tvOS 16, iOS 15, macOS 13, *)
+fileprivate struct WhenFocusedModifier: ViewModifier {
+    @Environment(\.isFocused) var isFocused
+    
+    @Binding var isFocuse: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: isFocused) { newValue in
+                DispatchQueue.main.async {
+                    isFocuse = newValue
+                }
+            }
+    }
+}
+
+@available(tvOS 16, iOS 15, macOS 13, *)
+private struct MenuLabelStyleModifier: ViewModifier {
+    @State var isFocus: Bool = false
+    
+    func body(content: Content) -> some View {
+        content
+            .symbolVariant(isFocus ? .fill : .none)
+            .foregroundStyle(isFocus ? .black : .secondary)
+            .scaleEffect(isFocus ? 1.25 : 1, anchor: .center)
+#if os(tvOS)
+            .background {
+                Circle()
+                    .fill(.white)
+                    .opacity(isFocus ? 1 : 0)
+                    .scaleEffect(isFocus ? 2.2 : 1, anchor: .center)
+            }
+            .animation(.spring(duration: 0.18), value: isFocus)
+            .focusable()
+            .whenFocused($isFocus)
+#else
+            .font(.title3.weight(.semibold))
+            .imageScale(.medium)
+#endif
     }
 }
 
