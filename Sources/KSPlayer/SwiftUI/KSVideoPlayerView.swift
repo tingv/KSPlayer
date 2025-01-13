@@ -231,7 +231,7 @@ struct VideoControllerView: View {
         VStack {
             #if os(tvOS)
             Spacer()
-            HStack(spacing: 10) {
+            HStack(spacing: 24) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
                     .lineLimit(2)
                     .layoutPriority(100)
@@ -241,7 +241,7 @@ struct VideoControllerView: View {
                 }
                 Spacer()
                     .layoutPriority(2)
-                HStack(spacing: 10) {
+                HStack(spacing: 24) {
                     KSVideoPlayerViewBuilder.playButton(config: config)
                     KSVideoPlayerViewBuilder.contentModeButton(config: config)
                     KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
@@ -250,7 +250,6 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.subtitleButton(config: config)
                     KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
-                .font(.caption)
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
@@ -331,19 +330,15 @@ struct VideoControllerView: View {
             }
             Spacer()
             #if !os(xrOS)
-            HStack {
-                Spacer()
+            HStack(spacing: 20) {
                 KSVideoPlayerViewBuilder.backwardButton(config: config)
-                Spacer()
                 KSVideoPlayerViewBuilder.playButton(config: config)
-                Spacer()
                 KSVideoPlayerViewBuilder.forwardButton(config: config)
-                Spacer()
             }
             Spacer()
-            HStack {
+            HStack(spacing: 18) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
-                Spacer()
+                Spacer(minLength: 0)
                 KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
                 KSVideoPlayerViewBuilder.pipButton(config: config)
                 KSVideoPlayerViewBuilder.recordButton(config: config)
@@ -383,7 +378,7 @@ struct VideoControllerView: View {
             .glassBackgroundEffect()
         }
         #endif
-        #if os(tvOS)
+#if os(tvOS)
         .padding(.horizontal, 80)
         .padding(.bottom, 80)
         .background(LinearGradient(
@@ -394,11 +389,16 @@ struct VideoControllerView: View {
             startPoint: .top,
             endPoint: .bottom
         ))
-        #else
-            .font(.title)
-            .buttonStyle(.borderless)
-            .padding()
+#else
+        .font(.title)
+        .buttonStyle(.borderless)
+        .padding()
+        #if os(iOS)
+        .background {
+            Color.black.opacity(0.35).ignoresSafeArea()
+        }
         #endif
+#endif
     }
 }
 
