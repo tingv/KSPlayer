@@ -170,6 +170,8 @@ extension String {
                 }
                 if string.contains("<"), string.contains(">") {
                     let scanner = Scanner(string: String(string))
+                    // 要加这行代码这样空格才不会被吃掉
+                    scanner.charactersToBeSkipped = nil
                     if let text = scanner.scanUpToString("<") {
                         attributedStr.append(NSAttributedString(string: text))
                     }
