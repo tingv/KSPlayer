@@ -88,7 +88,7 @@ public enum KSVideoPlayerViewBuilder {
         .borderlessButtonIfCan()
         // iOS 模拟器加keyboardShortcut会导致KSVideoPlayer.Coordinator无法释放。真机不会有这个问题
         #if !os(tvOS)
-        .keyboardShortcut("i", modifiers: [.command])
+            .keyboardShortcut("i", modifiers: [.command])
         #endif
     }
 
@@ -198,7 +198,7 @@ public enum KSVideoPlayerViewBuilder {
         }
         .borderlessButtonIfCan()
         #if os(xrOS)
-        .contentTransition(.symbolEffect(.replace))
+            .contentTransition(.symbolEffect(.replace))
         #endif
         #if !os(tvOS)
         .keyboardShortcut(.space, modifiers: .none)
@@ -219,17 +219,17 @@ public enum KSVideoPlayerViewBuilder {
     #endif
 }
 
-extension View {
+private extension View {
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-    fileprivate func centerControlButtonStyle() -> some View {
-        self
-            .font(.system(.title, design: .rounded, weight: .bold))
+    func centerControlButtonStyle() -> some View {
+        font(.system(.title, design: .rounded, weight: .bold))
             .imageScale(.large)
             .foregroundStyle(.white)
             .padding(12)
             .contentShape(.rect)
     }
-    fileprivate func borderlessButtonIfCan() -> some View {
+
+    func borderlessButtonIfCan() -> some View {
         Group {
             #if os(tvOS)
             if #available(tvOS 17, *) {

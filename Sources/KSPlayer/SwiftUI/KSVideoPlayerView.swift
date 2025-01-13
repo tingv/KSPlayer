@@ -378,7 +378,7 @@ struct VideoControllerView: View {
             .glassBackgroundEffect()
         }
         #endif
-#if os(tvOS)
+        #if os(tvOS)
         .padding(.horizontal, 80)
         .padding(.bottom, 80)
         .background(LinearGradient(
@@ -389,16 +389,16 @@ struct VideoControllerView: View {
             startPoint: .top,
             endPoint: .bottom
         ))
-#else
-        .font(.title)
-        .buttonStyle(.borderless)
-        .padding()
+        #else
+            .font(.title)
+            .buttonStyle(.borderless)
+            .padding()
         #if os(iOS)
-        .background {
-            Color.black.opacity(0.35).ignoresSafeArea()
-        }
+            .background {
+                Color.black.opacity(0.35).ignoresSafeArea()
+            }
         #endif
-#endif
+        #endif
     }
 }
 

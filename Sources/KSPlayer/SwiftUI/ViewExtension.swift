@@ -68,8 +68,8 @@ public struct MenuView<Label, SelectionValue, Content>: View where Label: View, 
     }
 }
 
-extension View {
-    public func menuLabelStyle() -> some View {
+public extension View {
+    func menuLabelStyle() -> some View {
         Group {
             if #available(tvOS 16, iOS 15, macOS 13, *) {
                 self
@@ -80,7 +80,7 @@ extension View {
         }
     }
 
-    public func whenFocused(_ focused: Binding<Bool>) -> some View {
+    func whenFocused(_ focused: Binding<Bool>) -> some View {
         Group {
             if #available(tvOS 16, iOS 15, macOS 13, *) {
                 modifier(WhenFocusedModifier(isFocuse: focused))
@@ -88,14 +88,13 @@ extension View {
                 self
             }
         }
-        
     }
 }
 
 @available(tvOS 16, iOS 15, macOS 13, *)
-fileprivate struct WhenFocusedModifier: ViewModifier {
+private struct WhenFocusedModifier: ViewModifier {
     @Environment(\.isFocused) var isFocused
-    
+
     @Binding var isFocuse: Bool
 
     func body(content: Content) -> some View {
@@ -111,13 +110,13 @@ fileprivate struct WhenFocusedModifier: ViewModifier {
 @available(tvOS 16, iOS 15, macOS 13, *)
 private struct MenuLabelStyleModifier: ViewModifier {
     @State var isFocus: Bool = false
-    
+
     func body(content: Content) -> some View {
         content
             .symbolVariant(isFocus ? .fill : .none)
             .foregroundStyle(isFocus ? .black : .secondary)
             .scaleEffect(isFocus ? 1.25 : 1, anchor: .center)
-#if os(tvOS)
+        #if os(tvOS)
             .background {
                 Circle()
                     .fill(.white)
@@ -127,10 +126,10 @@ private struct MenuLabelStyleModifier: ViewModifier {
             .animation(.spring(duration: 0.18), value: isFocus)
             .focusable()
             .whenFocused($isFocus)
-#else
+        #else
             .font(.title3.weight(.semibold))
             .imageScale(.medium)
-#endif
+        #endif
     }
 }
 
