@@ -389,7 +389,12 @@ open class AbstractAVIOContext {
 
     open func close() {}
     open func addSub(url _: URL, flags _: Int32, options _: UnsafeMutablePointer<OpaquePointer?>?, interrupt _: AVIOInterruptCB) -> UnsafeMutablePointer<AVIOContext>? { nil }
-    deinit {}
+}
+
+public protocol DownloadProtocol {
+    func read(buffer: UnsafeMutablePointer<UInt8>, begin: Int, end: Int) -> Int32
+    func fileSize() -> Int64
+    func close()
 }
 
 public protocol PreLoadProtocol {
