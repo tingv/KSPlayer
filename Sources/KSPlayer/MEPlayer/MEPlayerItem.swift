@@ -45,6 +45,7 @@ public final class MEPlayerItem: Sendable {
     private var ioContext: AbstractAVIOContext?
     private var pbArray = [PBClass]()
     private var interrupt = false
+    private var formatName = ""
     private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
     private var defaultIOClose: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<AVIOContext>?) -> Int32)? = nil
 
@@ -363,8 +364,9 @@ extension MEPlayerItem {
         let flags = formatCtx.pointee.iformat.pointee.flags
         maxFrameDuration = flags & AVFMT_TS_DISCONT == AVFMT_TS_DISCONT ? 10.0 : 3600.0
         options.findTime = CACurrentMediaTime()
-        options.formatName = String(cString: formatCtx.pointee.iformat.pointee.name)
-        seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & (AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS) != 0) && options.formatName != "ogg"
+        formatName = String(cString: formatCtx.pointee.iformat.pointee.name)
+        options.formatName = formatName
+        seekByBytes = (flags & AVFMT_NO_BYTE_SEEK == 0) && (flags & (AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS) != 0) && formatName != "ogg"
         if formatCtx.pointee.start_time != Int64.min {
             startTime = CMTime(value: formatCtx.pointee.start_time, timescale: AV_TIME_BASE)
         }
@@ -647,13 +649,16 @@ extension MEPlayerItem {
         /// File has a CUES element, but we defer parsing until it is needed.
         /// 因为mkv只会在第一次seek的时候请求index信息，
         /// 所以为了让预加载不会在第一次seek有缓冲，就手动seek提前请求index。(比较trick，但是没想到更好的方案)
-        if options.formatName.contains("matroska"), ioContext as? PreLoadProtocol != nil, options.startPlayTime == 0 {
+        if formatName.contains("matroska"), ioContext as? PreLoadProtocol != nil, options.startPlayTime == 0 {
             options.startPlayTime = 0.0001
             //                options.seekFlags |= AVSEEK_FLAG_ANY
         }
         if options.startPlayTime > 0, options.startPlayTime < duration {
-            // 有的rmvb需要先读取第一个视频帧，这样当startPlayTime小于30s才不会解码失败。
-            _ = reading()
+            /// 有的rmvb需要先读取第一个视频帧，这样当startPlayTime小于30s才不会解码失败。
+            /// 只对rm做这个特殊处理。不然不好判断关键帧
+            if formatName == "rm" {
+                _ = reading()
+            }
             var flags = options.seekFlags
             let timestamp: Int64
             let seekTime = CMTime(seconds: options.startPlayTime)
