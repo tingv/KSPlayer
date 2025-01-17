@@ -1235,7 +1235,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 }
 
 public extension AbstractAVIOContext {
-    func getContext(bufferSize: Int32 = AbstractAVIOContext.bufferSize, writable: Bool = false) -> UnsafeMutablePointer<AVIOContext> {
+    func getContext(writable: Bool = false) -> UnsafeMutablePointer<AVIOContext> {
         avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passUnretained(self).toOpaque()) { opaque, buffer, size -> Int32 in
             let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque!).takeUnretainedValue()
             let ret = value.read(buffer: buffer, size: size)

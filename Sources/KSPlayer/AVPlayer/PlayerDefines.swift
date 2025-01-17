@@ -364,8 +364,10 @@ public extension FixedWidthInteger {
 
 open class AbstractAVIOContext {
     // 这个要调高一点才不会频繁的进行网络请求，减少卡顿
-    public static let bufferSize = Int32(256 * 1024)
-    public init() {}
+    public let bufferSize: Int32
+    public init(bufferSize: Int32 = 256 * 1024) {
+        self.bufferSize = bufferSize
+    }
     open func read(buffer _: UnsafeMutablePointer<UInt8>?, size: Int32) -> Int32 {
         size
     }
