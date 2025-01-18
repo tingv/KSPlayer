@@ -26,7 +26,7 @@ struct SubtitleRightView: View {
             #endif
                 .padding(textPosition.edgeInsets)
         }
-        .if(textPosition != KSOptions.textPosition) {
+        .if(textPosition != KSOptions.textPosition && KSOptions.stripSubtitleStyle) {
             $0.padding(KSOptions.textPosition.edgeInsets)
         }
     }
