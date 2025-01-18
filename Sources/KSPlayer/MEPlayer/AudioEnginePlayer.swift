@@ -79,6 +79,10 @@ public extension AudioDynamicsProcessor {
 }
 
 public final class AudioEngineDynamicsPlayer: AudioEnginePlayer, AudioDynamicsProcessor {
+    //    private let reverb = AVAudioUnitReverb()
+    public let nbandEQ = AVAudioUnitEQ()
+    //    private let distortion = AVAudioUnitDistortion()
+    //    private let delay = AVAudioUnitDelay()
     private let dynamicsProcessor = AVAudioUnitEffect(audioComponentDescription:
         AudioComponentDescription(componentType: kAudioUnitType_Effect,
                                   componentSubType: kAudioUnitSubType_DynamicsProcessor,
@@ -90,13 +94,14 @@ public final class AudioEngineDynamicsPlayer: AudioEnginePlayer, AudioDynamicsPr
     }
 
     override func audioNodes() -> [AVAudioNode] {
-        var nodes: [AVAudioNode] = [dynamicsProcessor]
+        var nodes: [AVAudioNode] = [nbandEQ, dynamicsProcessor]
         nodes.append(contentsOf: super.audioNodes())
         return nodes
     }
 
     public required init() {
         super.init()
+        engine.attach(nbandEQ)
         engine.attach(dynamicsProcessor)
     }
 }
@@ -105,11 +110,6 @@ public class AudioEnginePlayer: AudioOutput {
     public let engine = AVAudioEngine()
     private var sourceNode: AVAudioSourceNode?
     private var sourceNodeAudioFormat: AVAudioFormat?
-
-//    private let reverb = AVAudioUnitReverb()
-//    private let nbandEQ = AVAudioUnitEQ()
-//    private let distortion = AVAudioUnitDistortion()
-//    private let delay = AVAudioUnitDelay()
     private let timePitch = AVAudioUnitTimePitch()
     private var sampleSize = UInt32(MemoryLayout<Float>.size)
     private var currentRenderReadOffset = UInt32(0)
