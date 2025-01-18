@@ -11,27 +11,23 @@ struct SubtitleRightView: View {
     let text: NSAttributedString
     let textPosition: TextPosition?
     var body: some View {
-        VStack {
-            let textPosition = textPosition ?? KSOptions.textPosition
-            if textPosition.verticalAlign == .bottom || textPosition.verticalAlign == .center {
-                Spacer()
-            }
+        let textPosition = textPosition ?? KSOptions.textPosition
+        let alignment = Alignment(horizontal: textPosition.horizontalAlign, vertical: textPosition.verticalAlign)
+        return ZStack(alignment: alignment) {
+            Color.clear
             text.view
                 .font(Font(KSOptions.textFont))
                 .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
                 .foregroundColor(KSOptions.textColor)
                 .background(KSOptions.textBackgroundColor)
                 .multilineTextAlignment(.center)
-                .alignmentGuide(textPosition.horizontalAlign) {
-                    $0[.leading]
-                }
-                .padding(textPosition.edgeInsets)
             #if !os(tvOS)
                 .textSelection()
             #endif
-            if textPosition.verticalAlign == .top || textPosition.verticalAlign == .center {
-                Spacer()
-            }
+                .padding(textPosition.edgeInsets)
+        }
+        .if(textPosition != KSOptions.textPosition) {
+            $0.padding(KSOptions.textPosition.edgeInsets)
         }
     }
 }
