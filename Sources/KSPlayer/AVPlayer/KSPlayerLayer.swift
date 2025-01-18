@@ -517,7 +517,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 }
 
-extension KSPlayerLayer {
+public extension KSPlayerLayer {
     var isPictureInPictureActive: Bool {
         player.pipController?.isPictureInPictureActive ?? false
     }

@@ -368,6 +368,7 @@ open class AbstractAVIOContext {
     public init(bufferSize: Int32 = 256 * 1024) {
         self.bufferSize = bufferSize
     }
+
     open func read(buffer _: UnsafeMutablePointer<UInt8>?, size: Int32) -> Int32 {
         size
     }
