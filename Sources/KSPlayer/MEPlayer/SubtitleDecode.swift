@@ -133,7 +133,7 @@ class SubtitleDecode: DecodeProtocol {
                 let subtitle = String(cString: ass)
                 if let assImageRenderer {
                     Task(priority: .high) {
-                        await assImageRenderer.add(subtitle: subtitle, start: Int64(start * 1000), duration: end == .infinity ? 1000 : Int64((end - start) * 1000))
+                        await assImageRenderer.add(subtitle: subtitle, start: Int64(start * 1000), duration: end == .infinity ? Int64(subtitle.count * 25) : Int64((end - start) * 1000))
                     }
                 } else if let assParse {
                     let scanner = Scanner(string: subtitle)
