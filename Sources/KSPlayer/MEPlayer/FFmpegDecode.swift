@@ -226,7 +226,12 @@ class FFmpegDecode: DecodeProtocol {
                 //                frame.timebase = Timebase(avframe.pointee.time_base)
                 frame.size = packet.size
                 frame.position = packet.position
-                frame.duration = avframe.pointee.duration
+                // 适配ape音频
+                if !isVideo, avframe.pointee.sample_rate == frame.timebase.den {
+                    frame.duration = Int64(avframe.pointee.nb_samples)
+                } else {
+                    frame.duration = avframe.pointee.duration
+                }
                 if frame.duration == 0, avframe.pointee.sample_rate != 0, frame.timebase.num != 0 {
                     frame.duration = Int64(avframe.pointee.nb_samples) * Int64(frame.timebase.den) / (Int64(avframe.pointee.sample_rate) * Int64(frame.timebase.num))
                 }

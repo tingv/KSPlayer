@@ -320,7 +320,7 @@ extension URL {
         file.seekToEndOfFile()
         let fileSize: UInt64 = file.offsetInFile
 
-        guard fileSize >= 12288 else {
+        guard fileSize > 12288 else {
             return ""
         }
 
