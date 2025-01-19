@@ -352,10 +352,7 @@ open class KSOptions {
     public static var textBackgroundColor: Color = .clear
     @MainActor
     public static var textFont: UIFont {
-        var font: UIFont?
-        if let textFontName {
-            font = UIFont(name: textFontName, size: textFontSize, bold: textBold, italic: textItalic)
-        }
+        var font = UIFont(name: textFontName, size: textFontSize, bold: textBold, italic: textItalic)
         if let font {
             return font
         } else {
@@ -374,7 +371,7 @@ open class KSOptions {
         }
     }
 
-    public nonisolated(unsafe) static var textFontName: String?
+    public nonisolated(unsafe) static var textFontName: String = UIFont.systemFont(ofSize: textFontSize).fontName
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false

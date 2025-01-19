@@ -87,8 +87,7 @@ public struct TextPosition: Equatable, Hashable {
         }
         if horizontalAlign == .leading {
             edgeInsets.leading = leftMargin
-        }
-        if horizontalAlign == .trailing {
+        } else if horizontalAlign == .trailing {
             edgeInsets.trailing = rightMargin
         }
         return edgeInsets
