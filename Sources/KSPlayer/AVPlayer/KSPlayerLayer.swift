@@ -352,7 +352,8 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             guard let self else { return }
             if let window = player.view.window {
                 window.isMovableByWindowBackground = true
-                if options.automaticWindowResize {
+                // 如果当前是全屏的话，那就不要调整比率了。不然画面会有一部分沉下去
+                if options.automaticWindowResize, !window.styleMask.contains(.fullScreen) {
                     let naturalSize = player.naturalSize
                     if naturalSize.width > 0, naturalSize.height > 0 {
                         window.aspectRatio = naturalSize
