@@ -362,7 +362,7 @@ public extension FixedWidthInteger {
     }
 }
 
-open class AbstractAVIOContext {
+open class AbstractAVIOContext: DownloadProtocol {
     // 这个要调高一点才不会频繁的进行网络请求，减少卡顿
     public let bufferSize: Int32
     public init(bufferSize: Int32 = 256 * 1024) {
@@ -377,11 +377,6 @@ open class AbstractAVIOContext {
         size
     }
 
-    /**
-     #define SEEK_SET        0       /* set file offset to offset */
-     #define SEEK_CUR        1       /* set file offset to current plus offset */
-     #define SEEK_END        2       /* set file offset to EOF plus offset */
-     */
     open func seek(offset: Int64, whence _: Int32) -> Int64 {
         offset
     }
@@ -395,7 +390,13 @@ open class AbstractAVIOContext {
 }
 
 public protocol DownloadProtocol {
-    func read(buffer: UnsafeMutablePointer<UInt8>, begin: Int, end: Int) -> Int32
+    func read(buffer _: UnsafeMutablePointer<UInt8>?, size: Int32) -> Int32
+    /**
+     #define SEEK_SET        0       /* set file offset to offset */
+     #define SEEK_CUR        1       /* set file offset to current plus offset */
+     #define SEEK_END        2       /* set file offset to EOF plus offset */
+     */
+    func seek(offset: Int64, whence _: Int32) -> Int64
     func fileSize() -> Int64
     func close()
 }
