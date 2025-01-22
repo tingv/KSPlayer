@@ -62,7 +62,11 @@ class VideoToolboxDecode: DecodeProtocol {
             let position = packet.position
             let isKeyFrame = packet.isKeyFrame
             let status = VTDecompressionSessionDecodeFrame(session.decompressionSession, sampleBuffer: sampleBuffer, flags: flags, infoFlagsOut: &flagOut) { [weak self] status, infoFlags, imageBuffer, _, _ in
-                guard let self, !infoFlags.contains(.frameDropped) else {
+                guard let self else {
+                    return
+                }
+                guard !infoFlags.contains(.frameDropped) else {
+                    KSLog("[video] videoToolbox frame dropped \(status) isKeyFrame: \(isKeyFrame)")
                     return
                 }
                 guard status == noErr else {
