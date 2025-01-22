@@ -93,24 +93,21 @@ public extension KSOptions {
      */
     static func colorSpace(ycbcrMatrix: CFString?, transferFunction: CFString?, isDovi: Bool) -> CGColorSpace? {
         switch ycbcrMatrix {
+        // 把709和601都改成用displayP3。这样饱和度才跟vlc一样。如果是用itur_709和sRGB的，看起来有点苍白。
         case kCVImageBufferYCbCrMatrix_ITU_R_709_2:
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
-                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_709_PQ)
+                if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, *) {
+                    return CGColorSpace(name: CGColorSpace.displayP3_PQ)
                 } else {
-                    return CGColorSpace(name: CGColorSpace.itur_709)
+                    return CGColorSpace(name: CGColorSpace.displayP3)
                 }
             } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
-                if #available(macOS 12.0, iOS 15.1, tvOS 15.1, *) {
-                    return CGColorSpace(name: CGColorSpace.itur_709_HLG)
-                } else {
-                    return CGColorSpace(name: CGColorSpace.itur_709)
-                }
+                return CGColorSpace(name: CGColorSpace.displayP3_HLG)
             } else {
-                return CGColorSpace(name: CGColorSpace.itur_709)
+                return CGColorSpace(name: CGColorSpace.displayP3)
             }
         case kCVImageBufferYCbCrMatrix_ITU_R_601_4:
-            return CGColorSpace(name: CGColorSpace.sRGB)
+            return CGColorSpace(name: CGColorSpace.displayP3)
         case kCVImageBufferYCbCrMatrix_ITU_R_2020:
             if transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
                 return colorSpace2020PQ
@@ -126,7 +123,7 @@ public extension KSOptions {
                 return CGColorSpace(name: CGColorSpace.itur_2020)
             }
         default:
-            return CGColorSpace(name: CGColorSpace.sRGB)
+            return CGColorSpace(name: CGColorSpace.displayP3)
         }
     }
 
