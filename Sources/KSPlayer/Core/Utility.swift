@@ -360,11 +360,14 @@ public extension CGSize {
         }
         let hZoom = toSize.width / width
         let vZoom = toSize.height / height
-        let zoom = min(hZoom, vZoom)
+        let zoom = hZoom
         var newRect = rect * zoom
         let newDisplaySize = self * zoom
-        newRect.origin.x += (toSize.width - newDisplaySize.width) / 2
-        newRect.origin.y += (toSize.height - newDisplaySize.height) / 2
+        let diff = (toSize.height - newDisplaySize.height) / 2
+        newRect.origin.y += diff
+        if newRect.maxY > toSize.height {
+            newRect.origin.y += diff
+        }
         return newRect.integral
     }
 }
