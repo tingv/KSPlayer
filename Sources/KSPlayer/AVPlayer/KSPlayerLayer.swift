@@ -239,7 +239,12 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             if screenSize.width == 0 || screenSize.height == 0 {
                 screenSize = player.view.frame.size
             }
-            subtitleModel.subtitle(currentTime: currentTime, playSize: player.naturalSize.within(size: screenSize), screenSize: screenSize)
+            var playSize = screenSize
+            // 如何屏幕上下有黑边的话。那就让字幕出现在上下黑边里面
+            if player.naturalSize.isHorizonal != screenSize.isHorizonal || player.naturalSize.ratio < screenSize.ratio {
+                playSize = player.naturalSize.within(size: screenSize)
+            }
+            subtitleModel.subtitle(currentTime: currentTime, playSize: playSize, screenSize: screenSize)
         }
         delegate?.player(layer: self, currentTime: currentTime, totalTime: player.duration)
         if player.playbackState == .playing, player.loadState == .playable, state == .buffering {

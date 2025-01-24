@@ -341,6 +341,10 @@ public extension CGSize {
         CGPoint(x: width, y: height)
     }
 
+    var ratio: Double {
+        width / height
+    }
+
     var isHorizonal: Bool {
         width > height
     }
