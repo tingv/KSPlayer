@@ -9,7 +9,7 @@ import CoreMedia
 import Libavformat
 
 protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
-    init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions)
+    init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions, expanding: Bool)
     // 是否无缝循环
     var isLoopModel: Bool { get set }
     var isEndOfFile: Bool { get set }
@@ -51,19 +51,19 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         outputRenderQueue.fps
     }
 
-    required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions) {
+    required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions, expanding: Bool = false) {
         self.options = options
         self.mediaType = mediaType
         description = mediaType.rawValue
         // 默认缓存队列大小跟帧率挂钩,经测试除以4，最优
         if mediaType == .audio {
-            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), expanding: false)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), expanding: expanding)
         } else if mediaType == .video {
             // 用ffmpeg解码的话，会对视频帧进行排序在输出，但是直接用VideoToolboxDecode，是不会排序的，所以需要在放入的时候排序
-            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: false)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: expanding)
         } else {
             // 有的图片字幕不按顺序来输出，所以要排序下。
-            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, isClearItem: !options.seekUsePacketCache)
+            outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: expanding, isClearItem: !options.seekUsePacketCache)
         }
     }
 
@@ -244,9 +244,9 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         }
     }
 
-    required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions) {
+    required init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions, expanding: Bool = false) {
         packetQueue = CircularBuffer<Packet>(isClearItem: !options.seekUsePacketCache)
-        super.init(mediaType: mediaType, frameCapacity: frameCapacity, options: options)
+        super.init(mediaType: mediaType, frameCapacity: frameCapacity, options: options, expanding: expanding)
         operationQueue.name = "KSPlayer_" + mediaType.rawValue
         operationQueue.maxConcurrentOperationCount = 1
         operationQueue.qualityOfService = .userInteractive

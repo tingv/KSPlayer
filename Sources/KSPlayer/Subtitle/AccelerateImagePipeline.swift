@@ -42,7 +42,7 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         }
     }
 
-    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt32>) {
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: [UInt32]) {
         let size = vImage.Size(width: width, height: height)
         self.init(size: size, pixelFormat: vImage.Interleaved8x4.self)
         var bitmapPosition = 0
@@ -52,7 +52,7 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
             let bufferPtr = bufferPtr.withMemoryRebound(to: UInt32.self) { $0 }
             loop(iterations: height) { _ in
                 loop(iterations: width) { x in
-                    bufferPtr[vImagePosition + x] = palette[Int(bitmap[bitmapPosition + x])].bigEndian
+                    bufferPtr[vImagePosition + x] = palette[Int(bitmap[bitmapPosition + x])]
                 }
                 vImagePosition += rowBytes
                 bitmapPosition += stride

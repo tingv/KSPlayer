@@ -138,6 +138,9 @@ public class CircularBuffer<Item: ObjectQueueItem> {
             }
             i += 1
         }
+        if _count <= maxCount >> 1 {
+            condition.signal()
+        }
         return result
     }
 

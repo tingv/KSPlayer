@@ -158,7 +158,7 @@ class SubtitleDecode: DecodeProtocol {
                         height: Int(rect.h),
                         stride: Int(rect.linesize.0),
                         bitmap: bitmap,
-                        palette: palette.withMemoryRebound(to: UInt32.self, capacity: Int(rect.nb_colors)) { $0 }
+                        palette: UnsafeBufferPointer(start: palette.withMemoryRebound(to: UInt32.self, capacity: Int(rect.nb_colors)) { $0 }, count: Int(rect.nb_colors)).map(\.bigEndian)
                     )
                     .cgImage(isHDR: isHDR, alphaInfo: .first).flatMap { UIImage(cgImage: $0) }
 //                    print("image subtitle time:\(CACurrentMediaTime() - start)")

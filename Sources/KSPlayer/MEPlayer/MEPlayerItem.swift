@@ -471,7 +471,9 @@ extension MEPlayerItem {
                         assetTrack.startTime = startTime
                     }
                     if assetTrack.mediaType == .subtitle {
-                        let subtitle = SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 255, options: options)
+                        let subtitle = assetTrack.isImageSubtitle ?
+                            AsyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 8, options: options, expanding: false) :
+                            SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 128, options: options, expanding: true)
                         assetTrack.subtitle = subtitle
                         allPlayerItemTracks.append(subtitle)
                     }

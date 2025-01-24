@@ -14,7 +14,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         self.height = height
     }
 
-    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: UnsafePointer<UInt32>) {
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: [UInt32]) {
         self.width = width
         self.height = height
         self.stride = stride
@@ -24,7 +24,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         var bitmapPosition = 0
         loop(iterations: height) { _ in
             loop(iterations: width) { x in
-                buffer[bitmapPosition + x] = palette[Int(bitmap[bitmapPosition + x])].bigEndian
+                buffer[bitmapPosition + x] = palette[Int(bitmap[bitmapPosition + x])]
             }
             bitmapPosition += stride
         }
