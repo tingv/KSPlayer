@@ -52,7 +52,7 @@ public final class AudioUnitPlayer: AudioOutput {
         descriptionForOutput.componentType = kAudioUnitType_Output
         descriptionForOutput.componentManufacturer = kAudioUnitManufacturer_Apple
         #if os(macOS)
-        descriptionForOutput.componentSubType = kAudioUnitSubType_HALOutput
+        descriptionForOutput.componentSubType = kAudioUnitSubType_DefaultOutput
         #else
         descriptionForOutput.componentSubType = kAudioUnitSubType_RemoteIO
         outputLatency = AVAudioSession.sharedInstance().outputLatency
