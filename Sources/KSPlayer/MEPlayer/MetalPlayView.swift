@@ -309,7 +309,7 @@ private class AVSampleBufferDisplayView: UIView {
         #if !os(tvOS)
         if #available(iOS 17.0, macOS 14.0, *) {
             let colorspace = imageBuffer.colorspace
-            if let name = colorspace?.name, name != CGColorSpace.displayP3 {
+            if let name = colorspace?.name, name != CGColorSpace.sRGB {
                 displayLayer.wantsExtendedDynamicRangeContent = true
             } else {
                 displayLayer.wantsExtendedDynamicRangeContent = false

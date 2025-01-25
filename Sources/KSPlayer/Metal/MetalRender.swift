@@ -249,7 +249,7 @@ extension CAMetalLayer: Drawable {
             KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")
             #if !os(tvOS)
             if #available(iOS 16.0, *) {
-                if let name = colorspace?.name, name != CGColorSpace.displayP3 {
+                if let name = colorspace?.name, name != CGColorSpace.sRGB {
                     #if os(macOS)
                     wantsExtendedDynamicRangeContent = NSScreen.main?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1.0 > 1.0
                     #else
