@@ -364,9 +364,16 @@ public extension CGSize {
         }
         let hZoom = toSize.width / width
         let vZoom = toSize.height / height
-        let zoom = hZoom
+        let zoom: Double
+        // ass图片字幕的话，那vZoom一般会为1，所以通过这个做一下特殊判断
+        if vZoom == 1 {
+            zoom = min(hZoom, vZoom)
+        } else {
+            zoom = hZoom
+        }
         var newRect = rect * zoom
         let newDisplaySize = self * zoom
+        newRect.origin.x += (toSize.width - newDisplaySize.width) / 2
         let diff = (toSize.height - newDisplaySize.height) / 2
         newRect.origin.y += diff
         if newRect.maxY > toSize.height {
