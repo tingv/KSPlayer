@@ -14,7 +14,7 @@ public final class PointerImagePipeline: ImagePipelineType {
         self.height = height
     }
 
-    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: [UInt32]) {
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafeMutablePointer<UInt8>, palette: UnsafePointer<UInt32>) {
         self.width = width
         self.height = height
         self.stride = stride

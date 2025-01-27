@@ -42,21 +42,13 @@ extension vImage.PixelBuffer<vImage.Interleaved8x4> {
         }
     }
 
-    public init(width: Int, height: Int, stride: Int, bitmap: UnsafePointer<UInt8>, palette: [UInt32]) {
+    public init(width: Int, height: Int, stride: Int, bitmap: UnsafeMutablePointer<UInt8>, palette: UnsafePointer<UInt32>) {
         let size = vImage.Size(width: width, height: height)
         self.init(size: size, pixelFormat: vImage.Interleaved8x4.self)
-        var bitmapPosition = 0
-        let rowBytes = rowStride
-        var vImagePosition = 0
-        withUnsafeMutableBufferPointer { bufferPtr in
-            let bufferPtr = bufferPtr.withMemoryRebound(to: UInt32.self) { $0 }
-            loop(iterations: height) { _ in
-                loop(iterations: width) { x in
-                    bufferPtr[vImagePosition + x] = palette[Int(bitmap[bitmapPosition + x])]
-                }
-                vImagePosition += rowBytes
-                bitmapPosition += stride
-            }
+        var src = vImage_Buffer(data: bitmap, height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: stride)
+        withUnsafePointerToVImageBuffer { dest in
+            let table = palette.withMemoryRebound(to: Float.self, capacity: 256) { $0 }
+            vImageLookupTable_Planar8toPlanarF(&src, dest, table, vImage_Flags(kvImageNoFlags))
         }
     }
 

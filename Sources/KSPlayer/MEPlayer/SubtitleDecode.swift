@@ -153,7 +153,13 @@ class SubtitleDecode: DecodeProtocol {
             } else if rect.type == SUBTITLE_BITMAP {
                 if let bitmap = rect.data.0, let palette = rect.data.1 {
 //                    let start = CACurrentMediaTime()
-                    let image = PointerImagePipeline(
+                    let imagePipeline: ImagePipelineType.Type
+//                    if #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
+//                        imagePipeline = vImage.PixelBuffer<vImage.Interleaved8x4>.self
+//                    } else {
+//                    }
+                    imagePipeline = PointerImagePipeline.self
+                    let image = imagePipeline.init(
                         width: Int(rect.w),
                         height: Int(rect.h),
                         stride: Int(rect.linesize.0),
