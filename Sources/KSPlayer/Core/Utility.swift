@@ -365,7 +365,7 @@ public extension CGSize {
         let vZoom = toSize.height / height
         let zoom: Double
         // 只是对21:9的视频做特殊处理
-        if abs(playRatio - 2.4) < 0.01 {
+        if playRatio > 2.25 {
             zoom = hZoom
         } else {
             zoom = min(hZoom, vZoom)

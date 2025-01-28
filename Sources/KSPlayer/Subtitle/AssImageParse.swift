@@ -61,22 +61,21 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
     public func add(subtitle: String, start: Int64, duration: Int64) async {
         if await renderer.uuid == uuid {
             await renderer.add(subtitle: subtitle, start: start, duration: duration)
-        } else {
-            subtitles.append((subtitle, start, duration))
         }
+        subtitles.append((subtitle, start, duration))
     }
 
     public func flush() async {
         if await renderer.uuid == uuid {
             await renderer.flush()
         }
+        subtitles.removeAll()
     }
 
     public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
         if await renderer.uuid != uuid {
             await renderer.set(header: header, uuid: uuid)
             await renderer.add(subtitles: subtitles)
-            subtitles.removeAll()
         }
         return await renderer.search(for: time, size: size, isHDR: isHDR)
     }
