@@ -29,7 +29,7 @@ public struct VideoSubtitleView: View {
     private func subtitleView(render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>) -> some View {
         switch render {
         case let .left(info):
-            SubtitleLeftView(info: info, isHDR: model.isHDR, screenSize: model.screenSize)
+            SubtitleLeftView(info: info, isHDR: model.isHDR, playRatio: model.playRatio, screenSize: model.screenSize)
         case let .right((text, textPosition)):
             SubtitleRightView(text: text, textPosition: textPosition)
                 .padding([.top, .bottom], floor((model.screenSize.height - model.playSize.height) / 2))

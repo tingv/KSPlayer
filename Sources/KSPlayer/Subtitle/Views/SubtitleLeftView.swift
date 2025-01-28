@@ -10,9 +10,10 @@ import SwiftUI
 struct SubtitleLeftView: View {
     let info: SubtitleImageInfo
     let isHDR: Bool
+    let playRatio: Double
     let screenSize: CGSize
     var body: some View {
-        let rect = info.displaySize.convert(rect: info.rect, toSize: screenSize)
+        let rect = info.displaySize.convert(rect: info.rect, playRatio: playRatio, toSize: screenSize)
         // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
         info.image.imageView
             .if(isHDR) {

@@ -342,7 +342,10 @@ public extension CGSize {
     }
 
     var ratio: Double {
-        width / height
+        if width == 0 || height == 0 {
+            return 1
+        }
+        return width / height
     }
 
     var isHorizonal: Bool {
@@ -350,26 +353,22 @@ public extension CGSize {
     }
 
     // 维持原有的比率。但是宽高不能超过size
-    func within(size: CGSize) -> CGSize {
-        guard height != 0, width != 0 else {
-            return size
-        }
-        let aspectRatio = width / height
-        return size.width / size.height < aspectRatio ? CGSize(width: Int(size.width), height: Int(size.width / aspectRatio)) : CGSize(width: Int(size.height * aspectRatio), height: Int(size.height))
+    func within(ratio: Double) -> CGSize {
+        width / height < ratio ? CGSize(width: Int(width), height: Int(width / ratio)) : CGSize(width: Int(height * ratio), height: Int(height))
     }
 
-    func convert(rect: CGRect, toSize: CGSize) -> CGRect {
+    func convert(rect: CGRect, playRatio: Double, toSize: CGSize) -> CGRect {
         guard height != 0, width != 0, toSize.width != 0, toSize.height != 0 else {
             return rect
         }
         let hZoom = toSize.width / width
         let vZoom = toSize.height / height
         let zoom: Double
-        // ass图片字幕的话，那vZoom一般会为1，所以通过这个做一下特殊判断
-        if vZoom == 1 {
-            zoom = min(hZoom, vZoom)
-        } else {
+        // 只是对21:9的视频做特殊处理
+        if abs(playRatio - 2.4) < 0.01 {
             zoom = hZoom
+        } else {
+            zoom = min(hZoom, vZoom)
         }
         var newRect = rect * zoom
         let newDisplaySize = self * zoom
@@ -380,6 +379,12 @@ public extension CGSize {
             newRect.origin.y += diff
         }
         return newRect.integral
+    }
+}
+
+extension Double {
+    var isHorizonal: Bool {
+        self > 1
     }
 }
 

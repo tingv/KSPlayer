@@ -92,6 +92,7 @@ open class SubtitleModel: ObservableObject {
     public var subtitleDelay = 0.0 // s
     public var isHDR = false
     public var playSize = CGSize.zero
+    public var playRatio = Double(1)
     @Published
     public var screenSize = CGSize.zero
     public var url: URL {
@@ -139,8 +140,14 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
-    public func subtitle(currentTime: TimeInterval, playSize: CGSize, screenSize: CGSize) {
+    public func subtitle(currentTime: TimeInterval, playRatio: Double, screenSize: CGSize) {
+        var playSize = screenSize
+        // 如何屏幕上下有黑边的话。那就让字幕出现在上下黑边里面
+        if playRatio.isHorizonal != screenSize.isHorizonal || playRatio < screenSize.ratio {
+            playSize = screenSize.within(ratio: playRatio)
+        }
         self.playSize = playSize
+        self.playRatio = playRatio
         if self.screenSize != screenSize {
             self.screenSize = screenSize
         }
