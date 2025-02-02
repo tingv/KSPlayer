@@ -371,7 +371,12 @@ open class KSOptions {
         }
     }
 
-    public nonisolated(unsafe) static var textFontName: String = UIFont.systemFont(ofSize: textFontSize).familyName
+    public nonisolated(unsafe) static var textFontName: String = {
+        let font = UIFont.systemFont(ofSize: textFontSize)
+        // tvos需要取familyName，才是对的
+        return font.familyName ?? font.fontName
+    }()
+
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
