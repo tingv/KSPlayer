@@ -84,9 +84,8 @@ extension KSVideoPlayer: UIViewRepresentable {
 
     @MainActor
     public final class Coordinator: ObservableObject {
-        public var state: KSPlayerState {
-            playerLayer?.state ?? .initialized
-        }
+        @Published
+        public var state: KSPlayerState = .initialized
 
         @Published
         public var isMuted: Bool = false {
@@ -257,6 +256,7 @@ extension KSVideoPlayer: UIViewRepresentable {
 
 extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
     public func player(layer: KSPlayerLayer, state: KSPlayerState) {
+        self.state = state
         onStateChanged?(layer, state)
         if state == .readyToPlay {
             playbackRate = layer.player.playbackRate

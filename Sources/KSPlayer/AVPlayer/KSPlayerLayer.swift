@@ -183,7 +183,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         player.delegate = self
         player.contentMode = .scaleAspectFit
         if isAutoPlay {
-            prepareToPlay()
+            Task {
+                prepareToPlay()
+            }
         }
         #if canImport(UIKit) && !os(xrOS)
         NotificationCenter.default.addObserver(self, selector: #selector(wirelessRouteActiveDidChange(notification:)), name: .MPVolumeViewWirelessRouteActiveDidChange, object: nil)

@@ -270,17 +270,9 @@ extension KSPlayerState {
             return "restart.circle.fill"
             #endif
         } else if isPlaying {
-            #if os(xrOS) || os(macOS)
             return "pause.fill"
-            #else
-            return "pause.fill"
-            #endif
         } else {
-            #if os(xrOS) || os(macOS)
             return "play.fill"
-            #else
-            return "play.fill"
-            #endif
         }
     }
 }

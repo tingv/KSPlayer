@@ -371,7 +371,7 @@ open class KSOptions {
         }
     }
 
-    public nonisolated(unsafe) static var textFontName: String = UIFont.systemFont(ofSize: textFontSize).fontName
+    public nonisolated(unsafe) static var textFontName: String = UIFont.systemFont(ofSize: textFontSize).familyName
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false

@@ -41,7 +41,7 @@ class FFmpegDecode: DecodeProtocol {
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
-        guard let codecContext else {
+        if codecContext == nil {
             return
         }
         let status = avcodec_send_packet(codecContext, packet.corePacket)
@@ -58,24 +58,21 @@ class FFmpegDecode: DecodeProtocol {
              视频报错AVError.tryAgain.code的话，也不要转为软解。因为dovi解码有可能返回这个错。
              增加开关判断是否要转为软解。因为直播流rtsp直播可能会一开始就报解码失败，但是不需要切换解码
               **/
-            if isVideo, options.recreateContext(hasDecodeSuccess: hasDecodeSuccess) {
-                avcodec_free_context(&self.codecContext)
+            if isVideo, options.hardwareDecode, codecContext?.pointee.hw_device_ctx != nil, options.recreateContext(hasDecodeSuccess: hasDecodeSuccess) {
+                avcodec_free_context(&codecContext)
                 options.hardwareDecode = false
                 KSLog("[video] videoToolbox ffmpeg decode have not success. change to software decode")
-                self.codecContext = try? packet.assetTrack.createContext(options: options)
-                avcodec_send_packet(self.codecContext, packet.corePacket)
+                codecContext = try? packet.assetTrack.createContext(options: options)
+                avcodec_send_packet(codecContext, packet.corePacket)
             } else {
                 // 不要在这里调用avcodec_flush_buffers，不然rmvb seek之后会花屏
 //                avcodec_flush_buffers(codecContext)
                 return
             }
         }
-        guard let codecContext = self.codecContext else {
-            return
-        }
         // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
         if isVideo {
-            if Int32(codecContext.pointee.properties) & FF_CODEC_PROPERTY_CLOSED_CAPTIONS != 0, packet.assetTrack.closedCaptionsTrack == nil {
+            if let codecContext, Int32(codecContext.pointee.properties) & FF_CODEC_PROPERTY_CLOSED_CAPTIONS != 0, packet.assetTrack.closedCaptionsTrack == nil {
                 var codecpar = AVCodecParameters()
                 codecpar.codec_type = AVMEDIA_TYPE_SUBTITLE
                 codecpar.codec_id = AV_CODEC_ID_EIA_608
@@ -95,6 +92,22 @@ class FFmpegDecode: DecodeProtocol {
             let result = avcodec_receive_frame(codecContext, coreFrame)
             // 有的音频视频可以多次调用avcodec_receive_frame，所以不能第一次成功就直接return
             if result == 0, let inputFrame = coreFrame {
+//                if isVideo, inputFrame.pointee.repeat_pict == 1 || inputFrame.pointee.flags & AV_FRAME_FLAG_INTERLACED != 0 {
+//                    // interlaced
+//                    if packet.assetTrack.fieldOrder == .unknown || packet.assetTrack.fieldOrder == .progressive {
+//                        if inputFrame.pointee.flags & AV_FRAME_FLAG_TOP_FIELD_FIRST != 0 {
+//                            packet.assetTrack.fieldOrder = .tt
+//                        } else {
+//                            packet.assetTrack.fieldOrder = .bb
+//                        }
+//                        options.process(assetTrack: packet.assetTrack)
+//                        if !options.hardwareDecode, codecContext?.pointee.hw_device_ctx != nil {
+//                            codecContext = try? packet.assetTrack.createContext(options: options)
+//                            avcodec_send_packet(codecContext, packet.corePacket)
+//                            continue
+//                        }
+//                    }
+//                }
                 success = true
                 hasDecodeSuccess = true
                 decodeFrame(inputFrame: inputFrame, packet: packet, completionHandler: completionHandler)
@@ -121,9 +134,9 @@ class FFmpegDecode: DecodeProtocol {
                     KSLog(error)
                     if isVideo, options.hardwareDecode {
                         // 在这里做下兜底，转为软解
-                        avcodec_free_context(&self.codecContext)
+                        avcodec_free_context(&codecContext)
                         options.hardwareDecode = false
-                        self.codecContext = try? packet.assetTrack.createContext(options: options)
+                        codecContext = try? packet.assetTrack.createContext(options: options)
                     } else {
                         completionHandler(.failure(error))
                     }

@@ -36,7 +36,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     // video
     public private(set) var rotation: Int16 = 0
     public var dovi: DOVIDecoderConfigurationRecord?
-    public let fieldOrder: FFmpegFieldOrder
+    public var fieldOrder: FFmpegFieldOrder
     public let formatDescription: CMFormatDescription?
     //    video stream is an image
     public var isImage = false
