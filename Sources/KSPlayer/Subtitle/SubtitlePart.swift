@@ -77,7 +77,11 @@ public struct TextPosition: Equatable, Hashable {
     public var horizontalAlign: HorizontalAlignment = .center
     public var leftMargin: CGFloat = 2
     public var rightMargin: CGFloat = 2
+    #if os(tvOs)
+    public var verticalMargin: CGFloat = 60
+    #else
     public var verticalMargin: CGFloat = 10
+    #endif
     public var edgeInsets: EdgeInsets {
         var edgeInsets = EdgeInsets()
         if verticalAlign == .bottom {

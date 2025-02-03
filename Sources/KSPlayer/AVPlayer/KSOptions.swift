@@ -373,7 +373,7 @@ open class KSOptions {
 
     public nonisolated(unsafe) static var textFontName: String = {
         let font = UIFont.systemFont(ofSize: textFontSize)
-        // tvos需要取familyName，才是对的
+        // tvos ios需要取familyName，才是对的。而macos familyName和fontName是一样的
         return font.familyName ?? font.fontName
     }()
 
