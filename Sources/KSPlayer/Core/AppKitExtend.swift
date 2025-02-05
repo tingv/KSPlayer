@@ -570,4 +570,10 @@ open class UIAlertAction: NSObject {
 public extension UIViewController {
     func present(_: UIViewController, animated _: Bool, completion _: (() -> Void)? = nil) {}
 }
+
+public extension NSFont {
+    static var familyNames: [String] {
+        NSFontManager.shared.availableFontFamilies
+    }
+}
 #endif
