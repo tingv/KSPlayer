@@ -92,22 +92,20 @@ class FFmpegDecode: DecodeProtocol {
             let result = avcodec_receive_frame(codecContext, coreFrame)
             // 有的音频视频可以多次调用avcodec_receive_frame，所以不能第一次成功就直接return
             if result == 0, let inputFrame = coreFrame {
-//                if isVideo, inputFrame.pointee.repeat_pict == 1 || inputFrame.pointee.flags & AV_FRAME_FLAG_INTERLACED != 0 {
-//                    // interlaced
-//                    if packet.assetTrack.fieldOrder == .unknown || packet.assetTrack.fieldOrder == .progressive {
-//                        if inputFrame.pointee.flags & AV_FRAME_FLAG_TOP_FIELD_FIRST != 0 {
-//                            packet.assetTrack.fieldOrder = .tt
-//                        } else {
-//                            packet.assetTrack.fieldOrder = .bb
-//                        }
-//                        options.process(assetTrack: packet.assetTrack)
-//                        if !options.hardwareDecode, codecContext?.pointee.hw_device_ctx != nil {
-//                            codecContext = try? packet.assetTrack.createContext(options: options)
-//                            avcodec_send_packet(codecContext, packet.corePacket)
-//                            continue
-//                        }
-//                    }
-//                }
+                /// m3u8无法从AVCodecParameters获取是否interlaced，只能从解码后的frame才可以
+                if isVideo, inputFrame.pointee.repeat_pict == 1 || inputFrame.pointee.flags & AV_FRAME_FLAG_INTERLACED != 0, packet.assetTrack.fieldOrder == .unknown || packet.assetTrack.fieldOrder == .progressive {
+                    if inputFrame.pointee.flags & AV_FRAME_FLAG_TOP_FIELD_FIRST != 0 {
+                        packet.assetTrack.fieldOrder = .tt
+                    } else {
+                        packet.assetTrack.fieldOrder = .bb
+                    }
+                    options.process(assetTrack: packet.assetTrack)
+                    if !options.hardwareDecode, codecContext?.pointee.hw_device_ctx != nil {
+                        codecContext = try? packet.assetTrack.createContext(options: options)
+                        let status = avcodec_send_packet(codecContext, packet.corePacket)
+                        continue
+                    }
+                }
                 success = true
                 hasDecodeSuccess = true
                 decodeFrame(inputFrame: inputFrame, packet: packet, completionHandler: completionHandler)

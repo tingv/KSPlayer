@@ -420,7 +420,9 @@ open class KSOptions {
     public nonisolated(unsafe) static var deInterlaceAddIdet = false
     public nonisolated(unsafe) static var hardwareDecode = true
     /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
+    /// m3u8的Interlaced流，需要关闭自研的硬解才能判断是Interlaced
     /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
+    /// 异步硬解支持直播流Annexb格式了。并且当前只有异步硬解支持av1硬解
     public nonisolated(unsafe) static var asynchronousDecompression = false
     @MainActor
     public static var canStartPictureInPictureAutomaticallyFromInline = true
