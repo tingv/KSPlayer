@@ -134,10 +134,10 @@ public final class MEPlayerItem: Sendable {
     }
 
     private static var onceInitial: Void = {
-//        if let urls = try? FileManager.default.contentsOfDirectory(at: KSOptions.fontsDir, includingPropertiesForKeys: nil) {
-//            CTFontManagerRegisterFontURLs(urls as CFArray, .process, true, nil)
-//        }
-        var result = avformat_network_init()
+        setLogCallback()
+    }()
+
+    public static func setLogCallback() {
         av_log_set_callback { ptr, level, format, args in
             guard let format else {
                 return
@@ -181,7 +181,7 @@ public final class MEPlayerItem: Sendable {
             }
             KSLog(level: LogLevel(rawValue: level) ?? .warning, log)
         }
-    }()
+    }
 
     weak var delegate: MEPlayerDelegate?
     public init(url: URL, options: KSOptions) {
