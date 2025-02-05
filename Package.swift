@@ -21,10 +21,14 @@ let package = Package(
             // todo clang: warning: using sysroot for 'iPhoneSimulator' but targeting 'MacOSX' [-Wincompatible-sysroot]
             targets: ["KSPlayer"]
         ),
-        .library(name: "MPVPlayer", targets: ["MPVPlayer"]),
+        .library(
+            name: "MPVPlayer",
+//            type: .dynamic,
+            targets: ["MPVPlayer"]
+        ),
     ],
     dependencies: [
-        .package(url: "https://github.com/littleTurnip/FFmpegKit.git", exact: "7.0.2"),
+        .package(url: "https://github.com/littleTurnip/FFmpegKit.git", exact: "7.1.0"),
     ],
     targets: [
         .target(
@@ -32,6 +36,8 @@ let package = Package(
             dependencies: [
                 "KSPlayer",
                 .product(name: "libmpv", package: "FFmpegKit"),
+//                .product(name: "libbluray", package: "FFmpegKit", condition: .when(platforms: [.macOS])),
+//                .product(name: "libzvbi", package: "FFmpegKit", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
             ],
             swiftSettings: [
                 swiftConcurrency,

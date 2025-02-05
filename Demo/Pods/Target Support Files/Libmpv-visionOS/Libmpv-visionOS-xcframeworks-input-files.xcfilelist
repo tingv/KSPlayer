@@ -1,2 +1,2 @@
 ${PODS_ROOT}/Target Support Files/Libmpv-visionOS/Libmpv-visionOS-xcframeworks.sh
-${PODS_ROOT}/../../FFmpegKit/Sources/libmpv.xcframework
+${PODS_ROOT}/../../../FFmpegKit/Sources/libmpv.xcframework

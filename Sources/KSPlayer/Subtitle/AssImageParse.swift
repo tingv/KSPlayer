@@ -42,29 +42,108 @@ public final class AssImageParse: KSParseProtocol {
     }
 }
 
-public final actor AssImageRenderer {
+public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
+    private let uuid = UUID()
+    private let header: String
+    private var subtitles = [(subtitle: String, start: Int64, duration: Int64)]()
+    private let fontsDir: String?
+    private let renderer: AssImageRenderer
+    public init(fontsDir: String?, header: String) {
+        self.fontsDir = fontsDir
+        self.header = header
+        if let fontsDir {
+            renderer = AssImageRenderer.getRender(fontsDir: fontsDir)
+        } else {
+            renderer = AssImageRenderer(header: header, uuid: uuid)
+        }
+    }
+
+    public func add(subtitle: String, start: Int64, duration: Int64) async {
+        if await renderer.uuid == uuid {
+            await renderer.add(subtitle: subtitle, start: start, duration: duration)
+        } else {
+            subtitles.append((subtitle, start, duration))
+        }
+    }
+
+    public func flush() async {
+        if await renderer.uuid == uuid {
+            await renderer.flush()
+        }
+    }
+
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
+        if await renderer.uuid != uuid {
+            await renderer.set(header: header, uuid: uuid)
+            await renderer.add(subtitles: subtitles)
+            subtitles.removeAll()
+        }
+        return await renderer.search(for: time, size: size, isHDR: isHDR)
+    }
+
+    deinit {
+        if let fontsDir {
+            AssImageRenderer.removeRender(fontsDir: fontsDir)
+        }
+    }
+}
+
+final actor AssImageRenderer {
+    private static var rendererMap = [String: AssImageRenderer]()
+    static func getRender(fontsDir: String) -> AssImageRenderer {
+        rendererMap.value(for: fontsDir, default: AssImageRenderer(fontsDir: fontsDir))
+    }
+
+    static func removeRender(fontsDir: String) {
+        rendererMap.removeValue(forKey: fontsDir)
+    }
+
+    private(set) var uuid = UUID()
     private let library: OpaquePointer?
     private let renderer: OpaquePointer?
     private var currentTrack: UnsafeMutablePointer<ASS_Track>?
-    public init(content: String? = nil) {
+
+    public init(content: String) {
         library = ass_library_init()
-        renderer = ass_renderer_init(library)
         ass_set_extract_fonts(library, 1)
-        // 这个是用内存来加载字体，如果字体多的话，会导致内存暴涨，用系统的方法还是无法加载字体，所以只能用这个方法来加载
-        ass_set_fonts_dir(library, KSOptions.fontsDir.path)
-        // 用FONTCONFIG会比较耗时，并且文字可能会大小不一致
-        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_AUTODETECT.rawValue), nil, 0)
-        if let content, var buffer = content.cString(using: .utf8) {
+        renderer = ass_renderer_init(library)
+        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
+        if var buffer = content.cString(using: .utf8) {
             currentTrack = ass_read_memory(library, &buffer, buffer.count, nil)
-        } else {
-            currentTrack = ass_new_track(library)
         }
-//        ass_set_selective_style_override_enabled(library, Int32(ASS_OVERRIDE_BIT_SELECTIVE_FONT_SCALE.rawValue))
-//        var style = ASS_Style()
-//        ass_set_selective_style_override(library, &style)
     }
 
-    public func subtitle(header: String) {
+    public init(header: String, uuid: UUID) {
+        library = ass_library_init()
+        ass_set_extract_fonts(library, 1)
+        renderer = ass_renderer_init(library)
+        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
+        self.uuid = uuid
+        currentTrack = ass_new_track(library)
+        if var buffer = header.cString(using: .utf8) {
+            ass_process_codec_private(currentTrack, &buffer, Int32(buffer.count))
+        }
+    }
+
+    public init(fontsDir: String) {
+        library = ass_library_init()
+        ass_set_extract_fonts(library, 1)
+        renderer = ass_renderer_init(library)
+        // 这个是用内存来加载字体，如果字体多的话，会导致内存暴涨，用系统的方法还是无法加载字体，所以只能用这个方法来加载
+        ass_set_fonts_dir(library, fontsDir)
+        /// 用FONTCONFIG会比较耗时，并且文字可能会大小不一致，
+        /// 用ASS_FONTPROVIDER_AUTODETECT会导致数字和中文的大小不一致。
+        /// 等字幕真正需要输出图片的时候，才设置这个，因为这个会去加载自定义字体，导致内存增加。
+        /// 一定要先调用ass_set_fonts_dir 然后调用ass_set_fonts 字体才能生效
+        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
+    }
+
+    public func set(header: String, uuid: UUID) {
+        if let currentTrack {
+            ass_free_track(currentTrack)
+        }
+        currentTrack = ass_new_track(library)
+        self.uuid = uuid
         if var buffer = header.cString(using: .utf8) {
             ass_process_codec_private(currentTrack, &buffer, Int32(buffer.count))
         }
@@ -73,6 +152,12 @@ public final actor AssImageRenderer {
     public func add(subtitle: String, start: Int64, duration: Int64) {
         if var buffer = subtitle.cString(using: .utf8) {
             ass_process_chunk(currentTrack, &buffer, Int32(buffer.count), start, duration)
+        }
+    }
+
+    public func add(subtitles: [(subtitle: String, start: Int64, duration: Int64)]) {
+        loop(iterations: subtitles.count) { i in
+            add(subtitle: subtitles[i].subtitle, start: subtitles[i].start, duration: subtitles[i].duration)
         }
     }
 
@@ -88,7 +173,9 @@ public final actor AssImageRenderer {
     }
 
     deinit {
-        ass_free_track(currentTrack)
+        if let currentTrack {
+            ass_free_track(currentTrack)
+        }
         ass_library_done(library)
         ass_renderer_done(renderer)
     }
@@ -110,7 +197,6 @@ extension AssImageRenderer: KSSubtitleProtocol {
         /// 如果图片大于10张的话，那要用PointerImagePipeline。
         /// 图片小的话，用PointerImagePipeline 差不多是0.0001，而Accelerate要0.0003。
         /// 图片大的话  用Accelerate差不多0.005 ，而PointerImagePipeline差不多要0.04
-
         if images.count <= 10, #available(iOS 16.0, tvOS 16.0, visionOS 1.0, macOS 13.0, macCatalyst 16.0, *) {
             imagePipeline = vImage.PixelBuffer<vImage.Interleaved8x4>.self
         } else {

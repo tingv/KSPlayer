@@ -9,6 +9,7 @@ import CoreData
 import CoreMedia
 import Foundation
 import KSPlayer
+import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -267,9 +268,6 @@ extension KSVideoPlayerView {
         } else if url.lastPathComponent == "mjpeg.flac" {
 //            options.videoDisable = true
             options.syncDecodeAudio = true
-        } else if url.lastPathComponent == "subrip.mkv" {
-            options.asynchronousDecompression = false
-            options.videoFilters.append("yadif_videotoolbox=mode=\(MEOptions.yadifMode):parity=-1:deint=1")
         } else if url.lastPathComponent == "big_buck_bunny.mp4" {
             options.startPlayTime = 25
         } else if url.lastPathComponent == "bipbopall.m3u8" {
@@ -293,3 +291,13 @@ extension KSVideoPlayerView {
         self.init(url: url, options: options, title: model.name)
     }
 }
+
+#if DEBUG
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+struct KSVideoPlayerView2_Previews: PreviewProvider {
+    static var previews: some View {
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/subrip.mkv")!
+        KSVideoPlayerView(url: url)
+    }
+}
+#endif

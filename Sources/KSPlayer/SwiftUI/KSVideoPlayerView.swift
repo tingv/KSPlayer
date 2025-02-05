@@ -207,92 +207,6 @@ public extension KSVideoPlayerView {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-public struct KSCorePlayerView: View {
-    @StateObject
-    private var config: KSVideoPlayer.Coordinator
-    public let url: URL
-    public let options: KSOptions
-    @State
-    private var title: String
-    private let subtitleDataSource: SubtitleDataSource?
-    public init(config: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
-        _config = .init(wrappedValue: config)
-        self.url = url
-        self.options = options
-        _title = title
-        self.subtitleDataSource = subtitleDataSource
-    }
-
-    public var body: some View {
-        KSVideoPlayer(coordinator: config, url: url, options: options)
-            .onStateChanged { playerLayer, state in
-                if state == .readyToPlay {
-                    if let subtitleDataSource {
-                        config.playerLayer?.subtitleModel.addSubtitle(dataSource: subtitleDataSource)
-                    }
-                    if let movieTitle = playerLayer.player.dynamicInfo?.metadata["title"] {
-                        title = movieTitle
-                    }
-                }
-            }
-            .onBufferChanged { bufferedCount, consumeTime in
-                KSLog("bufferedCount \(bufferedCount), consumeTime \(consumeTime)")
-            }
-            .ignoresSafeArea()
-
-        #if os(iOS) || os(xrOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if !os(iOS)
-        .focusable(!config.isMaskShow)
-        #endif
-        #if !os(xrOS)
-        .onKeyPressLeftArrow {
-            config.skip(interval: -15)
-        }
-        .onKeyPressRightArrow {
-            config.skip(interval: 15)
-        }
-        .onKeyPressSapce {
-            if config.state.isPlaying {
-                config.playerLayer?.pause()
-            } else {
-                config.playerLayer?.play()
-            }
-        }
-        #endif
-        #if os(macOS)
-        .navigationTitle(title)
-        .onTapGesture(count: 2) {
-            guard let view = config.playerLayer?.player.view else {
-                return
-            }
-            view.window?.toggleFullScreen(nil)
-            view.needsLayout = true
-            view.layoutSubtreeIfNeeded()
-        }
-        .onExitCommand {
-            config.playerLayer?.player.view.exitFullScreenMode()
-        }
-        .onMoveCommand { direction in
-            switch direction {
-            case .left:
-                config.skip(interval: -15)
-            case .right:
-                config.skip(interval: 15)
-            case .up:
-                config.playerLayer?.player.playbackVolume += 0.2
-            case .down:
-                config.playerLayer?.player.playbackVolume -= 0.2
-            @unknown default:
-                break
-            }
-        }
-        #endif
-    }
-}
-
 @available(iOS 16, tvOS 16, macOS 13, *)
 struct VideoControllerView: View {
     @ObservedObject
@@ -317,26 +231,25 @@ struct VideoControllerView: View {
         VStack {
             #if os(tvOS)
             Spacer()
-            HStack(spacing: 10) {
+            HStack(spacing: 24) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
                     .lineLimit(2)
                     .layoutPriority(100)
                 KSVideoPlayerViewBuilder.muteButton(config: config)
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                    audioButton(audioTracks: audioTracks)
+                    KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
                 }
                 Spacer()
                     .layoutPriority(2)
-                HStack(spacing: 10) {
+                HStack(spacing: 24) {
                     KSVideoPlayerViewBuilder.playButton(config: config)
-                    contentModeButton
-                    playbackRateButton
+                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
                     KSVideoPlayerViewBuilder.recordButton(config: config)
-                    pipButton
-                    subtitleButton
-                    infoButton
+                    KSVideoPlayerViewBuilder.pipButton(config: config)
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
-                .font(.caption)
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
@@ -347,10 +260,10 @@ struct VideoControllerView: View {
             VStack(spacing: 10) {
                 HStack {
                     KSVideoPlayerViewBuilder.muteButton(config: config)
-                    volumeSlider
+                    KSVideoPlayerViewBuilder.volumeSlider(config: config, volume: $config.playbackVolume)
                         .frame(maxWidth: 100)
                     if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                        audioButton(audioTracks: audioTracks)
+                        KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
                     }
                     Spacer()
                     KSVideoPlayerViewBuilder.backwardButton(config: config)
@@ -360,11 +273,11 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.forwardButton(config: config)
                         .font(.largeTitle)
                     Spacer()
-                    contentModeButton
-                    playbackRateButton
+                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
                     KSVideoPlayerViewBuilder.recordButton(config: config)
-                    subtitleButton
-                    infoButton
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
                 // 设置opacity为0，还是会去更新View。所以只能这样了
                 if config.isMaskShow {
@@ -390,7 +303,7 @@ struct VideoControllerView: View {
                 .glassBackgroundEffect()
                 #endif
                 KSVideoPlayerViewBuilder.muteButton(config: config)
-                volumeSlider
+                KSVideoPlayerViewBuilder.volumeSlider(config: config, volume: $config.playbackVolume)
                     .frame(maxWidth: 100)
                     .tint(.white.opacity(0.8))
                     .padding(.leading, 16)
@@ -398,7 +311,7 @@ struct VideoControllerView: View {
                     .glassBackgroundEffect()
                 #endif
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
-                    audioButton(audioTracks: audioTracks)
+                    KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
                     #if os(xrOS)
                         .aspectRatio(1, contentMode: .fit)
                         .glassBackgroundEffect()
@@ -409,38 +322,28 @@ struct VideoControllerView: View {
                 if config.playerLayer?.player.allowsExternalPlayback == true {
                     AirPlayView().fixedSize()
                 }
-                contentModeButton
-                if config.playerLayer?.player.naturalSize.isHorizonal == true, UIApplication.isLandscape == false {
-                    Button {
-                        KSOptions.supportedInterfaceOrientations = .landscape
-                        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-                        UIViewController.attemptRotationToDeviceOrientation()
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
+                KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                if config.playerLayer?.player.naturalSize.isHorizonal == true {
+                    KSVideoPlayerViewBuilder.landscapeButton
                 }
                 #endif
             }
             Spacer()
             #if !os(xrOS)
-            HStack {
-                Spacer()
+            HStack(spacing: 20) {
                 KSVideoPlayerViewBuilder.backwardButton(config: config)
-                Spacer()
                 KSVideoPlayerViewBuilder.playButton(config: config)
-                Spacer()
                 KSVideoPlayerViewBuilder.forwardButton(config: config)
-                Spacer()
             }
             Spacer()
-            HStack {
+            HStack(spacing: 18) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
-                Spacer()
-                playbackRateButton
-                pipButton
+                Spacer(minLength: 0)
+                KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
+                KSVideoPlayerViewBuilder.pipButton(config: config)
                 KSVideoPlayerViewBuilder.recordButton(config: config)
-                subtitleButton
-                infoButton
+                KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
             }
             if config.isMaskShow {
                 VideoTimeShowView(config: config, model: config.timemodel, timeFont: .caption2)
@@ -462,10 +365,10 @@ struct VideoControllerView: View {
                     KSVideoPlayerViewBuilder.playButton(config: config)
                     KSVideoPlayerViewBuilder.forwardButton(config: config)
                     VideoTimeShowView(config: config, model: config.timemodel, timeFont: .title3)
-                    contentModeButton
-                    subtitleButton
-                    playbackRateButton
-                    infoButton
+                    KSVideoPlayerViewBuilder.contentModeButton(config: config)
+                    KSVideoPlayerViewBuilder.subtitleButton(config: config)
+                    KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
+                    KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
                 }
             }
             .frame(minWidth: playerWidth / 1.5)
@@ -490,93 +393,12 @@ struct VideoControllerView: View {
             .font(.title)
             .buttonStyle(.borderless)
             .padding()
+        #if os(iOS)
+            .background {
+                Color.black.opacity(0.35).ignoresSafeArea()
+            }
         #endif
-    }
-
-    private var volumeSlider: some View {
-        Slider(value: $config.playbackVolume, in: 0 ... 1)
-            .onChange(of: config.playbackVolume) { newValue in
-                config.isMuted = newValue == 0
-            }
-    }
-
-    private var contentModeButton: some View {
-        KSVideoPlayerViewBuilder.contentModeButton(config: config)
-    }
-
-    private func audioButton(audioTracks: [MediaPlayerTrack]) -> some View {
-        MenuView(selection: Binding {
-            audioTracks.first { $0.isEnabled }?.trackID
-        } set: { value in
-            if let track = audioTracks.first(where: { $0.trackID == value }) {
-                config.playerLayer?.player.select(track: track)
-            }
-        }) {
-            ForEach(audioTracks, id: \.trackID) { track in
-                Text(track.description).tag(track.trackID as Int32?)
-            }
-        } label: {
-            Image(systemName: "waveform.circle.fill")
-            #if os(xrOS)
-                .padding()
-                .clipShape(Circle())
-            #endif
-        }
-    }
-
-    private var subtitleButton: some View {
-        KSVideoPlayerViewBuilder.subtitleButton(config: config)
-    }
-
-    private var playbackRateButton: some View {
-        KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
-    }
-
-    private var pipButton: some View {
-        Button {
-            (config.playerLayer as? KSComplexPlayerLayer)?.isPipActive.toggle()
-        } label: {
-            Image(systemName: "pip.fill")
-        }
-    }
-
-    private var infoButton: some View {
-        KSVideoPlayerViewBuilder.infoButton(showVideoSetting: $showVideoSetting)
-    }
-}
-
-@available(iOS 15, tvOS 16, macOS 12, *)
-public struct MenuView<Label, SelectionValue, Content>: View where Label: View, SelectionValue: Hashable, Content: View {
-    public let selection: Binding<SelectionValue>
-    @ViewBuilder
-    public let content: () -> Content
-    @ViewBuilder
-    public let label: () -> Label
-    @State
-    private var showMenu = false
-    public var body: some View {
-        if #available(tvOS 17, *) {
-            Menu {
-                Picker(selection: selection) {
-                    content()
-                } label: {
-                    EmptyView()
-                }
-                .pickerStyle(.inline)
-            } label: {
-                label()
-            }
-            .menuIndicator(.hidden)
-        } else {
-            Picker(selection: selection, content: content, label: label)
-            #if !os(macOS)
-                .pickerStyle(.navigationLink)
-            #endif
-                .frame(height: 50)
-            #if os(tvOS)
-                .frame(width: 110)
-            #endif
-        }
+        #endif
     }
 }
 
@@ -592,11 +414,7 @@ struct VideoTimeShowView: View {
             HStack {
                 Text(model.currentTime.toString(for: .minOrHour))
                     .font(timeFont.monospacedDigit())
-                PlayerSlider(value: Binding {
-                    Float(model.currentTime)
-                } set: { newValue, _ in
-                    model.currentTime = Int(newValue)
-                }, bufferValue: Float(playerLayer.player.playableTime), in: 0 ... Float(model.totalTime)) { onEditingChanged in
+                PlayerSlider(model: model, bufferValue: Float(playerLayer.player.playableTime)) { onEditingChanged in
                     if onEditingChanged {
                         playerLayer.pause()
                     } else {
@@ -615,10 +433,6 @@ struct VideoTimeShowView: View {
             Text("Live Streaming".localized)
         }
     }
-}
-
-extension EventModifiers {
-    static let none = Self()
 }
 
 @available(iOS 16, tvOS 16, macOS 13, *)
@@ -721,36 +535,11 @@ public struct DynamicInfoView: View {
     }
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
-public struct PlatformView<Content: View>: View {
-    private let content: () -> Content
-    public var body: some View {
-        #if os(tvOS)
-        // tvos需要加NavigationStack，不然无法出现下拉框。iOS不能加NavigationStack，不然会丢帧。
-        NavigationStack {
-            ScrollView {
-                content()
-                    .padding()
-            }
-        }
-        .pickerStyle(.navigationLink)
-        #else
-        Form {
-            content()
-        }
-        .formStyle(.grouped)
-        #endif
-    }
-
-    public init(@ViewBuilder content: @escaping () -> Content) {
-        self.content = content
-    }
-}
-
+#if DEBUG
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 struct KSVideoPlayerView_Previews: PreviewProvider {
     static var previews: some View {
-        let url = URL(string: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")!
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/subrip.mkv")!
         KSVideoPlayerView(url: url, options: KSOptions())
     }
 }
@@ -772,3 +561,4 @@ struct KSVideoPlayerView_Previews: PreviewProvider {
 //        playerVC.player = AVPlayer(url: URL(string: "https://bitmovin-a.akamaihd.net/content/dataset/multi-codec/hevc/stream_fmp4.m3u8")!)
 //    }
 // }
+#endif

@@ -16,7 +16,9 @@ public enum KSVideoPlayerViewBuilder {
             config.isScaleAspectFill.toggle()
         } label: {
             Image(systemName: config.isScaleAspectFill ? "rectangle.arrowtriangle.2.inward" : "rectangle.arrowtriangle.2.outward")
+                .menuLabelStyle()
         }
+        .borderlessButtonIfCan()
     }
 
     @ViewBuilder
@@ -37,7 +39,7 @@ public enum KSVideoPlayerViewBuilder {
                 Text(track.name).tag(track.subtitleID as String?)
             }
         } label: {
-            Image(systemName: "text.bubble.fill")
+            Image(systemName: "text.bubble")
         }
     }
 
@@ -58,7 +60,7 @@ public enum KSVideoPlayerViewBuilder {
     static func titleView(title: String, config: KSVideoPlayer.Coordinator) -> some View {
         Group {
             Text(title)
-                .font(.headline)
+                .font(.title2.weight(.semibold))
             ProgressView()
                 .opacity((config.state == .buffering || config.playerLayer?.player.playbackState == .seeking) ? 1 : 0)
         }
@@ -70,7 +72,9 @@ public enum KSVideoPlayerViewBuilder {
             config.isMuted.toggle()
         } label: {
             Image(systemName: config.isMuted ? speakerDisabledSystemName : speakerSystemName)
+                .menuLabelStyle()
         }
+        .borderlessButtonIfCan()
     }
 
     @ViewBuilder
@@ -78,11 +82,13 @@ public enum KSVideoPlayerViewBuilder {
         Button {
             showVideoSetting.wrappedValue.toggle()
         } label: {
-            Image(systemName: "info.circle.fill")
+            Image(systemName: "info.circle")
+                .menuLabelStyle()
         }
+        .borderlessButtonIfCan()
         // iOS 模拟器加keyboardShortcut会导致KSVideoPlayer.Coordinator无法释放。真机不会有这个问题
         #if !os(tvOS)
-        .keyboardShortcut("i", modifiers: [.command])
+            .keyboardShortcut("i", modifiers: [.command])
         #endif
     }
 
@@ -91,28 +97,57 @@ public enum KSVideoPlayerViewBuilder {
         Button {
             config.isRecord.toggle()
         } label: {
-            Image(systemName: "video.circle")
-                .foregroundColor(config.isRecord ? .red : .white)
+            Image(systemName: config.isRecord ? "video.fill" : "video")
+                .menuLabelStyle()
+        }
+        .borderlessButtonIfCan()
+    }
+
+    @ViewBuilder
+    static func volumeSlider(config: KSVideoPlayer.Coordinator, volume: Binding<Float>) -> some View {
+        Slider(value: volume, in: 0 ... 1)
+            .accentColor(.clear)
+            .onChange(of: config.playbackVolume) { newValue in
+                config.isMuted = newValue == 0
+            }
+    }
+
+    @ViewBuilder
+    static func audioButton(config: KSVideoPlayer.Coordinator, audioTracks: [MediaPlayerTrack]) -> some View {
+        MenuView(selection: Binding {
+            audioTracks.first { $0.isEnabled }?.trackID
+        } set: { value in
+            if let track = audioTracks.first(where: { $0.trackID == value }) {
+                config.playerLayer?.player.select(track: track)
+            }
+        }) {
+            ForEach(audioTracks, id: \.trackID) { track in
+                Text(track.description).tag(track.trackID as Int32?)
+            }
+        } label: {
+            Image(systemName: "waveform.circle.fill")
+            #if os(xrOS)
+                .padding()
+                .clipShape(Circle())
+            #endif
         }
     }
-}
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-public extension KSVideoPlayerViewBuilder {
-    static var speakerSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "speaker.fill"
-        #else
-        "speaker.wave.2.circle.fill"
-        #endif
-    }
-
-    static var speakerDisabledSystemName: String {
-        #if os(xrOS) || os(macOS)
-        "speaker.slash.fill"
-        #else
-        "speaker.slash.circle.fill"
-        #endif
+    @ViewBuilder
+    static func pipButton(config: KSVideoPlayer.Coordinator) -> some View {
+        Button {
+            if let playerLayer = config.playerLayer as? KSComplexPlayerLayer {
+                if playerLayer.isPictureInPictureActive {
+                    playerLayer.pipStop(restoreUserInterface: true)
+                } else {
+                    playerLayer.pipStart()
+                }
+            }
+        } label: {
+            Image(systemName: "pip")
+                .menuLabelStyle()
+        }
+        .borderlessButtonIfCan()
     }
 
     @ViewBuilder
@@ -122,6 +157,7 @@ public extension KSVideoPlayerViewBuilder {
                 config.skip(interval: -15)
             } label: {
                 Image(systemName: "gobackward.15")
+                    .centerControlButtonStyle()
             }
             #if !os(tvOS)
             .keyboardShortcut(.leftArrow, modifiers: .none)
@@ -136,6 +172,7 @@ public extension KSVideoPlayerViewBuilder {
                 config.skip(interval: 15)
             } label: {
                 Image(systemName: "goforward.15")
+                    .centerControlButtonStyle()
             }
             #if !os(tvOS)
             .keyboardShortcut(.rightArrow, modifiers: .none)
@@ -153,13 +190,72 @@ public extension KSVideoPlayerViewBuilder {
             }
         } label: {
             Image(systemName: config.state.systemName)
+            #if os(iOS)
+                .centerControlButtonStyle()
+            #elseif os(tvOS)
+                .menuLabelStyle()
+            #endif
         }
+        .borderlessButtonIfCan()
         #if os(xrOS)
-        .contentTransition(.symbolEffect(.replace))
+            .contentTransition(.symbolEffect(.replace))
         #endif
         #if !os(tvOS)
         .keyboardShortcut(.space, modifiers: .none)
         #endif
+    }
+
+    #if canImport(UIKit) && !os(tvOS)
+    @ViewBuilder
+    static var landscapeButton: some View {
+        Button {
+            KSOptions.supportedInterfaceOrientations = UIApplication.isLandscape ? .portrait : .landscapeLeft
+            UIViewController.attemptRotationToDeviceOrientation()
+        } label: {
+            Image(systemName: UIApplication.isLandscape ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                .menuLabelStyle()
+        }
+    }
+    #endif
+}
+
+private extension View {
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    func centerControlButtonStyle() -> some View {
+        font(.system(.title, design: .rounded, weight: .bold))
+            .imageScale(.large)
+            .foregroundStyle(.white)
+            .padding(12)
+            .contentShape(.rect)
+    }
+
+    func borderlessButtonIfCan() -> some View {
+        Group {
+            #if os(tvOS)
+            if #available(tvOS 17, *) {
+                self.buttonStyle(.borderless)
+            } else {
+                self
+            }
+            #else
+            self
+            #endif
+        }
+    }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+public extension KSVideoPlayerViewBuilder {
+    static var speakerSystemName: String {
+        #if os(xrOS) || os(macOS)
+        "speaker.fill"
+        #else
+        "speaker.wave.2.fill"
+        #endif
+    }
+
+    static var speakerDisabledSystemName: String {
+        "speaker.slash.fill"
     }
 }
 
@@ -177,83 +273,14 @@ extension KSPlayerState {
             #if os(xrOS) || os(macOS)
             return "pause.fill"
             #else
-            return "pause.circle.fill"
+            return "pause.fill"
             #endif
         } else {
             #if os(xrOS) || os(macOS)
             return "play.fill"
             #else
-            return "play.circle.fill"
+            return "play.fill"
             #endif
-        }
-    }
-}
-
-extension View {
-    func onKeyPressLeftArrow(action: @escaping () -> Void) -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return onKeyPress(.leftArrow) {
-                action()
-                return .handled
-            }
-        } else {
-            return self
-        }
-    }
-
-    func onKeyPressRightArrow(action: @escaping () -> Void) -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return onKeyPress(.rightArrow) {
-                action()
-                return .handled
-            }
-        } else {
-            return self
-        }
-    }
-
-    func onKeyPressSapce(action: @escaping () -> Void) -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return onKeyPress(.space) {
-                action()
-                return .handled
-            }
-        } else {
-            return self
-        }
-    }
-
-    func allowedDynamicRange() -> some View {
-        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
-            return self.allowedDynamicRange(KSOptions.subtitleDynamicRange)
-        } else {
-            return self
-        }
-    }
-
-    #if !os(tvOS)
-    func textSelection() -> some View {
-        if #available(iOS 15.0, macOS 12.0, *) {
-            return self.textSelection(.enabled)
-        } else {
-            return self
-        }
-    }
-    #endif
-
-    func italic(value: Bool) -> some View {
-        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
-            return self.italic(value)
-        } else {
-            return self
-        }
-    }
-
-    func ksIgnoresSafeArea() -> some View {
-        if #available(iOS 14.0, macOS 11.0, tvOS 14.0, *) {
-            return self.ignoresSafeArea()
-        } else {
-            return self
         }
     }
 }

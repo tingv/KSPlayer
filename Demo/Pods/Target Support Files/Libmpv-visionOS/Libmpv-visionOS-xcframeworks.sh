@@ -153,5 +153,5 @@ install_xcframework() {
   echo "Copied $source to $destination"
 }
 
-install_xcframework "${PODS_ROOT}/../../FFmpegKit/Sources/libmpv.xcframework" "Libmpv/Libmpv" "framework" "xros-arm64" "xros-arm64-simulator"
+install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libmpv.xcframework" "Libmpv/Libmpv" "framework" "xros-arm64" "xros-arm64-simulator"
 

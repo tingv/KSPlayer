@@ -94,7 +94,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var isExternalPlaybackActive: Bool { get }
     var playbackVolume: Float { get set }
     var contentMode: UIViewContentMode { get set }
-    var subtitleDataSource: (any EmbedSubtitleDataSource)? { get }
+    var subtitleDataSource: (any ConstantSubtitleDataSource)? { get }
     #if canImport(RealityKit)
 //    var videoMaterial: VideoMaterial { get }
 //    @available(visionOS 1.0, macOS 15.0, iOS 18.0, *)
@@ -310,8 +310,12 @@ public extension MediaPlayerTrack {
         }
     }
 
+    var isDovi: Bool {
+        dynamicRange == .dolbyVision
+    }
+
     var colorSpace: CGColorSpace? {
-        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?, isDovi: dynamicRange == .dolbyVision)
+        KSOptions.colorSpace(ycbcrMatrix: yCbCrMatrix as CFString?, transferFunction: transferFunction as CFString?, isDovi: isDovi)
     }
 
     var mediaSubType: CMFormatDescription.MediaSubType {

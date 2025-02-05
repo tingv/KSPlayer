@@ -17,7 +17,15 @@ public struct PlayerSlider: View {
     private var beginDrag = false
     @FocusState
     private var isFocused: Bool
-    public init(value: Binding<Float>, bufferValue: Float, in bounds: ClosedRange<Float> = 0 ... 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(model: ControllerTimeModel, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: Binding {
+            Float(model.currentTime)
+        } set: { newValue, _ in
+            model.currentTime = Int(newValue)
+        }, in: 0 ... Float(model.totalTime), bufferValue: bufferValue, onEditingChanged: onEditingChanged)
+    }
+
+    public init(value: Binding<Float>, in bounds: ClosedRange<Float> = 0 ... 1, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.value = value
         self.bufferValue = bufferValue
         self.bounds = bounds
@@ -206,3 +214,15 @@ private func valueFrom(distance: Float, availableDistance: Float, bounds: Closed
     let validatedValue = min(bounds.upperBound, max(bounds.lowerBound, steppedNewValue))
     return validatedValue
 }
+
+#if DEBUG
+@available(iOS 15, tvOS 15, macOS 12, *)
+struct PlayerSlider_Previews: PreviewProvider {
+    static var previews: some View {
+        let model = ControllerTimeModel()
+        model.currentTime = 50
+        model.totalTime = 100
+        return PlayerSlider(model: model, bufferValue: 75)
+    }
+}
+#endif

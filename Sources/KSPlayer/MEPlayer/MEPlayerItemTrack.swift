@@ -68,6 +68,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
     }
 
     func decode() {
+        isNeedKeyFrame = true
         isEndOfFile = false
         state = .decoding
     }
@@ -80,7 +81,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         isEndOfFile = false
         state = .flush
-        isSeek = true
+        isNeedKeyFrame = true
         outputRenderQueue.flush()
         isLoopModel = false
     }
@@ -123,8 +124,10 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
 
     private var lastPacketBytes = Int64(0)
     private var lastPacketSeconds = Double(-1)
-    // 用于视频帧在seek之后，定位到isKeyFrame
-    private var isSeek = false
+    /// 视频帧在第一次解码(有可能设置了startPlayTime，相当于seek)或是seek之后，
+    /// 需要定位到isKeyFrame，这样才不会解码失败或者花屏
+    /// （主要是ts会，mkv会自动第一个是isKeyFrame）
+    fileprivate var isNeedKeyFrame = false
     var bitrate = Double(0)
     fileprivate func doDecode(packet: Packet) {
         guard let corePacket = packet.corePacket else {
@@ -144,19 +147,21 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             }
         }
         lastPacketBytes += Int64(packet.size)
-        if isSeek {
-            /// seek之后的话，要拿到isKeyFrame这样解码才不会花屏
-            /// （主要是ts会，mkv会自动第一个是isKeyFrame）
+        if isNeedKeyFrame {
             if packet.assetTrack.mediaType == .video, !packet.isKeyFrame {
                 return
             }
-            isSeek = false
+            isNeedKeyFrame = false
         }
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
                 let sideData = corePacket.pointee.side_data[i]
-                if sideData.type == AV_PKT_DATA_A53_CC {}
+                if sideData.type == AV_PKT_DATA_A53_CC {
+                } else if sideData.type == AV_PKT_DATA_WEBVTT_IDENTIFIER || sideData.type == AV_PKT_DATA_WEBVTT_SETTINGS {
+//                    let str = String(cString: sideData.data)
+//                    KSLog(str)
+                }
             }
         }
         //        var startTime = CACurrentMediaTime()
@@ -189,13 +194,17 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             } catch {
                 KSLog("Decoder did Failed : \(error)")
                 if decoder is VideoToolboxDecode {
-                    // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
-                    DispatchQueue.global().async {
-                        decoder?.shutdown()
+                    // 因为异步解码报错会回调多次，所以这边需要做一下判断，不要重复创建FFmpegDecode
+                    if self.decoderMap[packet.assetTrack.trackID] === decoder {
+                        // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
+                        DispatchQueue.global().async {
+                            decoder?.shutdown()
+                        }
+                        self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
+                        KSLog("[video] VideoToolboxDecode fail. switch to ffmpeg decode")
                     }
-                    self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
-                    KSLog("VideoCodec switch to software decompression")
-                    self.doDecode(packet: packet)
+                    // packet不要在复用了。因为有可能进行了bitStreamFilter，导致内存被释放了，如果调用avcodec_send_packet的话，就会crashcrash
+//                    self.doDecode(packet: packet)
                 } else {
                     self.state = .failed
                 }
@@ -252,6 +261,7 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
     }
 
     override func decode() {
+        isNeedKeyFrame = true
         isEndOfFile = false
         guard operationQueue.operationCount == 0 else { return }
         decodeOperation = BlockOperation { [weak self] in

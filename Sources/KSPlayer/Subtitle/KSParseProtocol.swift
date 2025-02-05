@@ -136,6 +136,7 @@ extension Scanner {
         Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         """
+        var textPosition = TextPosition()
         while !isAtEnd {
             if let (start, end, text) = SrtParse.parsePart(scanner: self) {
                 var start = start.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
@@ -144,7 +145,7 @@ extension Scanner {
                 end.removeLast()
                 // \n只在 WrapStyle: 2是会换行，其他模式下都相当于一个空格。\N在任何模式下都会强制换行。所以要进行转换
                 var text = text.replacingOccurrences(of: "\n", with: "\\N")
-                ass += "Dialogue: 0,\(start),\(end),Default,,0,0,0,,\(text)\n"
+                ass += "Dialogue: 0,\(start),\(end),Default,,0,0,0,,\(text.build(textPosition: &textPosition).string)\n"
             }
         }
         return ass
@@ -153,6 +154,6 @@ extension Scanner {
 
 extension KSOptions {
     static var assStyle: String {
-        "Style: Default,Arial,\(Int(textFontSize * KSOptions.scale / 4)),&Hffffff,&Hffffff,&H0,&H0,\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,2,10,10,10,1"
+        "Style: Default,\(textFontName ?? "Arial"),\(Int(textFontSize * KSOptions.scale / 4)),&Hffffff,&Hffffff,&H0,&H0,\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,2,10,10,10,1"
     }
 }

@@ -7,7 +7,7 @@
 
 import AVFoundation
 import CoreVideo
-import FFmpegKit
+internal import FFmpegKit
 import Foundation
 import Libavutil
 import simd

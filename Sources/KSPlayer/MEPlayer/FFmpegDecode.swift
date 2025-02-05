@@ -6,7 +6,7 @@
 //
 
 import AVFoundation
-import FFmpegKit
+internal import FFmpegKit
 import Foundation
 import Libavcodec
 
@@ -55,15 +55,18 @@ class FFmpegDecode: DecodeProtocol {
               硬解前后台切换的话，视频会报错-1313558101
               频繁seek的话，音频会报错-1094995529
              如果之前一直都没有成功过的话，那就需要切换成软解
-             视频报错AVError.tryAgain.code的话，也不要转为软解。因为dovi解码有可能返回这个错。如果
+             视频报错AVError.tryAgain.code的话，也不要转为软解。因为dovi解码有可能返回这个错。
+             增加开关判断是否要转为软解。因为直播流rtsp直播可能会一开始就报解码失败，但是不需要切换解码
               **/
-            if isVideo, !hasDecodeSuccess {
+            if isVideo, options.recreateContext(hasDecodeSuccess: hasDecodeSuccess) {
                 avcodec_free_context(&self.codecContext)
                 options.hardwareDecode = false
+                KSLog("[video] videoToolbox ffmpeg decode have not success. change to software decode")
                 self.codecContext = try? packet.assetTrack.createContext(options: options)
                 avcodec_send_packet(self.codecContext, packet.corePacket)
             } else {
-                avcodec_flush_buffers(codecContext)
+                // 不要在这里调用avcodec_flush_buffers，不然rmvb seek之后会花屏
+//                avcodec_flush_buffers(codecContext)
                 return
             }
         }
@@ -223,7 +226,12 @@ class FFmpegDecode: DecodeProtocol {
                 //                frame.timebase = Timebase(avframe.pointee.time_base)
                 frame.size = packet.size
                 frame.position = packet.position
-                frame.duration = avframe.pointee.duration
+                // 适配ape音频
+                if !isVideo, avframe.pointee.sample_rate == frame.timebase.den {
+                    frame.duration = Int64(avframe.pointee.nb_samples)
+                } else {
+                    frame.duration = avframe.pointee.duration
+                }
                 if frame.duration == 0, avframe.pointee.sample_rate != 0, frame.timebase.num != 0 {
                     frame.duration = Int64(avframe.pointee.nb_samples) * Int64(frame.timebase.den) / (Int64(avframe.pointee.sample_rate) * Int64(frame.timebase.num))
                 }
@@ -242,6 +250,7 @@ class FFmpegDecode: DecodeProtocol {
                     timestamp = bestEffortTimestamp
                 }
                 frame.timestamp = timestamp
+                frame.set(startTime: packet.assetTrack.startTime)
                 bestEffortTimestamp = timestamp &+ frame.duration
                 completionHandler(.success(frame))
             } catch {
@@ -252,7 +261,7 @@ class FFmpegDecode: DecodeProtocol {
 
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
-        // seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。并且ts格式会导致画面花屏一小会儿。
+        /// seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。并且ts格式会导致画面花屏一小会儿。
         if codecContext != nil {
             avcodec_flush_buffers(codecContext)
         }

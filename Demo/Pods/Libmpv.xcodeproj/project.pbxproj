@@ -14,7 +14,7 @@
 				27CA6147696A1A2C9AC337EADD495950 /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				558CEB04F91E9F3801426172556EC7C9 /* PBXTargetDependency */,
+				EA415CF502B9326E0FC5667AEAAFB40D /* PBXTargetDependency */,
 			);
 			name = "Libmpv-macOS";
 		};
@@ -25,7 +25,7 @@
 				8010D321B66F80FA6D08CF6D33033E2E /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				A623632A7D8F2697235F779989194DE9 /* PBXTargetDependency */,
+				05E1259060E0273C44E6E1D4162200AA /* PBXTargetDependency */,
 			);
 			name = "Libmpv-visionOS";
 		};
@@ -36,7 +36,7 @@
 				E32B2BB5E23D56546AB3E04D77C27C78 /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				BD5A541EF9DF713578560BAC39C569A2 /* PBXTargetDependency */,
+				4EA99B5F898A5C53BD44AD012DA47F17 /* PBXTargetDependency */,
 			);
 			name = "Libmpv-tvOS";
 		};
@@ -47,35 +47,35 @@
 				CB77FDEF98238E852072EF976E5BB79D /* [CP] Copy XCFrameworks */,
 			);
 			dependencies = (
-				312F4E34E9E64CC13185D49B59728130 /* PBXTargetDependency */,
+				5FBF2D0013800E6C79BA2B907F9F50FD /* PBXTargetDependency */,
 			);
 			name = "Libmpv-iOS";
 		};
 /* End PBXAggregateTarget section */
 
 /* Begin PBXContainerItemProxy section */
-		3FE1AF3FF603D00A89C9B9EC3EE71C11 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8637F33F67B2687DF06EA4DB96BB25C7;
-			remoteInfo = "FFmpegKit-iOS";
-		};
-		7F2099EDAF134414DBFFA117E9D26D0C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = CB51993EC5E6E907C0B253DFDF9ED7BF;
-			remoteInfo = "FFmpegKit-macOS";
-		};
-		B6B1C54DBF9B64D17BE8B2D668B3BED9 /* PBXContainerItemProxy */ = {
+		38A248E8910682980E28246BA3406410 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 76E32F922538FF510AF79181FCA2A7C0;
 			remoteInfo = "FFmpegKit-visionOS";
 		};
-		B8FDA830A7BDF6C232BF935900457E19 /* PBXContainerItemProxy */ = {
+		6D8DDAC0EC73013F9190D5791D593B33 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = CB51993EC5E6E907C0B253DFDF9ED7BF;
+			remoteInfo = "FFmpegKit-macOS";
+		};
+		9F51341CEE5AA87A88086342A903EE25 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8637F33F67B2687DF06EA4DB96BB25C7;
+			remoteInfo = "FFmpegKit-iOS";
+		};
+		BCF2AB3EFC092C3528BA80E650D157A7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
@@ -85,21 +85,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		046F11054402D70820E747833F7BF452 /* Libmpv-visionOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libmpv-visionOS-xcframeworks.sh"; path = "../Libmpv-visionOS/Libmpv-visionOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		1BE9A4C4D45993E1B614FA254BAB1B51 /* Libmpv-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libmpv-iOS.release.xcconfig"; sourceTree = "<group>"; };
-		271A90B5BE94FE4F8F616194205498FE /* Libmpv.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = Libmpv.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		46A142DC84C4433962810ED35C60B554 /* Libmpv-visionOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-visionOS.release.xcconfig"; path = "../Libmpv-visionOS/Libmpv-visionOS.release.xcconfig"; sourceTree = "<group>"; };
-		61F94948696CE5E4C1AF8334343E5D12 /* Libmpv-iOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Libmpv-iOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		69A01B66CBDD0B72B77518CBC2EEA66A /* Libmpv-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-macOS.release.xcconfig"; path = "../Libmpv-macOS/Libmpv-macOS.release.xcconfig"; sourceTree = "<group>"; };
-		74191DD8AEAE5C9C51FA27959EACA0EE /* Libmpv-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libmpv-iOS.debug.xcconfig"; sourceTree = "<group>"; };
+		0EC3AD6E827512E5451ED175A7E72845 /* Libmpv-visionOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-visionOS.release.xcconfig"; path = "../Libmpv-visionOS/Libmpv-visionOS.release.xcconfig"; sourceTree = "<group>"; };
+		143F7BA007B0B9D2C7C352401FAC47B3 /* Libmpv-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libmpv-iOS.debug.xcconfig"; sourceTree = "<group>"; };
+		2F21DEE330E5D95AB4CA6B529E3F892F /* Libmpv-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-macOS.release.xcconfig"; path = "../Libmpv-macOS/Libmpv-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		2F677A4B4EB8D27C0BFA7DAB6DBAC92B /* Libmpv-tvOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libmpv-tvOS-xcframeworks.sh"; path = "../Libmpv-tvOS/Libmpv-tvOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		5BAE9223B5A5031960E78281DD8B7E37 /* Libmpv.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = Libmpv.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		6E0BF4A931B6DAD31262C676FE0BF028 /* Libmpv-macOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libmpv-macOS-xcframeworks.sh"; path = "../Libmpv-macOS/Libmpv-macOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		845F5EFBCB3F8842115A4DA7A019A832 /* Libmpv-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Libmpv-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		8A12154B81A23B8A2F0DA07D13A7C37B /* FFmpegKit */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = FFmpegKit; path = FFmpegKit.xcodeproj; sourceTree = "<group>"; };
-		92980C8E2BCFBFCE817D1C873BA6049C /* Libmpv-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-tvOS.release.xcconfig"; path = "../Libmpv-tvOS/Libmpv-tvOS.release.xcconfig"; sourceTree = "<group>"; };
-		933B7AEB4AF45A584FFDEE342FBB72F6 /* Libmpv-tvOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libmpv-tvOS-xcframeworks.sh"; path = "../Libmpv-tvOS/Libmpv-tvOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		BFA3C12EAD696DEA62D06FA6536872F4 /* Libmpv-visionOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-visionOS.debug.xcconfig"; path = "../Libmpv-visionOS/Libmpv-visionOS.debug.xcconfig"; sourceTree = "<group>"; };
-		D9AC1806ADF2BED50F4E517D4092C5CF /* Libmpv-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-macOS.debug.xcconfig"; path = "../Libmpv-macOS/Libmpv-macOS.debug.xcconfig"; sourceTree = "<group>"; };
-		DB71F4DB68AECF27123EDB1CB0285FAB /* Libmpv-macOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libmpv-macOS-xcframeworks.sh"; path = "../Libmpv-macOS/Libmpv-macOS-xcframeworks.sh"; sourceTree = "<group>"; };
-		FCF4C1CCE38728C31EE15D700D0077D6 /* Libmpv-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-tvOS.debug.xcconfig"; path = "../Libmpv-tvOS/Libmpv-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
-		FFAC0BDE0DAA5EF1D474AFC3DCDD1E4B /* libmpv.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libmpv.xcframework; path = Sources/libmpv.xcframework; sourceTree = "<group>"; };
+		95E04C74FD0B016E930AA78FB596CF4B /* Libmpv-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-tvOS.debug.xcconfig"; path = "../Libmpv-tvOS/Libmpv-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		A00FB4A1B360477DC34C205CB6AAB781 /* Libmpv-iOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Libmpv-iOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		A72A30F7E62CE4FA2716674EE4799F8E /* Libmpv-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-macOS.debug.xcconfig"; path = "../Libmpv-macOS/Libmpv-macOS.debug.xcconfig"; sourceTree = "<group>"; };
+		BB7938E4318CFD5F8C0EEBC5A472E2D4 /* Libmpv-visionOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-visionOS.debug.xcconfig"; path = "../Libmpv-visionOS/Libmpv-visionOS.debug.xcconfig"; sourceTree = "<group>"; };
+		F0986C50EACD0C4720669564B6BC3036 /* libmpv.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = libmpv.xcframework; path = Sources/libmpv.xcframework; sourceTree = "<group>"; };
+		F99DB2D5D7D878BADAB8DFBACE45C53B /* Libmpv-visionOS-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; name = "Libmpv-visionOS-xcframeworks.sh"; path = "../Libmpv-visionOS/Libmpv-visionOS-xcframeworks.sh"; sourceTree = "<group>"; };
+		FEE2A71082B943C74CE49BFBD97BF19C /* Libmpv-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Libmpv-tvOS.release.xcconfig"; path = "../Libmpv-tvOS/Libmpv-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -110,51 +110,28 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		03AF35DF35EE0A7FDF5E46EB8065783E /* Pod */ = {
+		27930CF39EC4C10E8EF2752E048B622D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				271A90B5BE94FE4F8F616194205498FE /* Libmpv.podspec */,
+				F0986C50EACD0C4720669564B6BC3036 /* libmpv.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		78160437E8E15CEF5B41706247720478 /* Pod */ = {
+			isa = PBXGroup;
+			children = (
+				5BAE9223B5A5031960E78281DD8B7E37 /* Libmpv.podspec */,
 			);
 			name = Pod;
 			sourceTree = "<group>";
 		};
-		1936CCCD9A67DA0207A0C657B389ADA9 /* Support Files */ = {
+		84821FB902F3CD11E5C0FAABE5B557A6 /* Libmpv */ = {
 			isa = PBXGroup;
 			children = (
-				61F94948696CE5E4C1AF8334343E5D12 /* Libmpv-iOS-xcframeworks.sh */,
-				74191DD8AEAE5C9C51FA27959EACA0EE /* Libmpv-iOS.debug.xcconfig */,
-				1BE9A4C4D45993E1B614FA254BAB1B51 /* Libmpv-iOS.release.xcconfig */,
-				DB71F4DB68AECF27123EDB1CB0285FAB /* Libmpv-macOS-xcframeworks.sh */,
-				D9AC1806ADF2BED50F4E517D4092C5CF /* Libmpv-macOS.debug.xcconfig */,
-				69A01B66CBDD0B72B77518CBC2EEA66A /* Libmpv-macOS.release.xcconfig */,
-				933B7AEB4AF45A584FFDEE342FBB72F6 /* Libmpv-tvOS-xcframeworks.sh */,
-				FCF4C1CCE38728C31EE15D700D0077D6 /* Libmpv-tvOS.debug.xcconfig */,
-				92980C8E2BCFBFCE817D1C873BA6049C /* Libmpv-tvOS.release.xcconfig */,
-				046F11054402D70820E747833F7BF452 /* Libmpv-visionOS-xcframeworks.sh */,
-				BFA3C12EAD696DEA62D06FA6536872F4 /* Libmpv-visionOS.debug.xcconfig */,
-				46A142DC84C4433962810ED35C60B554 /* Libmpv-visionOS.release.xcconfig */,
-			);
-			name = "Support Files";
-			path = "../Demo/Pods/Target Support Files/Libmpv-iOS";
-			sourceTree = "<group>";
-		};
-		232B3E4EEDDD3541D54DB3845422D165 /* Libmpv */ = {
-			isa = PBXGroup;
-			children = (
-				C2324F993AEBB200E681A9FECE4C3869 /* Frameworks */,
+				27930CF39EC4C10E8EF2752E048B622D /* Frameworks */,
 			);
 			name = Libmpv;
-			sourceTree = "<group>";
-		};
-		4C8229020C8C36005582E927BDC5C959 /* Libmpv */ = {
-			isa = PBXGroup;
-			children = (
-				232B3E4EEDDD3541D54DB3845422D165 /* Libmpv */,
-				03AF35DF35EE0A7FDF5E46EB8065783E /* Pod */,
-				1936CCCD9A67DA0207A0C657B389ADA9 /* Support Files */,
-			);
-			name = Libmpv;
-			path = ../../FFmpegKit;
 			sourceTree = "<group>";
 		};
 		8BA9421FCCD628B340920E81EA6AF723 = {
@@ -162,17 +139,40 @@
 			children = (
 				FBAF351CF3DA9503F9AD0672FA8D7687 /* Dependencies */,
 				026A82AC3EFC3AE7C03BF1B2B53DDA95 /* Frameworks */,
-				4C8229020C8C36005582E927BDC5C959 /* Libmpv */,
+				8E9292D633C6893564A520F8EF83BCF6 /* Libmpv */,
 				E394202204D09B9612A0FB2D3B598896 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		C2324F993AEBB200E681A9FECE4C3869 /* Frameworks */ = {
+		8E9292D633C6893564A520F8EF83BCF6 /* Libmpv */ = {
 			isa = PBXGroup;
 			children = (
-				FFAC0BDE0DAA5EF1D474AFC3DCDD1E4B /* libmpv.xcframework */,
+				84821FB902F3CD11E5C0FAABE5B557A6 /* Libmpv */,
+				78160437E8E15CEF5B41706247720478 /* Pod */,
+				CC9813FB77725A37BADCD63AD0CF03DB /* Support Files */,
 			);
-			name = Frameworks;
+			name = Libmpv;
+			path = ../../../FFmpegKit;
+			sourceTree = "<group>";
+		};
+		CC9813FB77725A37BADCD63AD0CF03DB /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				A00FB4A1B360477DC34C205CB6AAB781 /* Libmpv-iOS-xcframeworks.sh */,
+				143F7BA007B0B9D2C7C352401FAC47B3 /* Libmpv-iOS.debug.xcconfig */,
+				845F5EFBCB3F8842115A4DA7A019A832 /* Libmpv-iOS.release.xcconfig */,
+				6E0BF4A931B6DAD31262C676FE0BF028 /* Libmpv-macOS-xcframeworks.sh */,
+				A72A30F7E62CE4FA2716674EE4799F8E /* Libmpv-macOS.debug.xcconfig */,
+				2F21DEE330E5D95AB4CA6B529E3F892F /* Libmpv-macOS.release.xcconfig */,
+				2F677A4B4EB8D27C0BFA7DAB6DBAC92B /* Libmpv-tvOS-xcframeworks.sh */,
+				95E04C74FD0B016E930AA78FB596CF4B /* Libmpv-tvOS.debug.xcconfig */,
+				FEE2A71082B943C74CE49BFBD97BF19C /* Libmpv-tvOS.release.xcconfig */,
+				F99DB2D5D7D878BADAB8DFBACE45C53B /* Libmpv-visionOS-xcframeworks.sh */,
+				BB7938E4318CFD5F8C0EEBC5A472E2D4 /* Libmpv-visionOS.debug.xcconfig */,
+				0EC3AD6E827512E5451ED175A7E72845 /* Libmpv-visionOS.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../KSPlayer/Demo/Pods/Target Support Files/Libmpv-iOS";
 			sourceTree = "<group>";
 		};
 		E394202204D09B9612A0FB2D3B598896 /* Products */ = {
@@ -196,8 +196,8 @@
 		E80C3D6FF336C8F4FA993E0C74B42C17 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
 			};
 			buildConfigurationList = ED9D933B4B3E1F79E89BC640B53C9D27 /* Build configuration list for PBXProject "Libmpv" */;
 			compatibilityVersion = "Xcode 12.0";
@@ -209,6 +209,7 @@
 			);
 			mainGroup = 8BA9421FCCD628B340920E81EA6AF723;
 			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = E394202204D09B9612A0FB2D3B598896 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
@@ -298,38 +299,39 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		312F4E34E9E64CC13185D49B59728130 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-iOS";
-			targetProxy = 3FE1AF3FF603D00A89C9B9EC3EE71C11 /* PBXContainerItemProxy */;
-		};
-		558CEB04F91E9F3801426172556EC7C9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-macOS";
-			targetProxy = 7F2099EDAF134414DBFFA117E9D26D0C /* PBXContainerItemProxy */;
-		};
-		A623632A7D8F2697235F779989194DE9 /* PBXTargetDependency */ = {
+		05E1259060E0273C44E6E1D4162200AA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "FFmpegKit-visionOS";
-			targetProxy = B6B1C54DBF9B64D17BE8B2D668B3BED9 /* PBXContainerItemProxy */;
+			targetProxy = 38A248E8910682980E28246BA3406410 /* PBXContainerItemProxy */;
 		};
-		BD5A541EF9DF713578560BAC39C569A2 /* PBXTargetDependency */ = {
+		4EA99B5F898A5C53BD44AD012DA47F17 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "FFmpegKit-tvOS";
-			targetProxy = B8FDA830A7BDF6C232BF935900457E19 /* PBXContainerItemProxy */;
+			targetProxy = BCF2AB3EFC092C3528BA80E650D157A7 /* PBXContainerItemProxy */;
+		};
+		5FBF2D0013800E6C79BA2B907F9F50FD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-iOS";
+			targetProxy = 9F51341CEE5AA87A88086342A903EE25 /* PBXContainerItemProxy */;
+		};
+		EA415CF502B9326E0FC5667AEAAFB40D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-macOS";
+			targetProxy = 6D8DDAC0EC73013F9190D5791D593B33 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		000653D10D9623FB5AC5343BFC1B3460 /* Debug */ = {
+		05FAF458C5728EBD35A933BAC23728EC /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D9AC1806ADF2BED50F4E517D4092C5CF /* Libmpv-macOS.debug.xcconfig */;
+			baseConfigurationReference = A72A30F7E62CE4FA2716674EE4799F8E /* Libmpv-macOS.debug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -338,6 +340,18 @@
 				SDKROOT = macosx;
 			};
 			name = Debug;
+		};
+		0E4724C1DF990A0E8995C8BA357F5332 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0EC3AD6E827512E5451ED175A7E72845 /* Libmpv-visionOS.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				SDKROOT = xros;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
 		};
 		10D61BEEDF271EA177D839F33DFE8E30 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -408,52 +422,13 @@
 			};
 			name = Debug;
 		};
-		1BD44AFF56FB6F541DA170BC7C2CF56F /* Release */ = {
+		278E7A0C0C130F9E9D672B4295751B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1BE9A4C4D45993E1B614FA254BAB1B51 /* Libmpv-iOS.release.xcconfig */;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		3C0585EACB26CA90A23EF60F47457E23 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 46A142DC84C4433962810ED35C60B554 /* Libmpv-visionOS.release.xcconfig */;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				SDKROOT = xros;
-				XROS_DEPLOYMENT_TARGET = 1.0;
-			};
-			name = Release;
-		};
-		5A781753B4E9A59C135010F1895B618E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = BFA3C12EAD696DEA62D06FA6536872F4 /* Libmpv-visionOS.debug.xcconfig */;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				SDKROOT = xros;
-				XROS_DEPLOYMENT_TARGET = 1.0;
-			};
-			name = Debug;
-		};
-		71700911FAA9C13FB6ED385F2CFD9203 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 92980C8E2BCFBFCE817D1C873BA6049C /* Libmpv-tvOS.release.xcconfig */;
+			baseConfigurationReference = FEE2A71082B943C74CE49BFBD97BF19C /* Libmpv-tvOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -465,13 +440,14 @@
 			};
 			name = Release;
 		};
-		771677C78C64F1661648ECDBCA4370C7 /* Debug */ = {
+		3099B2946BED5BA7342B2D14C8B563B9 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 74191DD8AEAE5C9C51FA27959EACA0EE /* Libmpv-iOS.debug.xcconfig */;
+			baseConfigurationReference = 845F5EFBCB3F8842115A4DA7A019A832 /* Libmpv-iOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -479,8 +455,45 @@
 				);
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		89B949F77536BA061AF2A3E918D8D4C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 95E04C74FD0B016E930AA78FB596CF4B /* Libmpv-tvOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = appletvos;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
 			};
 			name = Debug;
+		};
+		AF93EBD5E6A9ED336BBBE6D0CC934819 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2F21DEE330E5D95AB4CA6B529E3F892F /* Libmpv-macOS.release.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				SDKROOT = macosx;
+			};
+			name = Release;
 		};
 		BD3CBCADC1D742372F8DFDBF8D50F4AA /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -547,37 +560,33 @@
 			};
 			name = Release;
 		};
-		C11062861F823E360390ED44F670E179 /* Release */ = {
+		DBDC9351CAB7839577F897484C2FA95C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 69A01B66CBDD0B72B77518CBC2EEA66A /* Libmpv-macOS.release.xcconfig */;
+			baseConfigurationReference = 143F7BA007B0B9D2C7C352401FAC47B3 /* Libmpv-iOS.debug.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				COMBINE_HIDPI_IMAGES = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				SDKROOT = macosx;
-			};
-			name = Release;
-		};
-		DF88C7B107CEC36053AED3A1BF562E0D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = FCF4C1CCE38728C31EE15D700D0077D6 /* Libmpv-tvOS.debug.xcconfig */;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				SDKROOT = appletvos;
-				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E65C4CEC8DF03E8224F942D4C0D1F6A2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BB7938E4318CFD5F8C0EEBC5A472E2D4 /* Libmpv-visionOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				SDKROOT = xros;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Debug;
 		};
@@ -587,8 +596,8 @@
 		03D8D88D117A226F3265FBAF0E522DB7 /* Build configuration list for PBXAggregateTarget "Libmpv-macOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				000653D10D9623FB5AC5343BFC1B3460 /* Debug */,
-				C11062861F823E360390ED44F670E179 /* Release */,
+				05FAF458C5728EBD35A933BAC23728EC /* Debug */,
+				AF93EBD5E6A9ED336BBBE6D0CC934819 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -596,8 +605,8 @@
 		73D11DCDCCDF78551EEF5539258A4EE7 /* Build configuration list for PBXAggregateTarget "Libmpv-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				DF88C7B107CEC36053AED3A1BF562E0D /* Debug */,
-				71700911FAA9C13FB6ED385F2CFD9203 /* Release */,
+				89B949F77536BA061AF2A3E918D8D4C8 /* Debug */,
+				278E7A0C0C130F9E9D672B4295751B9A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -605,8 +614,8 @@
 		EBD84DAFCB080005FE0D31A161C56A3F /* Build configuration list for PBXAggregateTarget "Libmpv-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				771677C78C64F1661648ECDBCA4370C7 /* Debug */,
-				1BD44AFF56FB6F541DA170BC7C2CF56F /* Release */,
+				DBDC9351CAB7839577F897484C2FA95C /* Debug */,
+				3099B2946BED5BA7342B2D14C8B563B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -623,8 +632,8 @@
 		FE744AE4237B01BA479FFCA591D0BF36 /* Build configuration list for PBXAggregateTarget "Libmpv-visionOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5A781753B4E9A59C135010F1895B618E /* Debug */,
-				3C0585EACB26CA90A23EF60F47457E23 /* Release */,
+				E65C4CEC8DF03E8224F942D4C0D1F6A2 /* Debug */,
+				0E4724C1DF990A0E8995C8BA357F5332 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

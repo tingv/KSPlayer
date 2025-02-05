@@ -1,5 +1,5 @@
 import CoreMedia
-import FFmpegKit
+internal import FFmpegKit
 import Libavcodec
 import Libavfilter
 import Libavformat
@@ -268,7 +268,7 @@ extension AVPixelFormat {
 //        case AV_PIX_FMT_PAL8: return kCVPixelFormatType_32RGBA
         case AV_PIX_FMT_GRAY8: return kCVPixelFormatType_OneComponent8
         case AV_PIX_FMT_RGB555BE: return kCVPixelFormatType_16BE555
-        case AV_PIX_FMT_RGB555LE: return kCVPixelFormatType_16LE555
+//        case AV_PIX_FMT_RGB555LE: return kCVPixelFormatType_16LE555
         case AV_PIX_FMT_RGB565BE: return kCVPixelFormatType_16BE565
         case AV_PIX_FMT_RGB565LE: return kCVPixelFormatType_16LE565
 //             PixelBufferPool 无法支持24BGR
@@ -437,6 +437,10 @@ public struct AVError: Error, Equatable {
         self.code = code
         message = String(avErrorCode: code)
     }
+
+    var localizedDescription: String {
+        "code: \(code) message: \(message)"
+    }
 }
 
 public extension Dictionary where Key == String {
@@ -461,7 +465,7 @@ public extension Dictionary where Key == String {
     }
 }
 
-extension String {
+public extension String {
     init(avErrorCode code: Int32) {
         let buf = UnsafeMutablePointer<Int8>.allocate(capacity: Int(AV_ERROR_MAX_STRING_SIZE))
         buf.initialize(repeating: 0, count: Int(AV_ERROR_MAX_STRING_SIZE))
@@ -479,6 +483,7 @@ public extension NSError {
 
 public extension AVError {
     /// Resource temporarily unavailable
+    /// -35
     static let tryAgain = AVError(code: swift_AVERROR(EAGAIN))
     /// Invalid argument
     static let invalidArgument = AVError(code: swift_AVERROR(EINVAL))

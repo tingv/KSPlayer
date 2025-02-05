@@ -103,6 +103,7 @@ public class AssParse: KSParseProtocol {
         }
         text = text.replacingOccurrences(of: "\\N", with: "\n")
         text = text.replacingOccurrences(of: "\\n", with: "\n")
+        text = text.replacingOccurrences(of: "\\h", with: " ")
         let part = SubtitlePart(start, end, attributedString: text.build(textPosition: &textPosition, attributed: attributes), textPosition: textPosition)
         return part
     }
@@ -168,20 +169,28 @@ extension String {
                 if attributedStr.length != 0 {
                     attributedStr.append(NSAttributedString(string: String("\n")))
                 }
-                if string.hasPrefix("<"), string.hasSuffix(">") {
+                if string.contains("<"), string.contains(">") {
                     let scanner = Scanner(string: String(string))
+                    // 要加这行代码这样空格才不会被吃掉
+                    scanner.charactersToBeSkipped = nil
+                    if let text = scanner.scanUpToString("<") {
+                        attributedStr.append(NSAttributedString(string: text))
+                    }
                     if scanner.scanString("<font ") != nil {
                         if scanner.scanString("size=\"") != nil, let fontSize = scanner.scanFloat(), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
                             var attributes = attributes
                             attributes[.font] = UIFont.systemFont(ofSize: CGFloat(fontSize))
                             attributedStr.append(NSAttributedString(string: text, attributes: attributes))
-                            continue
                         } else if scanner.scanString("color=\"#") != nil, let hex = scanner.scanInt(representation: .hexadecimal), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
                             var attributes = attributes
                             attributes[.foregroundColor] = UIColor(rgb: hex)
                             attributedStr.append(NSAttributedString(string: text, attributes: attributes))
-                            continue
                         }
+                        scanner.scanString("</font>")
+                        if let text = scanner.scanUpToCharacters(from: .newlines) {
+                            attributedStr.append(NSAttributedString(string: text))
+                        }
+                        continue
                     }
                 }
                 attributedStr.append(NSAttributedString(string: String(string), attributes: attributes))
@@ -266,7 +275,7 @@ public extension [String: String] {
     func parseASSStyle() -> ASSStyle {
         var attributes: [NSAttributedString.Key: Any] = [:]
         if let fontName = self["Fontname"], let fontSize = self["Fontsize"].flatMap(Double.init) {
-            var font = UIFont(name: fontName, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
+            let fontDescriptor: UIFontDescriptor
             if let degrees = self["Angle"].flatMap(Double.init), degrees != 0 {
                 let radians = CGFloat(degrees * .pi / 180.0)
                 #if !canImport(UIKit)
@@ -274,9 +283,21 @@ public extension [String: String] {
                 #else
                 let matrix = CGAffineTransform(rotationAngle: radians)
                 #endif
-                let fontDescriptor = UIFontDescriptor(name: fontName, matrix: matrix)
-                font = UIFont(descriptor: fontDescriptor, size: fontSize) ?? font
+                fontDescriptor = UIFontDescriptor(name: fontName, matrix: matrix)
+            } else {
+                fontDescriptor = UIFontDescriptor(name: fontName, size: fontSize)
             }
+            let bold = self["Bold"] == "1"
+            let italic = self["Italic"] == "1"
+            var symbolicTraits = fontDescriptor.symbolicTraits
+            if bold {
+                symbolicTraits = symbolicTraits.union(.traitBold)
+            }
+            if italic {
+                symbolicTraits = symbolicTraits.union(.traitItalic)
+            }
+            let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits) ?? fontDescriptor
+            let font = UIFont(descriptor: descriptor, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
             attributes[.font] = font
         }
         // 创建字体样式
@@ -286,12 +307,6 @@ public extension [String: String] {
         // 还不知道这个要设置到什么颜色上
         if let assColor = self["SecondaryColour"] {
             //            attributes[.backgroundColor] = UIColor(assColor: assColor)
-        }
-        if self["Bold"] == "1" {
-            attributes[.expansion] = 1
-        }
-        if self["Italic"] == "1" {
-            attributes[.obliqueness] = 1
         }
         if self["Underline"] == "1" {
             attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
@@ -342,4 +357,27 @@ public extension [String: String] {
         return ASSStyle(attrs: attributes, textPosition: textPosition)
     }
     // swiftlint:enable cyclomatic_complexity
+}
+
+extension UIFont {
+    convenience init?(name: String, size: Double, bold: Bool, italic: Bool) {
+        let fontDescriptor = UIFontDescriptor(name: name, size: size)
+        var symbolicTraits = fontDescriptor.symbolicTraits
+        if bold {
+            symbolicTraits = symbolicTraits.union(.traitBold)
+        }
+        if italic {
+            symbolicTraits = symbolicTraits.union(.traitItalic)
+        }
+        let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits) ?? fontDescriptor
+        self.init(descriptor: descriptor, size: size)
+    }
+
+    func union(symbolicTrait: UIFontDescriptor.SymbolicTraits) -> UIFont {
+        var fontDescriptor = fontDescriptor
+        var symbolicTraits = fontDescriptor.symbolicTraits
+        symbolicTraits = symbolicTraits.union(symbolicTrait)
+        let descriptor = fontDescriptor.withSymbolicTraits(symbolicTraits) ?? fontDescriptor
+        return UIFont(descriptor: descriptor, size: pointSize) ?? self
+    }
 }

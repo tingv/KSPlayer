@@ -8,11 +8,14 @@
 import AVFoundation
 import SwiftUI
 #if os(tvOS) || os(xrOS)
-import DisplayCriteria
+internal import DisplayCriteria
 #endif
 import AVKit
 import Libavformat
 import OSLog
+#if canImport(Translation)
+import Translation
+#endif
 
 open class KSOptions {
     public internal(set) var formatName = ""
@@ -39,10 +42,13 @@ open class KSOptions {
         // 参数的配置可以参考protocols.texi 和 http.c
         // 这个一定要，不然有的流就会判断不准FieldOrder
         formatContextOptions["scan_all_pmts"] = 1
-        // ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
-        formatContextOptions["reconnect"] = 1
+        /// ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
+        /// 但是日志会报Will reconnect at，导致重复播放一段时间，所以要重新建立链接。
+        /// 重新建立链接会有概率在playerItem.prepareToPlay()crash。所以改成不自动重新建立链接了。
+        /// 最好是在播放结束的时候重新调用prepareToPlay方法
+//        formatContextOptions["reconnect"] = 1
         formatContextOptions["reconnect_streamed"] = 1
-        // 需要加这个超时，不然从wifi切换到4g就会一直卡住
+        // 需要加这个超时，不然从wifi切换到4g就会一直卡住, 超时不能为5，不然iptv的ts流会隔30s就超时
         formatContextOptions["rw_timeout"] = 10_000_000
         // 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
         // 开启这个，百度网盘的视频链接无法播放
@@ -325,16 +331,12 @@ open class KSOptions {
 
     open func audioFrameMaxCount(fps: Float, channelCount: Int) -> UInt8 {
         let count = (Int(fps) * channelCount) >> 2
-        if count >= UInt8.max {
-            return UInt8.max
-        } else {
-            return UInt8(count)
-        }
+        return UInt8(min(count, 64))
     }
 
     // MARK: subtile options
 
-    static let fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir")
+    var fontsDir: URL?
     public nonisolated(unsafe) static var defaultFont: URL?
     public static var enableHDRSubtitle = true
     public nonisolated(unsafe) static var isASSUseImageRender = false
@@ -350,18 +352,40 @@ open class KSOptions {
     public static var textBackgroundColor: Color = .clear
     @MainActor
     public static var textFont: UIFont {
-        textBold ? .boldSystemFont(ofSize: textFontSize) : .systemFont(ofSize: textFontSize)
+        var font: UIFont?
+        if let textFontName {
+            font = UIFont(name: textFontName, size: textFontSize, bold: textBold, italic: textItalic)
+        }
+        if let font {
+            return font
+        } else {
+            var font = UIFont.systemFont(ofSize: textFontSize)
+            if textBold || textItalic {
+                var symbolicTrait = UIFontDescriptor.SymbolicTraits()
+                if textBold {
+                    symbolicTrait = symbolicTrait.union(.traitBold)
+                }
+                if textItalic {
+                    symbolicTrait = symbolicTrait.union(.traitItalic)
+                }
+                font = font.union(symbolicTrait: symbolicTrait)
+            }
+            return font
+        }
     }
 
+    public nonisolated(unsafe) static var textFontName: String?
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
     @MainActor
     public static var textPosition = TextPosition()
-    public nonisolated(unsafe) static var audioRecognizes = [any AudioRecognize]()
     @MainActor
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var subtitleDynamicRange = Image.DynamicRange.high
+    @MainActor
+    public static var showTranslateSourceText = false
+    public var audioRecognizes = [any AudioRecognize]()
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
     public var subtitleTimeInterval = 0.1
@@ -423,7 +447,6 @@ open class KSOptions {
     @MainActor
     public static var audioVideoClockSync = true
     public var dynamicRange: DynamicRange = .sdr
-    public var isPictureInPictureActive = false
     public var display: DisplayEnum = displayEnumPlane
     public var videoDelay = 0.0 // s
     public var autoRotate = true
@@ -443,16 +466,30 @@ open class KSOptions {
         KSOptions.preferredFrame || fps > 61
     }
 
+    /// 这个函数只在异步硬解才生效
+    open func decodeSize(width: Int32, height: Int32) -> CGSize {
+        #if os(iOS)
+        // ios 要iPhone 15 pro max 播放8k的才不会卡顿，其他都会硬件解码耗时太久。所以把分辨率减半，降低解码耗时
+        if UIDevice.current.userInterfaceIdiom == .phone, width >= 7680 {
+            return CGSize(width: Int(width) / 2, height: Int(height) / 2)
+        } else {
+            return CGSize(width: Int(width), height: Int(height))
+        }
+        #else
+        return CGSize(width: Int(width), height: Int(height))
+        #endif
+    }
+
+    open func recreateContext(hasDecodeSuccess: Bool) -> Bool {
+        !hasDecodeSuccess
+    }
+
     open func wantedVideo(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {
         nil
     }
 
-    open func videoFrameMaxCount(fps: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
-        if isLive {
-            return fps > 49 ? 8 : 4
-        } else {
-            return fps > 49 ? 16 : 8
-        }
+    open func videoFrameMaxCount(fps _: Float, naturalSize _: CGSize, isLive _: Bool) -> UInt8 {
+        4
     }
 
     /// customize dar
@@ -486,16 +523,21 @@ open class KSOptions {
     open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription) {
         dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
         #if os(tvOS) || os(xrOS)
-        /**
-         快速更改preferredDisplayCriteria，会导致isDisplayModeSwitchInProgress变成true。
-         例如退出一个视频，然后在3s内重新进入的话。所以不判断isDisplayModeSwitchInProgress了
-         */
         guard let displayManager = UIApplication.shared.windows.first?.avDisplayManager,
               displayManager.isDisplayCriteriaMatchingEnabled
         else {
             return
         }
-        displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
+        /// 因为目前formatDescription里面没有信息可以看出是dovi。
+        /// 所以当设备只是dv，内容是dv的话，用videoDynamicRange。
+        if DynamicRange.availableHDRModes.contains(.dolbyVision), dynamicRange == .dolbyVision {
+            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
+        } else if #available(tvOS 17.0, *) {
+            /// 用formatDescription的话，显示的颜色会更准确，特别是hlg就不会显示dovi了
+            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, formatDescription: formatDescription)
+        } else {
+            displayManager.preferredDisplayCriteria = AVDisplayCriteria(refreshRate: refreshRate, videoDynamicRange: dynamicRange.rawValue)
+        }
         #endif
     }
 
@@ -503,44 +545,48 @@ open class KSOptions {
     open func videoClockSync(main: KSClock, nextVideoTime: TimeInterval, fps: Double, frameCount: Int) -> (Double, ClockProcessType) {
         let desire = main.getTime() - videoDelay
         let diff = nextVideoTime - desire
-        if diff > 2 {
-            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount)"
+        if diff > 8 {
+            videoClockDelayCount += 1
+            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
             KSLog(log)
-            return (diff, .next)
+            // 只对前几帧进行显示，如果后续还是超前的话，那就一直等待
+            if videoClockDelayCount <= Int(ceil(fps / 3)) {
+                return (diff, .next)
+            } else {
+                return (diff, .remain)
+            }
         } else if diff >= 1 / fps / 2 {
             return (diff, .remain)
-        } else {
-            if diff < -4 / fps {
-                videoClockDelayCount += 1
-                /// 之前有一次因为mainClock的时间戳不准，导致diff很大，所以这边要判断下delay的次数在做seek、dropGOPPacket、flush处理，避免误伤。
-                let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
+        } else if diff < -4 / fps {
+            videoClockDelayCount += 1
+            /// 之前有一次因为mainClock的时间戳不准，导致diff很大，所以这边要判断下delay的次数在做seek、dropGOPPacket、flush处理，避免误伤。
+            let log = "[video] video delay=\(diff), clock=\(desire), frameCount=\(frameCount) delay count=\(videoClockDelayCount)"
 
-                if diff < -8, videoClockDelayCount % 80 == 0 {
-                    KSLog("\(log) seek video track")
-                    return (diff, .seek)
-                }
-                if diff < -1, videoClockDelayCount % 10 == 0 {
-                    if frameCount == 1 {
-                        KSLog("\(log) drop gop Packet")
-                        return (diff, .dropGOPPacket)
-                    } else {
-                        KSLog("\(log) flush video track")
-                        return (diff, .flush)
-                    }
-                }
-                let count: Int
-                if videoClockDelayCount == 1 {
-                    // 第一次delay的话，就先只丢一帧。防止seek之后第一次播放丢太多帧
-                    count = 1
-                } else {
-                    count = Int(-diff * fps / 4.0)
-                }
-                KSLog("\(log) drop \(count) frame")
-                return (diff, .dropFrame(count: count))
-            } else {
-                videoClockDelayCount = 0
-                return (diff, .next)
+            if diff < -8, videoClockDelayCount % 80 == 0 {
+                KSLog("\(log) seek video track")
+                return (diff, .seek)
             }
+            if diff < -1, videoClockDelayCount % 10 == 0 {
+                if frameCount == 1 {
+                    KSLog("\(log) drop gop Packet")
+                    return (diff, .dropGOPPacket)
+                } else {
+                    KSLog("\(log) flush video track")
+                    return (diff, .flush)
+                }
+            }
+            let count: Int
+            if videoClockDelayCount == 1 {
+                // 第一次delay的话，就先只丢一帧。防止seek之后第一次播放丢太多帧
+                count = 1
+            } else {
+                count = Int(-diff * fps / 4.0)
+            }
+            KSLog("\(log) drop \(count) frame")
+            return (diff, .dropFrame(count: count))
+        } else {
+            videoClockDelayCount = 0
+            return (diff, .next)
         }
     }
 

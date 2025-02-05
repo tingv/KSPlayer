@@ -243,6 +243,9 @@ extension KSAVPlayer {
             }
             if let playableVideo {
                 naturalSize = playableVideo.naturalSize
+                if let formatDescription = playableVideo.formatDescription {
+                    options.updateVideo(refreshRate: playableVideo.nominalFrameRate, isDovi: playableVideo.isDovi, formatDescription: formatDescription)
+                }
             } else {
                 error = NSError(errorCode: .videoTracksUnplayable)
                 return
@@ -354,7 +357,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
 
     public func stopRecord() {}
 
-    public var subtitleDataSource: (any EmbedSubtitleDataSource)? { nil }
+    public var subtitleDataSource: (any ConstantSubtitleDataSource)? { nil }
     public var isPlaying: Bool { player.rate > 0 ? true : playbackState == .playing }
     public var view: UIView { playerView }
     public var currentPlaybackTime: TimeInterval {

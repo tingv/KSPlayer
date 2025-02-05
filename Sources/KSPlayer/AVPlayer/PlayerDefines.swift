@@ -8,7 +8,8 @@
 import AVFoundation
 import CoreMedia
 import CoreServices
-import FFmpegKit
+import Libavformat
+internal import FFmpegKit
 import OSLog
 #if canImport(UIKit)
 import UIKit
@@ -276,6 +277,8 @@ extension KSPlayerErrorCode: CustomStringConvertible {
             return "swr_init swrContext fail"
         case .pixelBufferPoolCreate:
             return "pixelBufferPool Create fail"
+        case .readFrame:
+            return "readFrame fail"
         default:
             return "unknown"
         }
@@ -360,8 +363,12 @@ public extension FixedWidthInteger {
 }
 
 open class AbstractAVIOContext {
-    public static let bufferSize = Int32(32 * 1024)
-    public init() {}
+    // 这个要调高一点才不会频繁的进行网络请求，减少卡顿
+    public let bufferSize: Int32
+    public init(bufferSize: Int32 = 256 * 1024) {
+        self.bufferSize = bufferSize
+    }
+
     open func read(buffer _: UnsafeMutablePointer<UInt8>?, size: Int32) -> Int32 {
         size
     }
@@ -385,7 +392,12 @@ open class AbstractAVIOContext {
 
     open func close() {}
     open func addSub(url _: URL, flags _: Int32, options _: UnsafeMutablePointer<OpaquePointer?>?, interrupt _: AVIOInterruptCB) -> UnsafeMutablePointer<AVIOContext>? { nil }
-    deinit {}
+}
+
+public protocol DownloadProtocol {
+    func read(buffer: UnsafeMutablePointer<UInt8>, begin: Int, end: Int) -> Int32
+    func fileSize() -> Int64
+    func close()
 }
 
 public protocol PreLoadProtocol {
@@ -451,13 +463,15 @@ public protocol LogHandler {
 
 public class OSLog: LogHandler {
     public let label: String
+    public let formatter = DateFormatter()
     public init(lable: String) {
         label = lable
+        formatter.dateFormat = "MM-dd HH:mm:ss.SSSSSS"
     }
 
     @inlinable
     public func log(level: LogLevel, message: CustomStringConvertible, file: String, function: String, line: UInt) {
-        os_log(level.logType, "%@ %@: %@:%d %@ | %@", level.description, label, file, line, function, message.description)
+        os_log(level.logType, "%@ %@ %@: %@:%d %@ | %@", formatter.string(from: Date()), level.description, label, file, line, function, message.description)
     }
 }
 

@@ -19,13 +19,13 @@ class SubtitleDecode: DecodeProtocol {
     private var subtitle = AVSubtitle()
     private var startTime = TimeInterval(0)
     private var assParse: AssParse? = nil
-    private var assImageRenderer: AssImageRenderer? = nil
+    private var assImageRenderer: AssIncrementImageRenderer? = nil
     private let isHDR: Bool
     private let isASS: Bool
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
         isHDR = KSOptions.enableHDRSubtitle ? options.dynamicRange.isHDR : false
-        isASS = assetTrack.codecpar.codec_id == AV_CODEC_ID_SSA || assetTrack.codecpar.codec_id == AV_CODEC_ID_ASS
+        isASS = assetTrack.codecpar.codec_id == AV_CODEC_ID_SSA || assetTrack.codecpar.codec_id == AV_CODEC_ID_ASS || assetTrack.codecpar.codec_id == AV_CODEC_ID_EIA_608
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext {
@@ -43,11 +43,8 @@ class SubtitleDecode: DecodeProtocol {
                     }
                     // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
                     if (KSOptions.isASSUseImageRender && isASS) || KSOptions.isSRTUseImageRender {
-                        assImageRenderer = AssImageRenderer()
+                        assImageRenderer = AssIncrementImageRenderer(fontsDir: options.fontsDir?.path, header: subtitleHeader)
                         assetTrack.subtitleRender = assImageRenderer
-                        Task(priority: .high) {
-                            await assImageRenderer?.subtitle(header: subtitleHeader)
-                        }
                     } else {
                         let assParse = AssParse()
                         if assParse.canParse(scanner: Scanner(string: subtitleHeader)) {
@@ -136,21 +133,21 @@ class SubtitleDecode: DecodeProtocol {
                 let subtitle = String(cString: ass)
                 if let assImageRenderer {
                     Task(priority: .high) {
-                        await assImageRenderer.add(subtitle: subtitle, start: Int64(start * 1000), duration: end == .infinity ? 1000 : Int64((end - start) * 1000))
+                        await assImageRenderer.add(subtitle: subtitle, start: Int64(start * 1000), duration: end == .infinity ? Int64(subtitle.count * 25) : Int64((end - start) * 1000))
                     }
                 } else if let assParse {
                     let scanner = Scanner(string: subtitle)
                     if let group = assParse.parsePart(scanner: scanner) {
                         group.start = start
                         group.end = end
-                        if !isASS, let string = group.render.right?.0.string {
+                        if !isASS, let string = group.text?.string {
                             if attributedString == nil {
                                 attributedString = NSMutableAttributedString()
                             }
                             attributedString?.append(NSAttributedString(string: string))
-                            continue
+                        } else {
+                            parts.append(group)
                         }
-                        parts.append(group)
                     }
                 }
             } else if rect.type == SUBTITLE_BITMAP {

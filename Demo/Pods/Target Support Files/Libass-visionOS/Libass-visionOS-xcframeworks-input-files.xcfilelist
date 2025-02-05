@@ -1,5 +1,5 @@
 ${PODS_ROOT}/Target Support Files/Libass-visionOS/Libass-visionOS-xcframeworks.sh
-${PODS_ROOT}/../../FFmpegKit/Sources/libfreetype.xcframework
-${PODS_ROOT}/../../FFmpegKit/Sources/libfribidi.xcframework
-${PODS_ROOT}/../../FFmpegKit/Sources/libharfbuzz.xcframework
-${PODS_ROOT}/../../FFmpegKit/Sources/libass.xcframework
+${PODS_ROOT}/../../../FFmpegKit/Sources/libfreetype.xcframework
+${PODS_ROOT}/../../../FFmpegKit/Sources/libfribidi.xcframework
+${PODS_ROOT}/../../../FFmpegKit/Sources/libharfbuzz.xcframework
+${PODS_ROOT}/../../../FFmpegKit/Sources/libass.xcframework

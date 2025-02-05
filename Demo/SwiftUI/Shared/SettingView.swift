@@ -175,8 +175,6 @@ struct SettingAdvancedView: View {
     private var isSecondOpen
     @Default(\.isAccurateSeek)
     private var isAccurateSeek
-    @Default(\.isPipPopViewController)
-    private var isPipPopViewController
     #if os(visionOS)
     @SceneStorage("360Play") var is360Play: Bool = false
     #endif
@@ -201,7 +199,6 @@ struct SettingAdvancedView: View {
             Toggle("Auto Play", isOn: $isAutoPlay)
             Toggle("Fast Open Video", isOn: $isSecondOpen)
             Toggle("Fast Seek Video", isOn: $isAccurateSeek)
-            Toggle("Picture In Picture Inline", isOn: $isPipPopViewController)
         }
     }
 }

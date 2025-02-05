@@ -83,13 +83,6 @@ public class Defaults: ObservableObject {
         }
     }
 
-    @AppStorage("isPipPopViewController")
-    public var isPipPopViewController = true {
-        didSet {
-            KSOptions.isPipPopViewController = isPipPopViewController
-        }
-    }
-
     @AppStorage("textFontSize")
     public var textFontSize = KSOptions.textFontSize {
         didSet {
@@ -196,7 +189,6 @@ public class Defaults: ObservableObject {
         KSOptions.isAutoPlay = isAutoPlay
         KSOptions.isSecondOpen = isSecondOpen
         KSOptions.isAccurateSeek = isAccurateSeek
-        KSOptions.isPipPopViewController = isPipPopViewController
         MEOptions.yadifMode = yadifMode
         KSOptions.audioPlayerType = NSClassFromString(audioPlayerType) as! any AudioOutput.Type
     }

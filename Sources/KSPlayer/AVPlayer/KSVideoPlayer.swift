@@ -30,40 +30,13 @@ public struct KSVideoPlayer {
 }
 
 public extension KSVideoPlayer {
+    @MainActor
     init(playerLayer: KSPlayerLayer) {
         let coordinator = KSVideoPlayer.Coordinator()
         coordinator.playerLayer = playerLayer
         self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
     }
 }
-
-#if !os(tvOS)
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@MainActor
-public struct PlayBackCommands: Commands {
-    @FocusedObject
-    private var config: KSVideoPlayer.Coordinator?
-    public init() {}
-
-    public var body: some Commands {
-        CommandMenu("PlayBack") {
-            if let config {
-                Button(config.state.isPlaying ? "Pause" : "Resume") {
-                    if config.state.isPlaying {
-                        config.playerLayer?.pause()
-                    } else {
-                        config.playerLayer?.play()
-                    }
-                }
-                .keyboardShortcut(.space, modifiers: .none)
-                Button(config.isMuted ? "Mute" : "Unmute") {
-                    config.isMuted.toggle()
-                }
-            }
-        }
-    }
-}
-#endif
 
 extension KSVideoPlayer: UIViewRepresentable {
     public func makeCoordinator() -> Coordinator {
@@ -84,6 +57,7 @@ extension KSVideoPlayer: UIViewRepresentable {
     public static func dismantleUIView(_: UIViewType, coordinator: Coordinator) {
         coordinator.resetPlayer()
     }
+
     #else
     public typealias NSViewType = UIView
     public func makeNSView(context: Context) -> NSViewType {
@@ -176,12 +150,14 @@ extension KSVideoPlayer: UIViewRepresentable {
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
         public var playerLayer: KSPlayerLayer? {
             didSet {
-                // 要用不等于，这样才能排除pipController为空的情况
-                guard let oldValue, oldValue.player.pipController?.isPictureInPictureActive != true else {
-                    return
+                #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
+                if #available(iOS 18.0, macOS 15.0, *) {
+                    oldValue?.subtitleModel.translationSessionConf?.invalidate()
+                    oldValue?.subtitleModel.translationSession = nil
                 }
-                oldValue.delegate = nil
-                oldValue.stop()
+                #endif
+                oldValue?.delegate = nil
+                oldValue?.stop()
             }
         }
 
@@ -211,11 +187,22 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         public func resetPlayer() {
+            // 进入pip一定要清空translationSession。不然会crash
+            #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, macOS 15.0, *) {
+                playerLayer?.subtitleModel.translationSessionConf?.invalidate()
+                playerLayer?.subtitleModel.translationSession = nil
+            }
+            #endif
+            // 要用不等于，这样才能排除pipController为空的情况
+            guard let playerLayer, !playerLayer.isPictureInPictureActive else {
+                return
+            }
             onStateChanged = nil
             onPlay = nil
             onFinish = nil
             onBufferChanged = nil
-            playerLayer = nil
+            self.playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
         }
@@ -342,13 +329,25 @@ public extension KSVideoPlayer {
     }
 }
 
-extension View {
-    func then(_ body: (inout Self) -> Void) -> Self {
-        var result = self
-        body(&result)
-        return result
+#if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
+public extension KSVideoPlayer {
+    @MainActor
+    func translationView() -> some View {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            return translationTask(coordinator.playerLayer?.subtitleModel.translationSessionConf) { session in
+                do {
+                    try await session.prepareTranslation()
+                    coordinator.playerLayer?.subtitleModel.translationSession = session
+                } catch {
+                    KSLog(error)
+                }
+            }
+        } else {
+            return self
+        }
     }
 }
+#endif
 
 /// 这是一个频繁变化的model。View要少用这个
 public class ControllerTimeModel: ObservableObject {
@@ -358,3 +357,14 @@ public class ControllerTimeModel: ObservableObject {
     @Published
     public var totalTime = 1
 }
+
+#if DEBUG
+struct KSVideoPlayer_Previews: PreviewProvider {
+    static var previews: some View {
+        KSOptions.firstPlayerType = KSMEPlayer.self
+        let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
+        let coordinator = KSVideoPlayer.Coordinator()
+        return KSVideoPlayer(coordinator: coordinator, url: url, options: KSOptions())
+    }
+}
+#endif

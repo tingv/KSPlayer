@@ -71,7 +71,14 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public var bufferingProgress: Int = 0
     @Published
     public var loopCount: Int = 0
-    public private(set) var options: KSOptions
+    public private(set) var options: KSOptions {
+        didSet {
+            options.audioRecognizes = subtitleModel.subtitleInfos.compactMap { info in
+                info as? AudioRecognize
+            }
+        }
+    }
+
     public let subtitleVC: UIHostingController<VideoSubtitleView>
     public var player: MediaPlayerProtocol {
         didSet {
@@ -169,6 +176,9 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         subtitleVC.view.backgroundColor = .clear
         subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
         super.init()
+        options.audioRecognizes = subtitleModel.subtitleInfos.compactMap { info in
+            info as? AudioRecognize
+        }
         player.playbackRate = options.startPlayRate
         player.delegate = self
         player.contentMode = .scaleAspectFit
@@ -243,7 +253,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             UIApplication.shared.isIdleTimerDisabled = true
         }
         isAutoPlay = true
-        if state == .error || state == .initialized {
+        if state == .error || state == .initialized || (state == .playedToTheEnd && !player.seekable) {
             prepareToPlay()
         }
         if player.isReadyToPlay {
@@ -296,6 +306,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 }
                 return
             }
+            subtitleModel.cleanParts()
             player.seek(time: time) { [weak self] finished in
                 guard let self else { return }
                 if finished, autoPlay {
@@ -484,6 +495,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     fileprivate func addSubtitle(to view: UIView) {
         if subtitleVC.view.superview != view {
             view.addSubview(subtitleVC.view)
+            subtitleVC.view.translatesAutoresizingMaskIntoConstraints = false
             let constraints = [
                 subtitleVC.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 subtitleVC.view.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -491,44 +503,28 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 subtitleVC.view.heightAnchor.constraint(equalTo: view.heightAnchor),
             ]
             #if os(macOS)
+            // 要加这个，不然字幕无法显示出来
             if #available(macOS 13.0, *) {
                 subtitleVC.sizingOptions = .maxSize
             }
+            // 要加这个，不然还没字幕的时候，视频播放界面会变成zero
             for constraint in constraints {
                 constraint.priority = .defaultLow
             }
             #endif
-
             NSLayoutConstraint.activate(constraints)
         }
     }
 }
 
+public extension KSPlayerLayer {
+    var isPictureInPictureActive: Bool {
+        player.pipController?.isPictureInPictureActive ?? false
+    }
+}
+
 open class KSComplexPlayerLayer: KSPlayerLayer {
     private var urls = [URL]()
-    @Published
-    @MainActor
-    public var isPipActive = false {
-        didSet {
-            if isPipActive {
-                if let pipController = player.pipController {
-                    pipController.start(layer: self)
-                } else {
-                    player.configPIP()
-                    if #available(tvOS 14.0, *) {
-                        player.pipController?.delegate = self
-                    }
-                    // 刚创建pip的话，需要等待0.3才能pip
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                        guard let self, let pipController = self.player.pipController else { return }
-                        pipController.start(layer: self)
-                    }
-                }
-            } else {
-                player.pipController?.stop(restoreUserInterface: true)
-            }
-        }
-    }
 
     @MainActor
     public required init(url: URL, options: KSOptions, delegate: KSPlayerLayerDelegate? = nil) {
@@ -548,6 +544,28 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
     @available(*, unavailable)
     public required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    @MainActor
+    public func pipStart() {
+        if let pipController = player.pipController {
+            pipController.start(layer: self)
+        } else {
+            player.configPIP()
+            if #available(tvOS 14.0, *) {
+                player.pipController?.delegate = self
+            }
+            // 刚创建pip的话，需要等待0.3才能pip
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self, let pipController = self.player.pipController else { return }
+                pipController.start(layer: self)
+            }
+        }
+    }
+
+    @MainActor
+    public func pipStop(restoreUserInterface: Bool) {
+        player.pipController?.stop(restoreUserInterface: restoreUserInterface)
     }
 
     public func set(urls: [URL]) {
@@ -620,18 +638,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         player.pipController = nil
         NotificationCenter.default.removeObserver(self)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().pauseCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().togglePlayPauseCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().stopCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().nextTrackCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().previousTrackCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changeRepeatModeCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changePlaybackRateCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().skipForwardCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().skipBackwardCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.removeTarget(nil)
-        MPRemoteCommandCenter.shared().enableLanguageOptionCommand.removeTarget(nil)
+        removeRemoteControllEvent()
     }
 }
 
@@ -642,20 +649,18 @@ extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
     @MainActor
     public func pictureInPictureControllerDidStartPictureInPicture(_: AVPictureInPictureController) {
         pipAddSubtitle()
-        options.isPictureInPictureActive = true
         player.pipController?.didStart(layer: self)
     }
 
     @MainActor
     public func pictureInPictureControllerDidStopPictureInPicture(_: AVPictureInPictureController) {
-        player.pipController?.stop(restoreUserInterface: false)
+        pipStop(restoreUserInterface: false)
         addSubtitle(to: player.view)
-        options.isPictureInPictureActive = false
     }
 
     @MainActor
     public func pictureInPictureController(_: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler _: @escaping (Bool) -> Void) {
-        isPipActive = false
+        pipStop(restoreUserInterface: true)
     }
 }
 
@@ -705,6 +710,21 @@ extension KSComplexPlayerLayer {
             isAutoPlay = true
             url = urls[index - 1]
         }
+    }
+
+    public func removeRemoteControllEvent() {
+        MPRemoteCommandCenter.shared().playCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().pauseCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().togglePlayPauseCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().stopCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().nextTrackCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().previousTrackCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changeRepeatModeCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changePlaybackRateCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().skipForwardCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().skipBackwardCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().changePlaybackPositionCommand.removeTarget(nil)
+        MPRemoteCommandCenter.shared().enableLanguageOptionCommand.removeTarget(nil)
     }
 
     public func registerRemoteControllEvent() {
@@ -813,7 +833,7 @@ extension KSComplexPlayerLayer {
         guard state.isPlaying, !player.isExternalPlaybackActive else {
             return
         }
-        if player.pipController?.isPictureInPictureActive == true {
+        if isPictureInPictureActive {
             pipAddSubtitle()
             return
         }
@@ -829,9 +849,10 @@ extension KSComplexPlayerLayer {
         guard !player.isExternalPlaybackActive else {
             return
         }
-        if player.pipController?.isPictureInPictureActive == true {
-            isPipActive = false
+        if isPictureInPictureActive {
             if !options.canStartPictureInPictureAutomaticallyFromInline {
+                pipStop(restoreUserInterface: true)
+
                 // 要延迟清空，这样delegate的方法才能调用，不然会导致回到前台，字幕无法显示了。并且1秒还不行，一定要2秒
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
                     guard let self else { return }
