@@ -12,6 +12,10 @@ extension FFmpegAssetTrack: SubtitleInfo {
     public var subtitleID: String {
         String(trackID)
     }
+
+    public var isSrt: Bool {
+        [AV_CODEC_ID_SRT, AV_CODEC_ID_WEBVTT, AV_CODEC_ID_TEXT, AV_CODEC_ID_SUBRIP, AV_CODEC_ID_MOV_TEXT].contains(codecpar.codec_id)
+    }
 }
 
 extension FFmpegAssetTrack: KSSubtitleProtocol {

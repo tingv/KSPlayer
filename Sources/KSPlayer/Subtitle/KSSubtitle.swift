@@ -49,10 +49,12 @@ public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject {
     //    var subtitleDataSouce: SubtitleDataSouce? { get set }
 //    var comment: String? { get }
     var isEnabled: Bool { get set }
+    var isSrt: Bool { get }
 }
 
 public extension SubtitleInfo {
     var id: String { subtitleID }
+    var isSrt: Bool { true }
     func hash(into hasher: inout Hasher) {
         hasher.combine(subtitleID)
     }
@@ -146,6 +148,10 @@ public class URLSubtitleInfo: KSSubtitleProtocol, SubtitleInfo {
                 self.downloadURL = fileURL
             }
         }
+    }
+
+    public var isSrt: Bool {
+        downloadURL.pathExtension == "srt" || name.hasSuffix("srt")
     }
 
     public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {

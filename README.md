@@ -16,9 +16,9 @@ Feature       | Free      |
 |Smoothly Play 8K or 120 FPS Video|✅|
 |Dovi P5 displays HDR (not overheating)|❌|
 |Picture in Picture supports subtitle display|✅|
-|Blu-ray disc playback on all Apple platforms|❌|
 |Annex-B async hardware decoding(Live Stream)|✅|
 |Use the fonts in the video to render subtitles|✅|
+|IOS Blu-ray disc playback on all Apple platforms|❌|
 |Use memory cache for fast seek in short time range|✅|
 |Cache data to Hard Drive,Preload data to Hard Drive|❌|
 |Play videos in a small window in the app (iOS, tvOS)|❌|

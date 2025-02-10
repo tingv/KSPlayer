@@ -25,7 +25,8 @@ class SubtitleDecode: DecodeProtocol {
     required init(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         startTime = assetTrack.startTime.seconds
         isHDR = KSOptions.enableHDRSubtitle ? options.dynamicRange.isHDR : false
-        isASS = assetTrack.codecpar.codec_id == AV_CODEC_ID_SSA || assetTrack.codecpar.codec_id == AV_CODEC_ID_ASS || assetTrack.codecpar.codec_id == AV_CODEC_ID_EIA_608
+        isASS = [AV_CODEC_ID_SSA, AV_CODEC_ID_ASS, AV_CODEC_ID_EIA_608]
+            .contains(assetTrack.codecpar.codec_id)
         do {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext {

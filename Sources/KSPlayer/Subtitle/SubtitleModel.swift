@@ -91,7 +91,6 @@ open class SubtitleModel: ObservableObject {
     public private(set) var parts = [SubtitlePart]()
     public var subtitleDelay = 0.0 // s
     public var isHDR = false
-    public var playSize = CGSize.zero
     public var playRatio = Double(1)
     @Published
     public var screenSize = CGSize.zero
@@ -127,6 +126,16 @@ open class SubtitleModel: ObservableObject {
         }
     }
 
+    public var textVerticalPadding: Double {
+        // 如何屏幕上下有黑边的话。那就让文字字幕出现在上下黑边里面
+        if playRatio.isHorizonal != screenSize.isHorizonal || playRatio < screenSize.ratio {
+            let playSize = screenSize.within(ratio: playRatio)
+            return floor((screenSize.height - playSize.height) / 2)
+        } else {
+            return 0
+        }
+    }
+
     public init(url: URL) {
         self.url = url
         for dataSource in KSOptions.subtitleDataSources {
@@ -141,12 +150,6 @@ open class SubtitleModel: ObservableObject {
     }
 
     public func subtitle(currentTime: TimeInterval, playRatio: Double, screenSize: CGSize) {
-        var playSize = screenSize
-        // 如何屏幕上下有黑边的话。那就让字幕出现在上下黑边里面
-        if playRatio.isHorizonal != screenSize.isHorizonal || playRatio < screenSize.ratio {
-            playSize = screenSize.within(ratio: playRatio)
-        }
-        self.playSize = playSize
         self.playRatio = playRatio
         if self.screenSize != screenSize {
             self.screenSize = screenSize
@@ -155,6 +158,11 @@ open class SubtitleModel: ObservableObject {
         Task { @MainActor in
             var newParts = [SubtitlePart]()
             if let subtile = selectedSubtitleInfo {
+                var playSize = screenSize
+                // 如何屏幕上下有黑边的话。那就让srt字幕出现在上下黑边里面。ass是有绝对位置的，所以一定要按照视频的比率来计算
+                if !subtile.isSrt || playRatio.isHorizonal != screenSize.isHorizonal || playRatio < screenSize.ratio {
+                    playSize = screenSize.within(ratio: playRatio)
+                }
                 let currentTime = currentTime - subtile.delay - subtitleDelay
                 newParts = await subtile.search(for: currentTime, size: playSize, isHDR: isHDR)
                 if newParts.isEmpty {

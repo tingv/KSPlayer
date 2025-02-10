@@ -227,7 +227,8 @@ public protocol Drawable {
 extension CAMetalLayer: Drawable {
     public func draw(frame: VideoVTBFrame, display: DisplayEnum) {
         #if !os(tvOS)
-        // 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
+        /// 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
+        /// 加了这个代码就会导致iOS截图里面的内容左右颠倒。
         if #available(iOS 16, *) {
             edrMetadata = frame.edrMetadata
         }
