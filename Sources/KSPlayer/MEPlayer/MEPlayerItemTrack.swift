@@ -148,7 +148,8 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         lastPacketBytes += Int64(packet.size)
         if isNeedKeyFrame {
-            if packet.assetTrack.mediaType == .video, !packet.isKeyFrame {
+            // 有的av1视频，所有的帧的flags一直为0，不是关键帧。所以需要排除掉av1
+            if packet.assetTrack.mediaType == .video, packet.assetTrack.codecpar.codec_id != AV_CODEC_ID_AV1, !packet.isKeyFrame {
                 return
             }
             isNeedKeyFrame = false
