@@ -207,7 +207,7 @@ public extension KSVideoPlayerView {
     }
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
+@available(iOS 16, macOS 13, tvOS 16, *)
 struct VideoControllerView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
@@ -435,7 +435,7 @@ struct VideoTimeShowView: View {
     }
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
+@available(iOS 16, macOS 13, tvOS 16, *)
 struct VideoSettingView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
@@ -521,7 +521,7 @@ struct VideoSettingView: View {
     }
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
+@available(iOS 16, macOS 13, tvOS 16, *)
 public struct DynamicInfoView: View {
     @ObservedObject
     fileprivate var dynamicInfo: DynamicInfo

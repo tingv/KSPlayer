@@ -69,33 +69,37 @@ public struct MenuView<Label, SelectionValue, Content>: View where Label: View, 
 }
 
 public extension View {
+    @available(iOS 15, macOS 13, tvOS 15, *)
     func menuLabelStyle() -> some View {
-        Group {
-            if #available(tvOS 16, iOS 15, macOS 13, *) {
-                self
-                    .modifier(MenuLabelStyleModifier())
-            } else {
-                self
-            }
-        }
+        modifier(MenuLabelStyleModifier())
     }
 
+    @available(iOS 14, macOS 11, tvOS 14, *)
     func whenFocused(_ focused: Binding<Bool>) -> some View {
-        Group {
-            if #available(tvOS 16, iOS 15, macOS 13, *) {
-                modifier(WhenFocusedModifier(isFocuse: focused))
-            } else {
-                self
-            }
+        modifier(WhenFocusedModifier(isFocuse: focused))
+    }
+
+    @available(iOS 13, macOS 11, tvOS 15, *)
+    @ViewBuilder
+    func borderlessButton() -> some View {
+        #if os(tvOS)
+        if #available(tvOS 17, *) {
+            self.buttonStyle(.borderless)
+        } else {
+            self
         }
+        #else
+        buttonStyle(.borderless)
+        #endif
     }
 }
 
-@available(tvOS 16, iOS 15, macOS 13, *)
+@available(iOS 14, macOS 11, tvOS 14, *)
 private struct WhenFocusedModifier: ViewModifier {
-    @Environment(\.isFocused) var isFocused
-
-    @Binding var isFocuse: Bool
+    @Environment(\.isFocused)
+    private var isFocused
+    @Binding
+    var isFocuse: Bool
 
     func body(content: Content) -> some View {
         content
@@ -107,21 +111,22 @@ private struct WhenFocusedModifier: ViewModifier {
     }
 }
 
-@available(tvOS 16, iOS 15, macOS 13, *)
+@available(iOS 15, macOS 12, tvOS 15, *)
 private struct MenuLabelStyleModifier: ViewModifier {
-    @State var isFocus: Bool = false
+    @State
+    private var isFocus: Bool = false
 
     func body(content: Content) -> some View {
         content
             .symbolVariant(isFocus ? .fill : .none)
             .foregroundStyle(isFocus ? .black : .secondary)
-            .scaleEffect(isFocus ? 1.25 : 1, anchor: .center)
+            .scaleEffect(isFocus ? 1.25 : 1)
         #if os(tvOS)
             .background {
                 Circle()
                     .fill(.white)
                     .opacity(isFocus ? 1 : 0)
-                    .scaleEffect(isFocus ? 2.2 : 1, anchor: .center)
+                    .scaleEffect(isFocus ? 2.2 : 1)
             }
             .animation(.spring(duration: 0.18), value: isFocus)
             .focusable()
@@ -133,7 +138,7 @@ private struct MenuLabelStyleModifier: ViewModifier {
     }
 }
 
-@available(iOS 16, tvOS 16, macOS 13, *)
+@available(iOS 16, macOS 13, tvOS 16, *)
 public struct PlatformView<Content: View>: View {
     private let content: () -> Content
     public var body: some View {

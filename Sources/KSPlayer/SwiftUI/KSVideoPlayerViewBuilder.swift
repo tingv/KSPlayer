@@ -18,7 +18,7 @@ public enum KSVideoPlayerViewBuilder {
             Image(systemName: config.isScaleAspectFill ? "rectangle.arrowtriangle.2.inward" : "rectangle.arrowtriangle.2.outward")
                 .menuLabelStyle()
         }
-        .borderlessButtonIfCan()
+        .borderlessButton()
     }
 
     @ViewBuilder
@@ -74,7 +74,7 @@ public enum KSVideoPlayerViewBuilder {
             Image(systemName: config.isMuted ? speakerDisabledSystemName : speakerSystemName)
                 .menuLabelStyle()
         }
-        .borderlessButtonIfCan()
+        .borderlessButton()
     }
 
     @ViewBuilder
@@ -85,7 +85,7 @@ public enum KSVideoPlayerViewBuilder {
             Image(systemName: "info.circle")
                 .menuLabelStyle()
         }
-        .borderlessButtonIfCan()
+        .borderlessButton()
         // iOS 模拟器加keyboardShortcut会导致KSVideoPlayer.Coordinator无法释放。真机不会有这个问题
         #if !os(tvOS)
             .keyboardShortcut("i", modifiers: [.command])
@@ -100,7 +100,7 @@ public enum KSVideoPlayerViewBuilder {
             Image(systemName: config.isRecord ? "video.fill" : "video")
                 .menuLabelStyle()
         }
-        .borderlessButtonIfCan()
+        .borderlessButton()
     }
 
     @ViewBuilder
@@ -147,7 +147,7 @@ public enum KSVideoPlayerViewBuilder {
             Image(systemName: "pip")
                 .menuLabelStyle()
         }
-        .borderlessButtonIfCan()
+        .borderlessButton()
     }
 
     @ViewBuilder
@@ -196,7 +196,7 @@ public enum KSVideoPlayerViewBuilder {
                 .menuLabelStyle()
             #endif
         }
-        .borderlessButtonIfCan()
+        .borderlessButton()
         #if os(xrOS)
             .contentTransition(.symbolEffect(.replace))
         #endif
@@ -227,20 +227,6 @@ private extension View {
             .foregroundStyle(.white)
             .padding(12)
             .contentShape(.rect)
-    }
-
-    func borderlessButtonIfCan() -> some View {
-        Group {
-            #if os(tvOS)
-            if #available(tvOS 17, *) {
-                self.buttonStyle(.borderless)
-            } else {
-                self
-            }
-            #else
-            self
-            #endif
-        }
     }
 }
 
