@@ -58,26 +58,26 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
         }
     }
 
-    public func add(subtitle: String, start: Int64, duration: Int64) async {
-        if await renderer.uuid == uuid {
-            await renderer.add(subtitle: subtitle, start: start, duration: duration)
+    public func add(subtitle: String, start: Int64, duration: Int64) {
+        if renderer.uuid == uuid {
+            renderer.add(subtitle: subtitle, start: start, duration: duration)
         }
         subtitles.append((subtitle, start, duration))
     }
 
-    public func flush() async {
-        if await renderer.uuid == uuid {
-            await renderer.flush()
+    public func flush() {
+        if renderer.uuid == uuid {
+            renderer.flush()
         }
         subtitles.removeAll()
     }
 
-    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
-        if await renderer.uuid != uuid {
-            await renderer.set(header: header, uuid: uuid)
-            await renderer.add(subtitles: subtitles)
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) -> [SubtitlePart] {
+        if renderer.uuid != uuid {
+            renderer.set(header: header, uuid: uuid)
+            renderer.add(subtitles: subtitles)
         }
-        return await renderer.search(for: time, size: size, isHDR: isHDR)
+        return renderer.search(for: time, size: size, isHDR: isHDR)
     }
 
     deinit {
@@ -87,7 +87,7 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
     }
 }
 
-final actor AssImageRenderer {
+final class AssImageRenderer {
     private static var rendererMap = [String: AssImageRenderer]()
     static func getRender(fontsDir: String) -> AssImageRenderer {
         rendererMap.value(for: fontsDir, default: AssImageRenderer(fontsDir: fontsDir))
@@ -208,7 +208,7 @@ extension AssImageRenderer: KSSubtitleProtocol {
         return (boundingRect, image)
     }
 
-    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {
+    public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) -> [SubtitlePart] {
         setFrame(size: size)
         var changed = Int32(0)
         guard let processedImage = image(for: time, changed: &changed, isHDR: isHDR) else {
