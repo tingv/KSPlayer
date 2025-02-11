@@ -934,7 +934,6 @@ extension MEPlayerItem: MediaPlayback {
     public func stop() {
         guard state != .closed else { return }
         state = .closed
-        av_packet_free(&outputPacket)
         stopRecord()
         // 故意循环引用。等结束了。才释放
         let closeOperation = BlockOperation {
@@ -988,9 +987,10 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func stopRecord() {
-        if let outputFormatCtx {
+        if let outputFormatCtx, outputPacket != nil {
             av_write_trailer(outputFormatCtx)
             avformat_close_input(&self.outputFormatCtx)
+            av_packet_free(&outputPacket)
         }
     }
 
