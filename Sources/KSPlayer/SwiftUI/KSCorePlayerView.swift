@@ -10,15 +10,16 @@ import SwiftUI
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public struct KSCorePlayerView: View {
-    @StateObject
+    @ObservedObject
     private var config: KSVideoPlayer.Coordinator
     public let url: URL
     public let options: KSOptions
     @State
     private var title: String
     private let subtitleDataSource: SubtitleDataSource?
-    public init(config: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
-        _config = .init(wrappedValue: config)
+
+    public init(config: ObservedObject<KSVideoPlayer.Coordinator>, url: URL, options: KSOptions, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
+        _config = config
         self.url = url
         self.options = options
         _title = title
@@ -26,7 +27,7 @@ public struct KSCorePlayerView: View {
     }
 
     public var body: some View {
-        KSVideoPlayer(coordinator: config, url: url, options: options)
+        KSVideoPlayer(coordinator: _config, url: url, options: options)
             .onStateChanged { playerLayer, state in
                 if state == .readyToPlay {
                     if let subtitleDataSource {

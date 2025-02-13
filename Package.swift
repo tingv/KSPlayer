@@ -2,13 +2,6 @@
 import Foundation
 import PackageDescription
 
-#if swift(>=6.0)
-let swiftConcurrency = SwiftSetting.enableUpcomingFeature("StrictConcurrency")
-let swiftLanguageVersions: [PackageDescription.SwiftVersion] = [.v6]
-#else
-let swiftConcurrency = SwiftSetting.enableExperimentalFeature("StrictConcurrency")
-let swiftLanguageVersions: [PackageDescription.SwiftVersion] = [.v5]
-#endif
 let package = Package(
     name: "KSPlayer",
     defaultLocalization: "en",
@@ -38,7 +31,6 @@ let package = Package(
 //                .product(name: "libzvbi", package: "FFmpegKit", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
             ],
             swiftSettings: [
-                swiftConcurrency,
             ]
         ),
         .target(
@@ -49,7 +41,8 @@ let package = Package(
             ],
             resources: [.process("Metal/Resources")],
             swiftSettings: [
-                swiftConcurrency,
+                .unsafeFlags(["-Xfrontend", "-disable-dynamic-actor-isolation"]),
+                .enableExperimentalFeature("StrictConcurrency=minimal"),
             ]
         ),
         .target(
@@ -61,7 +54,10 @@ let package = Package(
             resources: [.process("Resources")]
         ),
     ],
-    swiftLanguageVersions: swiftLanguageVersions
+    swiftLanguageVersions: [
+        .v5,
+//        .version("6"),
+    ]
 )
 
 var ffmpegKitPath = FileManager.default.currentDirectoryPath + "/FFmpegKit"

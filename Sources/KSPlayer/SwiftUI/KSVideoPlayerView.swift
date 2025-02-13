@@ -17,7 +17,7 @@ public struct KSVideoPlayerView: View {
     @State
     private var title: String
     @StateObject
-    private var config: KSVideoPlayer.Coordinator
+    private var config = KSVideoPlayer.Coordinator()
     @State
     public var url: URL? {
         didSet {
@@ -35,13 +35,13 @@ public struct KSVideoPlayerView: View {
     private var focusableView: FocusableView?
     @State
     private var isDropdownShow = false
-
-    public init(coordinator: KSVideoPlayer.Coordinator, url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?) {
+    private let liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)?
+    public init(url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
         _url = url
-        _config = .init(wrappedValue: coordinator)
         _title = title
         _options = options
         self.subtitleDataSource = subtitleDataSource
+        self.liftCycleBlock = liftCycleBlock
         #if os(macOS)
         if let url = url.wrappedValue {
             NSDocumentController.shared.noteNewRecentDocumentURL(url)
@@ -51,8 +51,9 @@ public struct KSVideoPlayerView: View {
 
     public var body: some View {
         if let url {
-            KSCorePlayerView(config: config, url: url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
+            KSCorePlayerView(config: .init(initialValue: config), url: url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
                 .onAppear {
+                    liftCycleBlock?(config, false)
                     // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
                     //                    #if os(macOS)
                     //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
@@ -60,6 +61,9 @@ public struct KSVideoPlayerView: View {
                     //                        return $0
                     //                    }
                     //                    #endif
+                }
+                .onDisappear {
+                    liftCycleBlock?(config, true)
                 }
                 .overlay {
                     #if canImport(UIKit)
@@ -191,19 +195,18 @@ public struct KSVideoPlayerView: View {
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public extension KSVideoPlayerView {
-    init(url: URL, options: KSOptions, title: String? = nil) {
-        self.init(coordinator: KSVideoPlayer.Coordinator(), url: url, options: options, title: title, subtitleDataSource: nil)
+    init(url: URL, options: KSOptions, title: String? = nil, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
+        self.init(url: url, options: options, title: title, subtitleDataSource: nil, liftCycleBlock: liftCycleBlock)
     }
 
     // xcode 15.2还不支持对MainActor参数设置默认值
-    init(coordinator: KSVideoPlayer.Coordinator, url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil) {
-        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource)
+    init(url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
+        self.init(url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource, liftCycleBlock: liftCycleBlock)
     }
 
     init(playerLayer: KSPlayerLayer) {
-        let coordinator = KSVideoPlayer.Coordinator()
-        coordinator.playerLayer = playerLayer
-        self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
+        self.init(url: playerLayer.url, options: playerLayer.options)
+        config.playerLayer = playerLayer
     }
 }
 

@@ -22,8 +22,8 @@ public struct KSVideoPlayer {
     public var coordinator: Coordinator
     public let url: URL
     public let options: KSOptions
-    public init(coordinator: Coordinator, url: URL, options: KSOptions) {
-        _coordinator = .init(wrappedValue: coordinator)
+    public init(coordinator: ObservedObject<Coordinator>, url: URL, options: KSOptions) {
+        _coordinator = coordinator
         self.url = url
         self.options = options
     }
@@ -32,9 +32,8 @@ public struct KSVideoPlayer {
 public extension KSVideoPlayer {
     @MainActor
     init(playerLayer: KSPlayerLayer) {
-        let coordinator = KSVideoPlayer.Coordinator()
+        self.init(coordinator: .init(wrappedValue: KSVideoPlayer.Coordinator()), url: playerLayer.url, options: playerLayer.options)
         coordinator.playerLayer = playerLayer
-        self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
     }
 }
 
@@ -167,6 +166,7 @@ extension KSVideoPlayer: UIViewRepresentable {
         public var onBufferChanged: ((Int, TimeInterval) -> Void)?
 
         public init() {}
+        deinit {}
 
         public func makeView(url: URL, options: KSOptions) -> UIView {
             if let playerLayer {
@@ -363,7 +363,7 @@ struct KSVideoPlayer_Previews: PreviewProvider {
         KSOptions.firstPlayerType = KSMEPlayer.self
         let url = URL(string: "https://raw.githubusercontent.com/kingslay/TestVideo/main/h264.mp4")!
         let coordinator = KSVideoPlayer.Coordinator()
-        return KSVideoPlayer(coordinator: coordinator, url: url, options: KSOptions())
+        return KSVideoPlayer(coordinator: .init(initialValue: coordinator), url: url, options: KSOptions())
     }
 }
 #endif

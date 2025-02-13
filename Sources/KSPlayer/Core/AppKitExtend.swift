@@ -291,6 +291,10 @@ public extension UIApplication {
         }
     }
 
+    func open(_ url: URL) {
+        NSWorkspace.shared.open(url)
+    }
+
     var isIdleTimerDisabled: Bool {
         get {
             UIApplication.isIdleTimerDisabled
