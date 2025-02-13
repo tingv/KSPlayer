@@ -194,7 +194,7 @@ class DecompressionSession {
         var session: VTDecompressionSession?
         // swiftlint:disable line_length
         // 不能用kCFAllocatorNull，不然会报错，todo: ffmpeg的硬解seek ts文件的话，不会花屏，还要找下原因
-        let status = VTDecompressionSessionCreate(allocator: kCFAllocatorDefault, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
+        var status = VTDecompressionSessionCreate(allocator: kCFAllocatorDefault, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
         // swiftlint:enable line_length
         guard status == noErr, let decompressionSession = session else {
             return nil
@@ -204,6 +204,12 @@ class DecompressionSession {
         VTSessionCopySupportedPropertyDictionary(decompressionSession, supportedPropertyDictionaryOut: &propertyDict)
         if #available(iOS 14.0, tvOS 14.0, macOS 11.0, *) {
             VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata, value: kCFBooleanTrue)
+        }
+        if [FFmpegFieldOrder.bb, .bt, .tt, .tb].contains(assetTrack.fieldOrder), CFDictionaryContainsKey(propertyDict, Unmanaged.passUnretained(kVTDecompressionPropertyKey_FieldMode).toOpaque()) {
+            status = VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_FieldMode, value: kVTDecompressionProperty_FieldMode_DeinterlaceFields)
+            if CFDictionaryContainsKey(propertyDict, Unmanaged.passUnretained(kVTDecompressionPropertyKey_DeinterlaceMode).toOpaque()) {
+                status = VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_DeinterlaceMode, value: kVTDecompressionProperty_DeinterlaceMode_Temporal)
+            }
         }
         if let destinationDynamicRange = options.availableDynamicRange() {
             let pixelTransferProperties = [
@@ -215,6 +221,7 @@ class DecompressionSession {
                                  key: kVTDecompressionPropertyKey_PixelTransferProperties,
                                  value: pixelTransferProperties as CFDictionary)
         }
+        VTSessionCopySupportedPropertyDictionary(decompressionSession, supportedPropertyDictionaryOut: &propertyDict)
         self.decompressionSession = decompressionSession
     }
 }

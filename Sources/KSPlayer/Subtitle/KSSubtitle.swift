@@ -151,7 +151,7 @@ public class URLSubtitleInfo: KSSubtitleProtocol, SubtitleInfo {
     }
 
     public var isSrt: Bool {
-        downloadURL.pathExtension == "srt" || name.hasSuffix("srt")
+        name.hasSuffix("srt") || downloadURL.pathExtension == "srt"
     }
 
     public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart] {

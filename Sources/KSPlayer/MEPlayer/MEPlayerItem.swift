@@ -943,7 +943,7 @@ extension MEPlayerItem: MediaPlayback {
                 try? FileManager.default.removeItem(at: fontsDir)
             }
             self.allPlayerItemTracks.forEach { $0.shutdown() }
-            KSLog("清空formatCtx")
+            KSLog("clear formatCtx")
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)

@@ -372,6 +372,8 @@ open class KSOptions {
     }
 
     public nonisolated(unsafe) static var textFontName: String = {
+        /// systemFont返回的是AppleSystemUIFont。libass遇到韩语就会无法显示，所以需要指明系统字体名SF Pro。
+        return "SF Pro"
         let font = UIFont.systemFont(ofSize: textFontSize)
         // tvos ios需要取familyName，才是对的。而macos familyName和fontName是一样的
         return font.familyName ?? font.fontName

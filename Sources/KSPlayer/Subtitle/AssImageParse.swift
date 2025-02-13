@@ -132,9 +132,10 @@ final class AssImageRenderer {
         ass_set_fonts_dir(library, fontsDir)
         /// 用FONTCONFIG会比较耗时，并且文字可能会大小不一致，
         /// 用ASS_FONTPROVIDER_AUTODETECT会导致数字和中文的大小不一致。
+        /// 用ASS_FONTPROVIDER_NONE 就会导致韩语无法显示。
         /// 等字幕真正需要输出图片的时候，才设置这个，因为这个会去加载自定义字体，导致内存增加。
         /// 一定要先调用ass_set_fonts_dir 然后调用ass_set_fonts 字体才能生效
-        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_NONE.rawValue), nil, 0)
+        ass_set_fonts(renderer, KSOptions.defaultFont?.path, nil, Int32(ASS_FONTPROVIDER_CORETEXT.rawValue), nil, 0)
     }
 
     public func set(header: String, uuid: UUID) {
@@ -175,8 +176,8 @@ final class AssImageRenderer {
         if let currentTrack {
             ass_free_track(currentTrack)
         }
-        ass_library_done(library)
         ass_renderer_done(renderer)
+        ass_library_done(library)
     }
 }
 
