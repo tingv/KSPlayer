@@ -27,13 +27,11 @@ public struct KSVideoPlayer {
         self.url = url
         self.options = options
     }
-}
 
-public extension KSVideoPlayer {
-    @MainActor
-    init(playerLayer: KSPlayerLayer) {
-        self.init(coordinator: .init(wrappedValue: KSVideoPlayer.Coordinator()), url: playerLayer.url, options: playerLayer.options)
-        coordinator.playerLayer = playerLayer
+    public init(coordinator: ObservedObject<Coordinator>, playerLayer: KSPlayerLayer) {
+        _coordinator = coordinator
+        url = playerLayer.url
+        options = playerLayer.options
     }
 }
 
@@ -146,16 +144,22 @@ extension KSVideoPlayer: UIViewRepresentable {
 
         public var timemodel = ControllerTimeModel()
         // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
-        public var playerLayer: KSPlayerLayer? {
+        public private(set) var playerLayer: KSPlayerLayer? {
             didSet {
+                guard let oldValue else {
+                    return
+                }
+                // 进入pip一定要清空translationSession。不然会crash
                 #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
                 if #available(iOS 18.0, macOS 15.0, *) {
-                    oldValue?.subtitleModel.translationSessionConf?.invalidate()
-                    oldValue?.subtitleModel.translationSession = nil
+                    oldValue.subtitleModel.translationSessionConf?.invalidate()
+                    oldValue.subtitleModel.translationSession = nil
                 }
                 #endif
-                oldValue?.delegate = nil
-                oldValue?.stop()
+                oldValue.delegate = nil
+                if !oldValue.isPictureInPictureActive {
+                    oldValue.stop()
+                }
             }
         }
 
@@ -165,8 +169,12 @@ extension KSVideoPlayer: UIViewRepresentable {
         public var onStateChanged: ((KSPlayerLayer, KSPlayerState) -> Void)?
         public var onBufferChanged: ((Int, TimeInterval) -> Void)?
 
+        public init(playerLayer: KSPlayerLayer) {
+            self.playerLayer = playerLayer
+            state = playerLayer.state
+        }
+
         public init() {}
-        deinit {}
 
         public func makeView(url: URL, options: KSOptions) -> UIView {
             if let playerLayer {
@@ -186,22 +194,11 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         public func resetPlayer() {
-            // 进入pip一定要清空translationSession。不然会crash
-            #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
-            if #available(iOS 18.0, macOS 15.0, *) {
-                playerLayer?.subtitleModel.translationSessionConf?.invalidate()
-                playerLayer?.subtitleModel.translationSession = nil
-            }
-            #endif
-            // 要用不等于，这样才能排除pipController为空的情况
-            guard let playerLayer, !playerLayer.isPictureInPictureActive else {
-                return
-            }
             onStateChanged = nil
             onPlay = nil
             onFinish = nil
             onBufferChanged = nil
-            self.playerLayer = nil
+            playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
         }

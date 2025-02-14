@@ -17,7 +17,7 @@ public struct KSVideoPlayerView: View {
     @State
     private var title: String
     @StateObject
-    private var config = KSVideoPlayer.Coordinator()
+    private var config: KSVideoPlayer.Coordinator
     @State
     public var url: URL? {
         didSet {
@@ -36,10 +36,11 @@ public struct KSVideoPlayerView: View {
     @State
     private var isDropdownShow = false
     private let liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)?
-    public init(url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
+    public init(coordinator: KSVideoPlayer.Coordinator? = nil, url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?, config _: KSVideoPlayer.Coordinator? = nil, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
         _url = url
         _title = title
         _options = options
+        _config = .init(wrappedValue: coordinator ?? KSVideoPlayer.Coordinator())
         self.subtitleDataSource = subtitleDataSource
         self.liftCycleBlock = liftCycleBlock
         #if os(macOS)
@@ -200,13 +201,13 @@ public extension KSVideoPlayerView {
     }
 
     // xcode 15.2还不支持对MainActor参数设置默认值
-    init(url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
-        self.init(url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource, liftCycleBlock: liftCycleBlock)
+    init(coordinator: KSVideoPlayer.Coordinator? = nil, url: URL, options: KSOptions, title: String? = nil, subtitleDataSource: SubtitleDataSource? = nil, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
+        self.init(coordinator: coordinator, url: .init(wrappedValue: url), options: .init(wrappedValue: options), title: .init(wrappedValue: title ?? url.lastPathComponent), subtitleDataSource: subtitleDataSource, liftCycleBlock: liftCycleBlock)
     }
 
     init(playerLayer: KSPlayerLayer) {
-        self.init(url: playerLayer.url, options: playerLayer.options)
-        config.playerLayer = playerLayer
+        let coordinator = KSVideoPlayer.Coordinator(playerLayer: playerLayer)
+        self.init(coordinator: coordinator, url: playerLayer.url, options: playerLayer.options)
     }
 }
 

@@ -10,6 +10,8 @@ import SwiftUI
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
 public struct PipPlayerView: View {
+    @StateObject
+    public var coordinator = KSVideoPlayer.Coordinator()
     private let playerLayer: KSPlayerLayer
     @Binding
     private var alignment: Alignment
@@ -21,10 +23,11 @@ public struct PipPlayerView: View {
         _alignment = alignment
         _focusableView = focusableView
         self.block = block
+        _coordinator = .init(wrappedValue: KSVideoPlayer.Coordinator(playerLayer: playerLayer))
     }
 
     public var body: some View {
-        KSVideoPlayer(playerLayer: playerLayer)
+        KSVideoPlayer(coordinator: .init(wrappedValue: coordinator), playerLayer: playerLayer)
             .overlay {
                 HStack {
                     Button {

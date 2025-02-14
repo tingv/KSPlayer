@@ -143,7 +143,8 @@ class VideoToolboxDecode: DecodeProtocol {
     func doFlushCodec() {
         maxTimestamp = 0
         startTime = 0
-        frames.removeAll()
+        // 改成用赋值，减少多线程导致的crash
+        frames = []
         VTDecompressionSessionFinishDelayedFrames(session.decompressionSession)
         /// mkv seek之后，第一个帧是isKeyFrame，但是还是会花屏, 把这一行注释掉，就可以极大降低花屏的概率
         /// 但是会导致画面来回抖动，所以加了frames，来缓存数据，保证顺序
@@ -154,7 +155,7 @@ class VideoToolboxDecode: DecodeProtocol {
         // 需要先调用WaitForAsynchronousFrames，才不会有Packet泄漏
         VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
         VTDecompressionSessionInvalidate(session.decompressionSession)
-        frames.removeAll()
+        frames = []
     }
 
     func decode() {
