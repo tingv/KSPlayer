@@ -1110,3 +1110,43 @@ func connectedToNetwork() -> Bool {
     let needsConnection = flags.contains(.connectionRequired)
     return isReachable && !needsConnection
 }
+
+protocol DisplayLinkProtocol: AnyObject, Sendable {
+    var isPaused: Bool { get set }
+    var preferredFramesPerSecond: Int { get set }
+    @available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
+    var preferredFrameRateRange: CAFrameRateRange { get set }
+    var timestamp: CFTimeInterval { get }
+    var duration: CFTimeInterval { get }
+
+    func add(to runLoop: RunLoop, forMode mode: RunLoop.Mode)
+//    func remove(from runLoop: RunLoop, forMode mode: RunLoop.Mode)
+
+    func invalidate()
+}
+
+@available(macOS 14.0, *)
+extension CADisplayLink: DisplayLinkProtocol {
+    #if os(macOS)
+    var preferredFramesPerSecond: Int {
+        set {}
+        get {
+            60
+        }
+    }
+    #endif
+}
+
+extension UIView {
+    func compatibleDisplayLink(target: Any, selector: Selector) -> DisplayLinkProtocol {
+        #if os(macOS)
+        if #available(macOS 14.0, *) {
+            return displayLink(target: target, selector: selector)
+        } else {
+            return DisplayLink(target: target, selector: selector)
+        }
+        #else
+        return CADisplayLink(target: target, selector: selector)
+        #endif
+    }
+}

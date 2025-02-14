@@ -580,4 +580,87 @@ public extension NSFont {
         NSFontManager.shared.availableFontFamilies
     }
 }
+
+import CoreVideo
+import RealityFoundation
+
+class DisplayLink: DisplayLinkProtocol {
+    private let displayLink: CVDisplayLink
+    private var runloop: RunLoop?
+    private var mode = RunLoop.Mode.default
+    public var preferredFramesPerSecond = 60
+    @available(macOS 12.0, *)
+    public var preferredFrameRateRange: CAFrameRateRange {
+        get {
+            CAFrameRateRange()
+        }
+        set {}
+    }
+
+    public var timestamp: TimeInterval {
+        var timeStamp = CVTimeStamp()
+        if CVDisplayLinkGetCurrentTime(displayLink, &timeStamp) == kCVReturnSuccess, (timeStamp.flags & CVTimeStampFlags.hostTimeValid.rawValue) != 0 {
+            return TimeInterval(timeStamp.hostTime / NSEC_PER_SEC)
+        }
+        return 0
+    }
+
+    public var duration: TimeInterval {
+        CVDisplayLinkGetActualOutputVideoRefreshPeriod(displayLink)
+    }
+
+    public var targetTimestamp: TimeInterval {
+        duration + timestamp
+    }
+
+    public var isPaused: Bool {
+        get {
+            !CVDisplayLinkIsRunning(displayLink)
+        }
+        set {
+            if newValue {
+                CVDisplayLinkStop(displayLink)
+            } else {
+                CVDisplayLinkStart(displayLink)
+            }
+        }
+    }
+
+    public init(target: Any, selector: Selector) {
+        var displayLink: CVDisplayLink?
+        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
+        self.displayLink = displayLink!
+        CVDisplayLinkSetOutputHandler(self.displayLink) { [weak self] _, _, _, _, _ in
+            guard let self else { return kCVReturnSuccess }
+            self.runloop?.perform(selector, target: target, argument: self, order: 0, modes: [self.mode])
+            return kCVReturnSuccess
+        }
+        CVDisplayLinkStart(self.displayLink)
+    }
+
+    public init(block: @escaping (() -> Void)) {
+        var displayLink: CVDisplayLink?
+        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
+        self.displayLink = displayLink!
+        CVDisplayLinkSetOutputHandler(self.displayLink) { _, _, _, _, _ in
+            block()
+            return kCVReturnSuccess
+        }
+        CVDisplayLinkStart(self.displayLink)
+    }
+
+    open func add(to runloop: RunLoop, forMode mode: RunLoop.Mode) {
+        self.runloop = runloop
+        self.mode = mode
+    }
+
+    public func invalidate() {
+        isPaused = true
+        runloop = nil
+        CVDisplayLinkSetOutputHandler(displayLink) { _, _, _, _, _ in
+            kCVReturnError
+        }
+    }
+}
+
 #endif

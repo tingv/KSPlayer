@@ -45,7 +45,7 @@ public final class MetalPlayView: UIView, VideoOutput {
             if fps != oldValue {
                 if options.preferredFrame(fps: fps) {
                     let preferredFramesPerSecond = ceil(fps)
-                    if #available(iOS 15.0, tvOS 15.0, macOS 14.0, *) {
+                    if #available(iOS 15.0, macOS 12.0, tvOS 15.0, *) {
                         /// 一定要用preferredFrameRateRange，并且maximum不能两倍。
                         /// 不然在60fps的tvos播放25fps的视频无法很丝滑
                         displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: preferredFramesPerSecond, maximum: preferredFramesPerSecond, __preferred: preferredFramesPerSecond)
@@ -64,7 +64,7 @@ public final class MetalPlayView: UIView, VideoOutput {
     /// 用displayLink会导致锁屏无法draw，
     /// 用DispatchSourceTimer的话，在播放4k视频的时候repeat的时间会变长,
     /// 用MTKView的draw(in:)也是不行，会卡顿
-    private var displayLink: CADisplayLink!
+    private var displayLink: DisplayLinkProtocol!
 //    private let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
     public var options: KSOptions
     public weak var renderSource: OutputRenderSourceDelegate?
@@ -80,7 +80,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         addSub(view: metalView)
         metalView.isHidden = true
         //        displayLink = CADisplayLink(block: renderFrame)
-        displayLink = CADisplayLink(target: self, selector: #selector(renderFrame))
+        displayLink = compatibleDisplayLink(target: self, selector: #selector(renderFrame))
         // 一定要用common。不然在视频上面操作view的话，那就会卡顿了。
         displayLink.add(to: .main, forMode: .common)
         pause()
@@ -347,87 +347,3 @@ private class AVSampleBufferDisplayView: UIView {
         }
     }
 }
-
-#if os(macOS)
-import CoreVideo
-import RealityFoundation
-
-class CADisplayLink {
-    private let displayLink: CVDisplayLink
-    private var runloop: RunLoop?
-    private var mode = RunLoop.Mode.default
-    public var preferredFramesPerSecond = 60
-    @available(macOS 12.0, *)
-    public var preferredFrameRateRange: CAFrameRateRange {
-        get {
-            CAFrameRateRange()
-        }
-        set {}
-    }
-
-    public var timestamp: TimeInterval {
-        var timeStamp = CVTimeStamp()
-        if CVDisplayLinkGetCurrentTime(displayLink, &timeStamp) == kCVReturnSuccess, (timeStamp.flags & CVTimeStampFlags.hostTimeValid.rawValue) != 0 {
-            return TimeInterval(timeStamp.hostTime / NSEC_PER_SEC)
-        }
-        return 0
-    }
-
-    public var duration: TimeInterval {
-        CVDisplayLinkGetActualOutputVideoRefreshPeriod(displayLink)
-    }
-
-    public var targetTimestamp: TimeInterval {
-        duration + timestamp
-    }
-
-    public var isPaused: Bool {
-        get {
-            !CVDisplayLinkIsRunning(displayLink)
-        }
-        set {
-            if newValue {
-                CVDisplayLinkStop(displayLink)
-            } else {
-                CVDisplayLinkStart(displayLink)
-            }
-        }
-    }
-
-    public init(target: NSObject, selector: Selector) {
-        var displayLink: CVDisplayLink?
-        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
-        self.displayLink = displayLink!
-        CVDisplayLinkSetOutputHandler(self.displayLink) { [weak self] _, _, _, _, _ in
-            guard let self else { return kCVReturnSuccess }
-            self.runloop?.perform(selector, target: target, argument: self, order: 0, modes: [self.mode])
-            return kCVReturnSuccess
-        }
-        CVDisplayLinkStart(self.displayLink)
-    }
-
-    public init(block: @escaping (() -> Void)) {
-        var displayLink: CVDisplayLink?
-        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
-        self.displayLink = displayLink!
-        CVDisplayLinkSetOutputHandler(self.displayLink) { _, _, _, _, _ in
-            block()
-            return kCVReturnSuccess
-        }
-        CVDisplayLinkStart(self.displayLink)
-    }
-
-    open func add(to runloop: RunLoop, forMode mode: RunLoop.Mode) {
-        self.runloop = runloop
-        self.mode = mode
-    }
-
-    public func invalidate() {
-        isPaused = true
-        runloop = nil
-        CVDisplayLinkSetOutputHandler(displayLink) { _, _, _, _, _ in
-            kCVReturnError
-        }
-    }
-}
-#endif
