@@ -216,6 +216,7 @@ public extension KSOptions {
         KSOptions.supportedInterfaceOrientations ?? .all
      }
      */
+    @MainActor
     static var supportedInterfaceOrientations: UIInterfaceOrientationMask?
 }
 
