@@ -11,12 +11,7 @@ import Foundation
 import Translation
 #endif
 
-public protocol SubtitlePartProtocol: Equatable {
-    func render(size: CGSize) -> SubtitlePart
-    func isEqual(time: TimeInterval) -> Bool
-}
-
-public protocol KSSubtitleProtocol {
+public protocol KSSubtitleProtocol: Sendable {
     func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart]
 }
 
@@ -44,7 +39,7 @@ public extension URL {
 public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject {
     var subtitleID: String { get }
     var name: String { get }
-    var delay: TimeInterval { get set }
+    var delay: TimeInterval { get }
     //    var userInfo: NSMutableDictionary? { get set }
     //    var subtitleDataSouce: SubtitleDataSouce? { get set }
 //    var comment: String? { get }
@@ -106,7 +101,7 @@ public class EmptySubtitleInfo: SubtitleInfo {
     }
 }
 
-public class URLSubtitleInfo: KSSubtitleProtocol, SubtitleInfo {
+public class URLSubtitleInfo: SubtitleInfo {
     private var searchProtocol: KSSubtitleProtocol?
     public var isEnabled: Bool = false {
         didSet {

@@ -139,15 +139,13 @@ class SubtitleDecode: DecodeProtocol {
                 } else if let assParse {
                     let scanner = Scanner(string: subtitle)
                     if let group = assParse.parsePart(scanner: scanner) {
-                        group.start = start
-                        group.end = end
                         if !isASS, let string = group.text?.string {
                             if attributedString == nil {
                                 attributedString = NSMutableAttributedString()
                             }
                             attributedString?.append(NSAttributedString(string: string))
                         } else {
-                            parts.append(group)
+                            parts.append(SubtitlePart(start, end, render: group.render))
                         }
                     }
                 }

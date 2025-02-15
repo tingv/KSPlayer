@@ -190,7 +190,7 @@ open class SubtitleModel: ObservableObject {
                                 str.append(NSAttributedString(string: "\n"))
                             }
                             str.append(NSAttributedString(string: response.targetText))
-                            first.render = .right((str, right.1))
+                            newParts = [SubtitlePart(first.start, first.end, render: .right((str, right.1)))]
                         }
                     }
                 }

@@ -19,15 +19,15 @@ public struct SubtitleImageInfo {
     }
 }
 
-public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartProtocol {
-    public var start: TimeInterval
+public struct SubtitlePart: CustomStringConvertible {
+    public let start: TimeInterval
     public var end: TimeInterval
     public var render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>
     public var description: String {
         "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
     }
 
-    public convenience init(_ start: TimeInterval, _ end: TimeInterval, _ string: String) {
+    public init(_ start: TimeInterval, _ end: TimeInterval, _ string: String) {
         var text = string
         text = text.trimmingCharacters(in: .whitespaces)
         text = text.replacingOccurrences(of: "\r", with: "")
@@ -50,10 +50,6 @@ public class SubtitlePart: CustomStringConvertible, Identifiable, SubtitlePartPr
         self.start = start
         self.end = end
         self.render = render
-    }
-
-    public func render(size _: CGSize) -> SubtitlePart {
-        self
     }
 
     public func isEqual(time: TimeInterval) -> Bool {
