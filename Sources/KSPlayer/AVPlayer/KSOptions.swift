@@ -32,6 +32,10 @@ open class KSOptions {
     public internal(set) var decodeVideoTime = 0.0
     @MainActor
     public init() {
+        hardwareDecode = KSOptions.hardwareDecode
+        asynchronousDecompression = KSOptions.asynchronousDecompression
+        videoSoftDecodeThreadCount = KSOptions.videoSoftDecodeThreadCount
+        isLoopPlay = KSOptions.isLoopPlay
         display = KSOptions.displayEnumPlane
         isSecondOpen = KSOptions.isSecondOpen
         maxBufferDuration = KSOptions.maxBufferDuration
@@ -105,7 +109,8 @@ open class KSOptions {
     @MainActor
     public static var isSecondOpen = false
     /// Applies to short videos only
-    public nonisolated(unsafe) static var isLoopPlay = false
+    @MainActor
+    public static var isLoopPlay = false
     /// 是否自动播放，默认true
     @MainActor
     public static var isAutoPlay = true
@@ -116,7 +121,7 @@ open class KSOptions {
     public var isSecondOpen: Bool
 
     /// Applies to short videos only
-    public var isLoopPlay = KSOptions.isLoopPlay
+    public var isLoopPlay: Bool
     @MainActor
     open func adaptable(state: VideoAdaptationState?) -> (Int64, Int64)? {
         guard let state, let last = state.bitRateStates.last, CACurrentMediaTime() - last.time > maxBufferDuration / 2, let index = state.bitRates.firstIndex(of: last.bitRate) else {
@@ -155,7 +160,8 @@ open class KSOptions {
     // MARK: seek options
 
     /// 开启精确seek
-    public nonisolated(unsafe) static var isAccurateSeek = false
+    @MainActor
+    public static var isAccurateSeek = false
     /// 开启精确seek
     public var isAccurateSeek: Bool
     /// seek完是否自动播放
@@ -421,12 +427,14 @@ open class KSOptions {
     public static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
     public nonisolated(unsafe) static var yadifMode = 1
     public nonisolated(unsafe) static var deInterlaceAddIdet = false
-    public nonisolated(unsafe) static var hardwareDecode = true
+    @MainActor
+    public static var hardwareDecode = true
     /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
     /// m3u8的Interlaced流，需要关闭自研的硬解才能判断是Interlaced
     /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
     /// 异步硬解支持直播流Annexb格式了。并且当前只有异步硬解支持av1硬解
-    public nonisolated(unsafe) static var asynchronousDecompression = false
+    @MainActor
+    public static var asynchronousDecompression = false
     @MainActor
     public static var canStartPictureInPictureAutomaticallyFromInline = true
     @MainActor
@@ -451,7 +459,8 @@ open class KSOptions {
     @available(tvOS 14.0, *)
     @MainActor
     public static var pictureInPictureType: KSPictureInPictureProtocol.Type = KSPictureInPictureController.self
-    public nonisolated(unsafe) static var videoSoftDecodeThreadCount = 4
+    @MainActor
+    public static var videoSoftDecodeThreadCount = 4
     @MainActor
     public static var audioVideoClockSync = true
     public var dynamicRange: DynamicRange = .sdr
@@ -463,12 +472,12 @@ open class KSOptions {
     public var videoFilters = [String]()
     public var syncDecodeVideo = false
     public internal(set) var decodeType = DecodeType.asynchronousHardware
-    public var hardwareDecode = KSOptions.hardwareDecode
-    public var asynchronousDecompression = KSOptions.asynchronousDecompression
+    public var hardwareDecode: Bool
+    public var asynchronousDecompression: Bool
     public var videoDisable = false
     public var canStartPictureInPictureAutomaticallyFromInline: Bool
     public var automaticWindowResize = true
-    public var videoSoftDecodeThreadCount = KSOptions.videoSoftDecodeThreadCount
+    public var videoSoftDecodeThreadCount: Int
     @MainActor
     open func preferredFrame(fps: Float) -> Bool {
         KSOptions.preferredFrame || fps > 61

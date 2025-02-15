@@ -154,7 +154,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             }
             isNeedKeyFrame = false
         }
-        let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
+        let decoder = decoderMap[packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack)]
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
                 let sideData = corePacket.pointee.side_data[i]
@@ -339,18 +339,6 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         state = .closed
         outputRenderQueue.shutdown()
         packetQueue.shutdown()
-    }
-}
-
-public extension Dictionary {
-    mutating func value(for key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
-        if let value = self[key] {
-            return value
-        } else {
-            let value = defaultValue()
-            self[key] = value
-            return value
-        }
     }
 }
 

@@ -43,6 +43,15 @@ public final class AssImageParse: KSParseProtocol {
 }
 
 public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
+    private static var rendererMap = [String: AssImageRenderer]()
+    static func getRender(fontsDir: String) -> AssImageRenderer {
+        rendererMap[fontsDir, default: AssImageRenderer(fontsDir: fontsDir)]
+    }
+
+    static func removeRender(fontsDir: String) {
+        rendererMap.removeValue(forKey: fontsDir)
+    }
+
     private let uuid = UUID()
     private let header: String
     private var subtitles = [(subtitle: String, start: Int64, duration: Int64)]()
@@ -52,7 +61,7 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
         self.fontsDir = fontsDir
         self.header = header
         if let fontsDir {
-            renderer = AssImageRenderer.getRender(fontsDir: fontsDir)
+            renderer = Self.getRender(fontsDir: fontsDir)
         } else {
             renderer = AssImageRenderer(header: header, uuid: uuid)
         }
@@ -82,21 +91,12 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
 
     deinit {
         if let fontsDir {
-            AssImageRenderer.removeRender(fontsDir: fontsDir)
+            Self.removeRender(fontsDir: fontsDir)
         }
     }
 }
 
 final class AssImageRenderer {
-    private nonisolated(unsafe) static var rendererMap = [String: AssImageRenderer]()
-    static func getRender(fontsDir: String) -> AssImageRenderer {
-        rendererMap.value(for: fontsDir, default: AssImageRenderer(fontsDir: fontsDir))
-    }
-
-    static func removeRender(fontsDir: String) {
-        rendererMap.removeValue(forKey: fontsDir)
-    }
-
     private(set) var uuid = UUID()
     private let library: OpaquePointer?
     private let renderer: OpaquePointer?
