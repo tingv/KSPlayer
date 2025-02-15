@@ -29,10 +29,14 @@ enum MESourceState {
 
 // MARK: delegate
 
-public protocol OutputRenderSourceDelegate: AnyObject {
-    func getVideoOutputRender(force: Bool) -> VideoVTBFrame?
+public protocol AudioOutputRenderSourceDelegate: AnyObject {
     func getAudioOutputRender() -> AudioFrame?
     func setAudio(time: CMTime, position: Int64)
+}
+
+@MainActor
+public protocol VideoOutputRenderSourceDelegate: AnyObject {
+    func getVideoOutputRender(force: Bool) -> VideoVTBFrame?
     func setVideo(time: CMTime, position: Int64)
 }
 
@@ -41,6 +45,7 @@ protocol CodecCapacityDelegate: AnyObject {
 }
 
 protocol MEPlayerDelegate: AnyObject {
+    @MainActor
     func sourceDidChange(loadingState: LoadingState)
     func sourceDidOpened()
     func sourceDidFailed(error: NSError?)
@@ -64,12 +69,14 @@ extension ObjectQueueItem {
     var cmtime: CMTime { timebase.cmtime(for: timestamp) }
 }
 
-@MainActor
 public protocol FrameOutput: AnyObject {
-    nonisolated(unsafe) var renderSource: OutputRenderSourceDelegate? { get set }
+    @MainActor
     func play()
+    @MainActor
     func pause()
+    @MainActor
     func flush()
+    @MainActor
     func invalidate()
 }
 

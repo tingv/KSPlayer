@@ -584,7 +584,7 @@ public extension NSFont {
 import CoreVideo
 import RealityFoundation
 
-class DisplayLink: DisplayLinkProtocol {
+class DisplayLink: DisplayLinkProtocol, @unchecked Sendable {
     private let displayLink: CVDisplayLink
     private var runloop: RunLoop?
     private var mode = RunLoop.Mode.default

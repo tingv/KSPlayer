@@ -203,8 +203,10 @@ public class KSAVPlayer {
         urlAsset = AVURLAsset(url: url, options: options.avOptions)
         self.options = options
         itemObservation = player.observe(\.currentItem) { [weak self] player, _ in
-            guard let self else { return }
-            self.observer(playerItem: player.currentItem)
+            runOnMainThread {
+                guard let self else { return }
+                self.observer(playerItem: player.currentItem)
+            }
         }
     }
 }
@@ -302,13 +304,17 @@ extension KSAVPlayer {
             }
             playerLooper = AVPlayerLooper(player: player, templateItem: playerItem)
             loopCountObservation = playerLooper?.observe(\.loopCount) { [weak self] playerLooper, _ in
-                guard let self else { return }
-                self.delegate?.playBack(player: self, loopCount: playerLooper.loopCount)
+                runOnMainThread {
+                    guard let self else { return }
+                    self.delegate?.playBack(player: self, loopCount: playerLooper.loopCount)
+                }
             }
             loopStatusObservation = playerLooper?.observe(\.status) { [weak self] playerLooper, _ in
-                guard let self else { return }
-                if playerLooper.status == .failed {
-                    self.error = playerLooper.error
+                runOnMainThread {
+                    guard let self else { return }
+                    if playerLooper.status == .failed {
+                        self.error = playerLooper.error
+                    }
                 }
             }
         } else {
@@ -328,13 +334,17 @@ extension KSAVPlayer {
         NotificationCenter.default.addObserver(self, selector: #selector(moviePlayDidEnd), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemFailedToPlayToEndTime), name: .AVPlayerItemFailedToPlayToEndTime, object: playerItem)
         statusObservation = playerItem.observe(\.status) { [weak self] item, _ in
-            guard let self else { return }
-            self.updateStatus(item: item)
+            runOnMainThread {
+                guard let self else { return }
+                self.updateStatus(item: item)
+            }
         }
         loadedTimeRangesObservation = playerItem.observe(\.loadedTimeRanges) { [weak self] item, _ in
-            guard let self else { return }
-            // 计算缓冲进度
-            self.updatePlayableDuration(item: item)
+            runOnMainThread {
+                guard let self else { return }
+                // 计算缓冲进度
+                self.updatePlayableDuration(item: item)
+            }
         }
 
         let changeHandler: (AVPlayerItem, NSKeyValueObservedChange<Bool>) -> Void = { [weak self] _, _ in
@@ -509,7 +519,7 @@ extension AVAssetTrack {
     func toMediaPlayerTrack() {}
 }
 
-class AVMediaPlayerTrack: MediaPlayerTrack {
+class AVMediaPlayerTrack: @preconcurrency MediaPlayerTrack {
     let formatDescription: CMFormatDescription?
     let description: String
     private let track: AVPlayerItemTrack
@@ -535,6 +545,7 @@ class AVMediaPlayerTrack: MediaPlayerTrack {
         }
     }
 
+    @MainActor
     init(track: AVPlayerItemTrack) {
         self.track = track
         if let assetTrack = track.assetTrack {

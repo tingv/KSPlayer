@@ -15,8 +15,10 @@ import UIKit
 #else
 import AppKit
 #endif
+
 @MainActor
 public protocol VideoOutput: FrameOutput {
+    var renderSource: VideoOutputRenderSourceDelegate? { get set }
     var options: KSOptions { get set }
 //    AVSampleBufferDisplayLayer和CAMetalLayer无法使用截图方法 render(in ctx: CGContext)，所以要保存pixelBuffer来进行视频截图。
     var displayLayer: AVSampleBufferDisplayLayer { get }
@@ -26,6 +28,7 @@ public protocol VideoOutput: FrameOutput {
     func enterForeground()
 }
 
+@MainActor
 public final class MetalPlayView: UIView, VideoOutput {
     public var displayLayer: AVSampleBufferDisplayLayer {
         displayView.displayLayer
@@ -64,10 +67,11 @@ public final class MetalPlayView: UIView, VideoOutput {
     /// 用displayLink会导致锁屏无法draw，
     /// 用DispatchSourceTimer的话，在播放4k视频的时候repeat的时间会变长,
     /// 用MTKView的draw(in:)也是不行，会卡顿
+    @MainActor
     private var displayLink: DisplayLinkProtocol!
 //    private let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
     public var options: KSOptions
-    public weak var renderSource: OutputRenderSourceDelegate?
+    public weak var renderSource: VideoOutputRenderSourceDelegate?
     // AVSampleBufferAudioRenderer AVSampleBufferRenderSynchronizer AVSampleBufferDisplayLayer
     private let displayView = AVSampleBufferDisplayView()
     public var drawable: Drawable
@@ -90,6 +94,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         displayLink.isPaused = false
     }
 
+//    @MainActor
     public func pause() {
         displayLink.isPaused = true
     }

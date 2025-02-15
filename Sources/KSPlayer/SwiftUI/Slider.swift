@@ -67,14 +67,16 @@ public class TVSlide: UIControl {
     private var moveDirection: UISwipeGestureRecognizer.Direction?
     private var pressTime = CACurrentMediaTime()
 
-    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
-        guard let self, let moveDirection = self.moveDirection else {
-            return
-        }
-        let rate = min(10, Int((CACurrentMediaTime() - self.pressTime) / 2) + 1)
-        let wrappedValue = self.value.wrappedValue + Float((moveDirection == .right ? 10 : -10) * rate)
-        if wrappedValue >= self.ranges.lowerBound, wrappedValue <= self.ranges.upperBound {
-            self.value.wrappedValue = wrappedValue
+    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.15, repeats: true) { _ in
+        runOnMainThread { [weak self] in
+            guard let self, let moveDirection = self.moveDirection else {
+                return
+            }
+            let rate = min(10, Int((CACurrentMediaTime() - self.pressTime) / 2) + 1)
+            let wrappedValue = self.value.wrappedValue + Float((moveDirection == .right ? 10 : -10) * rate)
+            if wrappedValue >= self.ranges.lowerBound, wrappedValue <= self.ranges.upperBound {
+                self.value.wrappedValue = wrappedValue
+            }
         }
     }
 

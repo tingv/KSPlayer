@@ -8,7 +8,9 @@
 import Foundation
 import SwiftUI
 
-public struct SubtitleImageInfo {
+extension UIImage: @unchecked Sendable {}
+extension NSAttributedString: @unchecked Sendable {}
+public struct SubtitleImageInfo: Sendable {
     public let rect: CGRect
     public let image: UIImage
     public let displaySize: CGSize
@@ -19,7 +21,7 @@ public struct SubtitleImageInfo {
     }
 }
 
-public struct SubtitlePart: CustomStringConvertible {
+public struct SubtitlePart: CustomStringConvertible, Sendable {
     public let start: TimeInterval
     public var end: TimeInterval
     public var render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>
@@ -68,7 +70,7 @@ public struct SubtitlePart: CustomStringConvertible {
     }
 }
 
-public struct TextPosition: Equatable, Hashable {
+public struct TextPosition: Equatable, Hashable, Sendable {
     public var verticalAlign: VerticalAlignment = .bottom
     public var horizontalAlign: HorizontalAlignment = .center
     public var leftMargin: CGFloat = 2

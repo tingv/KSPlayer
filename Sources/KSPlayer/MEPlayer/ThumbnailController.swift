@@ -12,7 +12,7 @@ import Libavformat
 #if canImport(UIKit)
 import UIKit
 #endif
-public struct FFThumbnail {
+public struct FFThumbnail: Sendable {
     public let image: UIImage
     public let time: TimeInterval
 }
@@ -21,20 +21,14 @@ public protocol ThumbnailControllerDelegate: AnyObject {
     func didUpdate(thumbnails: [FFThumbnail], forFile file: URL, withProgress: Int)
 }
 
-public class ThumbnailController {
+public final class ThumbnailController {
     public weak var delegate: ThumbnailControllerDelegate?
     private let thumbnailCount: Int
     public init(thumbnailCount: Int = 100) {
         self.thumbnailCount = thumbnailCount
     }
 
-    public func generateThumbnail(for url: URL, thumbWidth: Int32 = 240) async throws -> [FFThumbnail] {
-        try await Task {
-            try getPeeks(for: url, thumbWidth: thumbWidth)
-        }.value
-    }
-
-    private func getPeeks(for url: URL, thumbWidth: Int32 = 240) throws -> [FFThumbnail] {
+    public func generateThumbnail(for url: URL, thumbWidth: Int32 = 240) throws -> [FFThumbnail] {
         let urlString: String
         if url.isFileURL {
             urlString = url.path

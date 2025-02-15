@@ -224,40 +224,40 @@ extension AVAsset {
         exportSession.outputFileType = .mp4
         return exportSession
     }
-
-    func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, outputURL: URL, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
-        try FileManager.default.removeItem(at: outputURL)
-        Task {
-            guard let exportSession = try await createExportSession(beginTime: beginTime, endTime: endTime) else { return }
-            exportSession.outputURL = outputURL
-            await exportSession.export()
-            switch exportSession.status {
-            case .exporting:
-                progress(Double(exportSession.progress))
-            case .completed:
-                progress(1)
-                completion(.success(outputURL))
-                exportSession.cancelExport()
-            case .failed:
-                if let error = exportSession.error {
-                    completion(.failure(error))
-                }
-                exportSession.cancelExport()
-            case .cancelled:
-                exportSession.cancelExport()
-            case .unknown, .waiting:
-                break
-            @unknown default:
-                break
-            }
-        }
-    }
-
-    func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
-        guard var exportURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-        exportURL = exportURL.appendingPathExtension("Export.mp4")
-        try exportMp4(beginTime: beginTime, endTime: endTime, outputURL: exportURL, progress: progress, completion: completion)
-    }
+    // todo
+//    func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, outputURL: URL, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
+//        try FileManager.default.removeItem(at: outputURL)
+//        Task {
+//            guard let exportSession = try await createExportSession(beginTime: beginTime, endTime: endTime) else { return }
+//            exportSession.outputURL = outputURL
+//            await exportSession.export()
+//            switch exportSession.status {
+//            case .exporting:
+//                progress(Double(exportSession.progress))
+//            case .completed:
+//                progress(1)
+//                completion(.success(outputURL))
+//                exportSession.cancelExport()
+//            case .failed:
+//                if let error = exportSession.error {
+//                    completion(.failure(error))
+//                }
+//                exportSession.cancelExport()
+//            case .cancelled:
+//                exportSession.cancelExport()
+//            case .unknown, .waiting:
+//                break
+//            @unknown default:
+//                break
+//            }
+//        }
+//    }
+//
+//    func exportMp4(beginTime: TimeInterval, endTime: TimeInterval, progress: @escaping (Double) -> Void, completion: @escaping (Result<URL, Error>) -> Void) throws {
+//        guard var exportURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+//        exportURL = exportURL.appendingPathExtension("Export.mp4")
+//        try exportMp4(beginTime: beginTime, endTime: endTime, outputURL: exportURL, progress: progress, completion: completion)
+//    }
     #endif
 }
 
@@ -916,7 +916,7 @@ extension Float: Identifiable {
     public var id: Self { self }
 }
 
-public enum Either<Left, Right> {
+public enum Either<Left: Sendable, Right: Sendable>: Sendable {
     case left(Left), right(Right)
 }
 
@@ -1126,7 +1126,7 @@ protocol DisplayLinkProtocol: AnyObject, Sendable {
 }
 
 @available(macOS 14.0, *)
-extension CADisplayLink: DisplayLinkProtocol {
+extension CADisplayLink: DisplayLinkProtocol, @unchecked Sendable {
     #if os(macOS)
     var preferredFramesPerSecond: Int {
         set {}

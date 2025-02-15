@@ -105,8 +105,10 @@ class SubtitleDecode: DecodeProtocol {
     }
 
     func doFlushCodec() {
-        Task(priority: .high) {
-            await assImageRenderer?.flush()
+        if let assImageRenderer {
+            Task(priority: .high) {
+                await assImageRenderer.flush()
+            }
         }
     }
 

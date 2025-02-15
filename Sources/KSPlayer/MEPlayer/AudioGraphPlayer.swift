@@ -9,7 +9,7 @@ import AudioToolbox
 import AVFAudio
 import CoreAudio
 
-public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
+public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unchecked Sendable {
     public private(set) var audioUnitForDynamicsProcessor: AudioUnit
     private let graph: AUGraph
     private var audioUnitForMixer: AudioUnit!
@@ -22,7 +22,7 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
     private var volumeBeforeMute: Float = 0.0
     #endif
     private var outputLatency = TimeInterval(0)
-    public weak var renderSource: OutputRenderSourceDelegate?
+    public weak var renderSource: AudioOutputRenderSourceDelegate?
     private var currentRender: AudioFrame? {
         didSet {
             if currentRender == nil {
@@ -265,7 +265,7 @@ extension AudioGraphPlayer {
                 continue
             }
             if sourceNodeAudioFormat != currentRender.audioFormat {
-                runOnMainThread { [weak self] in
+                runOnMainThread { [weak self, currentRender] in
                     guard let self else {
                         return
                     }

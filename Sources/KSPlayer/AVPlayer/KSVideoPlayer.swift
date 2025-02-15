@@ -17,6 +17,7 @@ public typealias UIHostingController = NSHostingController
 public typealias UIViewRepresentable = NSViewRepresentable
 #endif
 
+@MainActor
 public struct KSVideoPlayer {
     @ObservedObject
     public var coordinator: Coordinator
@@ -294,7 +295,8 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
     }
 }
 
-extension KSVideoPlayer: Equatable {
+extension KSVideoPlayer: @preconcurrency Equatable {
+    @MainActor
     public static func == (lhs: KSVideoPlayer, rhs: KSVideoPlayer) -> Bool {
         lhs.url == rhs.url
     }
@@ -326,6 +328,8 @@ public extension KSVideoPlayer {
 }
 
 #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
+import Translation
+
 public extension KSVideoPlayer {
     @MainActor
     func translationView() -> some View {
@@ -343,6 +347,9 @@ public extension KSVideoPlayer {
         }
     }
 }
+
+@available(iOS 18.0, macOS 15.0, *)
+extension TranslationSession: @unchecked Sendable {}
 #endif
 
 /// 这是一个频繁变化的model。View要少用这个

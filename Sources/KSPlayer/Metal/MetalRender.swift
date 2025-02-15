@@ -4,11 +4,11 @@
 //
 //  Created by kintan on 2020/1/11.
 //
-import Accelerate
-import CoreVideo
+@preconcurrency import Accelerate
+@preconcurrency import CoreVideo
 internal import FFmpegKit
 import Foundation
-import Metal
+@preconcurrency import Metal
 import QuartzCore
 import simd
 #if canImport(RealityFoundation)
@@ -17,9 +17,11 @@ import RealityFoundation
 #if canImport(MetalKit)
 import MetalKit
 #endif
+
 public class MetalRender {
     public static let device = MTLCreateSystemDefaultDevice()!
-    public static var mtlTextureCache: CVMetalTextureCache? = {
+    @MainActor
+    public static let mtlTextureCache: CVMetalTextureCache? = {
         var mtlTextureCache: CVMetalTextureCache?
         CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &mtlTextureCache)
         return mtlTextureCache

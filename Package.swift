@@ -41,8 +41,6 @@ let package = Package(
             ],
             resources: [.process("Metal/Resources")],
             swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-dynamic-actor-isolation"]),
-                .enableExperimentalFeature("StrictConcurrency=minimal"),
             ]
         ),
         .target(
@@ -56,7 +54,7 @@ let package = Package(
     ],
     swiftLanguageVersions: [
         .v5,
-//        .version("6"),
+        .version("6"),
     ]
 )
 

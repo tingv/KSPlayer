@@ -32,6 +32,7 @@ open class KSOptions {
     public internal(set) var decodeVideoTime = 0.0
     @MainActor
     public init() {
+        display = KSOptions.displayEnumPlane
         isSecondOpen = KSOptions.isSecondOpen
         maxBufferDuration = KSOptions.maxBufferDuration
         preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
@@ -338,7 +339,7 @@ open class KSOptions {
 
     var fontsDir: URL?
     public nonisolated(unsafe) static var defaultFont: URL?
-    public static var enableHDRSubtitle = true
+    public nonisolated(unsafe) static var enableHDRSubtitle = true
     public nonisolated(unsafe) static var isASSUseImageRender = false
     public nonisolated(unsafe) static var isSRTUseImageRender = false
     // 如果图片字幕的比率跟视频的比率不一致，是否要对图片进行伸缩
@@ -440,8 +441,9 @@ open class KSOptions {
     #endif
     @MainActor
     public static var doviMatrix = simd_float3x3(1)
+    @MainActor
     public static let displayEnumPlane = PlaneDisplayModel()
-    public static let displayEnumDovi = DoviDisplayModel()
+    public nonisolated(unsafe) static let displayEnumDovi = DoviDisplayModel()
     @MainActor
     public static let displayEnumVR = VRDisplayModel()
     @MainActor
@@ -453,7 +455,7 @@ open class KSOptions {
     @MainActor
     public static var audioVideoClockSync = true
     public var dynamicRange: DynamicRange = .sdr
-    public var display: DisplayEnum = displayEnumPlane
+    public var display: DisplayEnum
     public var videoDelay = 0.0 // s
     public var autoRotate = true
     public var destinationDynamicRange: DynamicRange?
@@ -476,7 +478,7 @@ open class KSOptions {
     open func decodeSize(width: Int32, height: Int32) -> CGSize {
         #if os(iOS)
         // ios 要iPhone 15 pro max 播放8k的才不会卡顿，其他都会硬件解码耗时太久。所以把分辨率减半，降低解码耗时
-        if UIDevice.current.userInterfaceIdiom == .phone, width >= 7680 {
+        if UITraitCollection.current.userInterfaceIdiom == .phone, width >= 7680 {
             return CGSize(width: Int(width) / 2, height: Int(height) / 2)
         } else {
             return CGSize(width: Int(width), height: Int(height))

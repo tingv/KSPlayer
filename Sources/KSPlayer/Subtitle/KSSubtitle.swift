@@ -91,7 +91,7 @@ public protocol AudioRecognize: SubtitleInfo {
     func append(frame: AudioFrame)
 }
 
-public class EmptySubtitleInfo: SubtitleInfo {
+public final class EmptySubtitleInfo: SubtitleInfo, @unchecked Sendable {
     public var isEnabled: Bool = true
     public let subtitleID: String = ""
     public var delay: TimeInterval = 0
@@ -101,7 +101,7 @@ public class EmptySubtitleInfo: SubtitleInfo {
     }
 }
 
-public class URLSubtitleInfo: SubtitleInfo {
+public final class URLSubtitleInfo: SubtitleInfo, @unchecked Sendable {
     private var searchProtocol: KSSubtitleProtocol?
     public var isEnabled: Bool = false {
         didSet {

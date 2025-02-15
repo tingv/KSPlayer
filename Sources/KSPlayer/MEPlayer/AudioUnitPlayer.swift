@@ -9,12 +9,12 @@ import AudioToolbox
 import AVFAudio
 import CoreAudio
 
-public final class AudioUnitPlayer: AudioOutput {
+public final class AudioUnitPlayer: AudioOutput, @unchecked Sendable {
     private var audioUnitForOutput: AudioUnit!
     private var currentRenderReadOffset = UInt32(0)
     private var sourceNodeAudioFormat: AVAudioFormat?
     private var sampleSize = UInt32(MemoryLayout<Float>.size)
-    public weak var renderSource: OutputRenderSourceDelegate?
+    public weak var renderSource: AudioOutputRenderSourceDelegate?
     private var currentRender: AudioFrame? {
         didSet {
             if currentRender == nil {

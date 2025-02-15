@@ -49,7 +49,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
     }
 }
 
-extension KSMEPlayer: ConstantSubtitleDataSource {
+extension KSMEPlayer: @preconcurrency ConstantSubtitleDataSource {
     @MainActor
     public var infos: [FFmpegAssetTrack] {
         tracks(mediaType: .subtitle).compactMap { $0 as? FFmpegAssetTrack }

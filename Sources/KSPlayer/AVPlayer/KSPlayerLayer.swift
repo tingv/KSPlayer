@@ -148,10 +148,12 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     }
 
     private lazy var timer: Timer = .scheduledTimer(withTimeInterval: options.subtitleTimeInterval, repeats: true) { [weak self] _ in
-        guard let self, self.player.isReadyToPlay else {
-            return
+        runOnMainThread {
+            guard let self, self.player.isReadyToPlay else {
+                return
+            }
+            self.play(currentTime: self.player.currentPlaybackTime)
         }
-        self.play(currentTime: self.player.currentPlaybackTime)
     }
 
     var isAutoPlay: Bool
@@ -648,7 +650,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
 // MARK: - AVPictureInPictureControllerDelegate
 
 @available(tvOS 14.0, *)
-extension KSComplexPlayerLayer: AVPictureInPictureControllerDelegate {
+extension KSComplexPlayerLayer: @preconcurrency AVPictureInPictureControllerDelegate {
     @MainActor
     public func pictureInPictureControllerDidStartPictureInPicture(_: AVPictureInPictureController) {
         pipAddSubtitle()

@@ -13,7 +13,7 @@ import Libavfilter
 import Libavformat
 import Libavutil
 
-public final class MEPlayerItem: Sendable {
+public final class MEPlayerItem: @unchecked Sendable {
     private let url: URL
     let options: KSOptions
     private let operationQueue = OperationQueue()
@@ -46,8 +46,8 @@ public final class MEPlayerItem: Sendable {
     private var pbArray = [PBClass]()
     private var interrupt = false
     private var formatName = ""
-    private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)? = nil
-    private var defaultIOClose: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<AVIOContext>?) -> Int32)? = nil
+    private var defaultIOOpen: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<UnsafeMutablePointer<AVIOContext>?>?, UnsafePointer<CChar>?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Int32)?
+    private var defaultIOClose: ((UnsafeMutablePointer<AVFormatContext>?, UnsafeMutablePointer<AVIOContext>?) -> Int32)?
 
     public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float {
@@ -113,8 +113,11 @@ public final class MEPlayerItem: Sendable {
         }
     }
 
-    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-        self?.codecDidChangeCapacity()
+    private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+        runOnMainThread {
+            [weak self] in
+            self?.codecDidChangeCapacity()
+        }
     }
 
     lazy var dynamicInfo = DynamicInfo { [weak self] in
@@ -133,7 +136,7 @@ public final class MEPlayerItem: Sendable {
         Int(8 * (self?.videoTrack?.bitrate ?? 0))
     }
 
-    private static var onceInitial: Void = {
+    private static let onceInitial: Void = {
         setLogCallback()
     }()
 
@@ -1117,7 +1120,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
     }
 }
 
-extension MEPlayerItem: OutputRenderSourceDelegate {
+extension MEPlayerItem: AudioOutputRenderSourceDelegate, VideoOutputRenderSourceDelegate {
     func mainClock() -> KSClock {
         isAudioStalled ? videoClock : audioClock
     }

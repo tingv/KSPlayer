@@ -9,14 +9,19 @@ import AVFoundation
 import CoreAudio
 
 public protocol AudioOutput: FrameOutput {
+    var renderSource: AudioOutputRenderSourceDelegate? { get set }
+    @MainActor
     var playbackRate: Float { get set }
+//    @MainActor
     var volume: Float { get set }
+//    @MainActor
     var isMuted: Bool { get set }
+    @MainActor
     init()
+    @MainActor
     func prepare(audioFormat: AVAudioFormat)
 }
 
-@MainActor
 public protocol AudioDynamicsProcessor {
     var audioUnitForDynamicsProcessor: AudioUnit { get }
 }
@@ -106,7 +111,7 @@ public final class AudioEngineDynamicsPlayer: AudioEnginePlayer, AudioDynamicsPr
     }
 }
 
-public class AudioEnginePlayer: AudioOutput {
+public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
     public let engine = AVAudioEngine()
     private var sourceNode: AVAudioSourceNode?
     private var sourceNodeAudioFormat: AVAudioFormat?
@@ -114,7 +119,7 @@ public class AudioEnginePlayer: AudioOutput {
     private var sampleSize = UInt32(MemoryLayout<Float>.size)
     private var currentRenderReadOffset = UInt32(0)
     private var outputLatency = TimeInterval(0)
-    public weak var renderSource: OutputRenderSourceDelegate?
+    public weak var renderSource: AudioOutputRenderSourceDelegate?
     private var currentRender: AudioFrame? {
         didSet {
             if currentRender == nil {

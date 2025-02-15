@@ -24,7 +24,7 @@ open class SubtitleModel: ObservableObject {
                 #elseif os(macOS) || os(xrOS)
                 return 20
                 #else
-                if UIDevice.current.userInterfaceIdiom == .phone {
+                if UITraitCollection.current.userInterfaceIdiom == .phone {
                     return 12
                 } else {
                     return 20
@@ -36,7 +36,7 @@ open class SubtitleModel: ObservableObject {
                 #elseif os(macOS) || os(xrOS)
                 return 26
                 #else
-                if UIDevice.current.userInterfaceIdiom == .phone {
+                if UITraitCollection.current.userInterfaceIdiom == .phone {
                     return 16
                 } else {
                     return 26
@@ -48,7 +48,7 @@ open class SubtitleModel: ObservableObject {
                 #elseif os(macOS) || os(xrOS)
                 return 32
                 #else
-                if UIDevice.current.userInterfaceIdiom == .phone {
+                if UITraitCollection.current.userInterfaceIdiom == .phone {
                     return 20
                 } else {
                     return 32

@@ -39,7 +39,7 @@ public class AudioRendererPlayer: AudioOutput {
         synchronizer.rate == 0
     }
 
-    public weak var renderSource: OutputRenderSourceDelegate?
+    public weak var renderSource: AudioOutputRenderSourceDelegate?
     private var periodicTimeObserver: Any?
     private var flushTime = true
     private let renderer = AVSampleBufferAudioRenderer()

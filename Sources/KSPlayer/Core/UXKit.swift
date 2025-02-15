@@ -38,6 +38,7 @@ extension UIView {
     case mouseExited
 }
 
+@MainActor
 protocol KSSliderDelegate: AnyObject {
     /**
      call when slider action trigged

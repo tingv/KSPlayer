@@ -8,6 +8,7 @@
 
 import UIKit
 
+@MainActor
 protocol PlayerViewFullScreenDelegate: AnyObject {
     func player(isMaskShow: Bool, isFullScreen: Bool)
 }

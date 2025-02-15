@@ -154,6 +154,7 @@ public protocol DisplayEnum: AnyObject {
     var isSphere: Bool { get }
     @MainActor
     func set(frame: VideoVTBFrame, encoder: MTLRenderCommandEncoder)
+    @MainActor
     func touchesMoved(touch: UITouch)
 }
 

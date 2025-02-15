@@ -93,6 +93,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var usesExternalPlaybackWhileExternalScreenIsActive: Bool { get set }
     var isExternalPlaybackActive: Bool { get }
     var playbackVolume: Float { get set }
+    @MainActor
     var contentMode: UIViewContentMode { get set }
     var subtitleDataSource: (any ConstantSubtitleDataSource)? { get }
     #if canImport(RealityKit)
@@ -102,6 +103,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     #endif
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     var playbackCoordinator: AVPlaybackCoordinator { get }
+    @MainActor
     var pipController: KSPictureInPictureProtocol? { get set }
     var dynamicInfo: DynamicInfo? { get }
     init(url: URL, options: KSOptions)
@@ -113,6 +115,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     func enterBackground()
     func enterForeground()
     func thumbnailImageAtCurrentTime() async -> CGImage?
+
     func tracks(mediaType: AVFoundation.AVMediaType) -> [MediaPlayerTrack]
     func select(track: some MediaPlayerTrack)
     func configPIP()
