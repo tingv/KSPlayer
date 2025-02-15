@@ -1,42 +1,51 @@
+import Foundation
 @testable import KSPlayer
-import XCTest
+import Testing
 
-class KSAVPlayerTest: XCTestCase {
-    private var readyToPlayExpectation: XCTestExpectation?
-    @MainActor
-    func testPlayer() {
-        if let path = Bundle(for: type(of: self)).path(forResource: "h264", ofType: "MP4") {
-            set(path: path)
-        }
-        //        if let path = Bundle(for: type(of: self)).path(forResource: "google-help-vr", ofType: "mp4") {
-        //            set(path: path)
-        //        }
-        if let path = Bundle(for: type(of: self)).path(forResource: "mjpeg", ofType: "flac") {
-            set(path: path)
-        }
-        if let path = Bundle(for: type(of: self)).path(forResource: "hevc", ofType: "mkv") {
-            set(path: path)
+@MainActor
+final class KSAVPlayerTest {
+    private var readyToPlayContinuation: CheckedContinuation<Void, Never>?
+    private var bufferedCounts = [Int]()
+    init() {}
+
+    @Test
+    func testPlayerLayer() async throws {
+        let bundle = Bundle(for: Self.self)
+
+        let testPaths = [
+            ("h264", "MP4"),
+            ("mjpeg", "flac"),
+            ("hevc", "mkv"),
+        ]
+
+        for (name, ext) in testPaths {
+            guard let path = bundle.path(forResource: name, ofType: ext) else {
+                continue
+            }
+            await set(path: path)
         }
     }
 
-    @MainActor
-    func set(path: String) {
-        let play = KSAVPlayer(url: URL(fileURLWithPath: path), options: KSOptions())
-        play.delegate = self
-        play.prepareToPlay()
-        readyToPlayExpectation = expectation(description: "openVideo")
-        waitForExpectations(timeout: 10) { _ in
-            if play.isReadyToPlay {
-                play.play()
-            }
-            play.shutdown()
+    private func set(path: String) async {
+        let url = URL(fileURLWithPath: path)
+        let options = KSOptions()
+        let player = KSAVPlayer(url: url, options: options)
+        player.delegate = self
+        player.prepareToPlay()
+        // 等待 readyToPlay
+        await withCheckedContinuation { continuation in
+            readyToPlayContinuation = continuation
         }
+        if player.isReadyToPlay {
+            player.play()
+        }
+        player.stop()
     }
 }
 
 extension KSAVPlayerTest: MediaPlayerDelegate {
     func readyToPlay(player _: some MediaPlayerProtocol) {
-        readyToPlayExpectation?.fulfill()
+        readyToPlayContinuation?.resume()
     }
 
     func changeLoadState(player _: some MediaPlayerProtocol) {}
@@ -47,7 +56,7 @@ extension KSAVPlayerTest: MediaPlayerDelegate {
 
     func finish(player _: some MediaPlayerProtocol, error: Error?) {
         if error != nil {
-            readyToPlayExpectation?.fulfill()
+            readyToPlayContinuation?.resume()
         }
     }
 }

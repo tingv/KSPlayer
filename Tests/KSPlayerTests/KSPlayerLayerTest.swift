@@ -1,70 +1,92 @@
+import Foundation
 @testable import KSPlayer
-import XCTest
+import Testing
 
 @MainActor
-class KSPlayerLayerTest: XCTestCase {
-    private var readyToPlayExpectation: XCTestExpectation?
-    override func setUp() {
+final class KSPlayerLayerTest {
+    private var readyToPlayContinuation: CheckedContinuation<Void, Never>?
+    private var bufferedCounts = [Int]()
+    init() {
         KSOptions.secondPlayerType = KSMEPlayer.self
         KSOptions.isSecondOpen = true
         KSOptions.isAccurateSeek = true
     }
 
-    func testPlayerLayer() {
-        if let path = Bundle(for: type(of: self)).path(forResource: "h264", ofType: "MP4") {
-            set(path: path)
-        }
-//        if let path = Bundle(for: type(of: self)).path(forResource: "google-help-vr", ofType: "mp4") {
-//            set(path: path)
-//        }
-        if let path = Bundle(for: type(of: self)).path(forResource: "mjpeg", ofType: "flac") {
-            set(path: path)
-        }
-        if let path = Bundle(for: type(of: self)).path(forResource: "hevc", ofType: "mkv") {
-            set(path: path)
+    @Test
+    func testPlayerLayer() async throws {
+        let bundle = Bundle(for: Self.self)
+
+        let testPaths = [
+            ("h264", "MP4"),
+            ("mjpeg", "flac"),
+            ("hevc", "mkv"),
+        ]
+
+        for (name, ext) in testPaths {
+            guard let path = bundle.path(forResource: name, ofType: ext) else {
+                continue
+            }
+            await set(path: path)
         }
     }
 
-    func set(path: String) {
+    private func set(path: String) async {
+        let url = URL(fileURLWithPath: path)
         let options = KSOptions()
-        let playerLayer = KSPlayerLayer(url: URL(fileURLWithPath: path), options: options)
+
+        let playerLayer = KSPlayerLayer(url: url, options: options)
         playerLayer.delegate = self
-        XCTAssertEqual(playerLayer.state, .preparing)
-        readyToPlayExpectation = expectation(description: "openVideo")
-        waitForExpectations(timeout: 2) { _ in
-            XCTAssert(playerLayer.player.isReadyToPlay == true)
-            XCTAssertEqual(playerLayer.state, .readyToPlay)
-            playerLayer.play()
-            playerLayer.pause()
-            XCTAssertEqual(playerLayer.state, .paused)
-            let seekExpectation = self.expectation(description: "seek")
-            playerLayer.seek(time: 2, autoPlay: true) { _ in
-                seekExpectation.fulfill()
-            }
-            XCTAssertEqual(playerLayer.state, .buffering)
-            self.waitForExpectations(timeout: 1000) { _ in
-                playerLayer.finish(player: playerLayer.player, error: nil)
-                XCTAssertEqual(playerLayer.state, .playedToTheEnd)
-                playerLayer.stop()
-                XCTAssertEqual(playerLayer.state, .initialized)
-            }
+
+        // 验证初始状态
+        #expect(playerLayer.state == .preparing)
+
+        // 等待 readyToPlay
+        await withCheckedContinuation { continuation in
+            readyToPlayContinuation = continuation
         }
+
+        // 验证准备就绪状态
+        #expect(playerLayer.player.isReadyToPlay == true)
+        #expect(playerLayer.state == .readyToPlay)
+
+        // 测试播放控制
+        playerLayer.play()
+        playerLayer.pause()
+        #expect(playerLayer.state == .paused)
+        var seekContinuation: CheckedContinuation<Void, Never>?
+        playerLayer.seek(time: 2, autoPlay: true) { _ in
+            seekContinuation?.resume()
+        }
+        #expect(playerLayer.state == .buffering)
+        // 测试 seek 操作
+        await withCheckedContinuation { continuation in
+            seekContinuation = continuation
+        }
+        // 验证结束状态
+        playerLayer.finish(player: playerLayer.player, error: nil)
+        #expect(playerLayer.state == .playedToTheEnd)
+
+        // 测试停止
+        playerLayer.stop()
+        #expect(playerLayer.state == .initialized)
+
+        // 验证缓冲区
+        #expect(bufferedCounts.allSatisfy { $0 <= 0 })
     }
 }
 
 extension KSPlayerLayerTest: KSPlayerLayerDelegate {
     func player(layer _: KSPlayerLayer, state: KSPlayerState) {
         if state == .readyToPlay {
-            readyToPlayExpectation?.fulfill()
+            readyToPlayContinuation?.resume()
         }
     }
 
     func player(layer _: KSPlayerLayer, currentTime _: TimeInterval, totalTime _: TimeInterval) {}
 
-    func player(layer _: KSPlayerLayer, finish _: Error?) {}
+    func player(layer _: KSPlayerLayer, finish _: (any Error)?) {}
+
     func player(layer _: KSPlayerLayer, bufferedCount: Int, consumeTime _: TimeInterval) {
-        if bufferedCount > 0 {
-            XCTFail()
-        }
+        bufferedCounts.append(bufferedCount)
     }
 }
