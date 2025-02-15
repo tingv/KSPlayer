@@ -12,7 +12,7 @@ import UIKit
 #else
 import AppKit
 #endif
-
+// AVPlaybackCoordinatorPlaybackControlDelegate 加了 Sendable
 public final class KSMEPlayer: NSObject, @unchecked Sendable {
     private var loopCount = 1
     private var playerItem: MEPlayerItem
