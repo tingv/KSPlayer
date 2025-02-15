@@ -87,7 +87,7 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
     }
 }
 
-final class AssImageRenderer: @unchecked Sendable {
+final class AssImageRenderer {
     private nonisolated(unsafe) static var rendererMap = [String: AssImageRenderer]()
     static func getRender(fontsDir: String) -> AssImageRenderer {
         rendererMap.value(for: fontsDir, default: AssImageRenderer(fontsDir: fontsDir))

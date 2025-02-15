@@ -11,7 +11,7 @@ import Foundation
 import Translation
 #endif
 
-public protocol KSSubtitleProtocol: Sendable {
+public protocol KSSubtitleProtocol {
     func search(for time: TimeInterval, size: CGSize, isHDR: Bool) async -> [SubtitlePart]
 }
 
@@ -91,7 +91,7 @@ public protocol AudioRecognize: SubtitleInfo {
     func append(frame: AudioFrame)
 }
 
-public final class EmptySubtitleInfo: SubtitleInfo, @unchecked Sendable {
+public final class EmptySubtitleInfo: SubtitleInfo {
     public var isEnabled: Bool = true
     public let subtitleID: String = ""
     public var delay: TimeInterval = 0

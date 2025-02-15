@@ -1111,7 +1111,7 @@ func connectedToNetwork() -> Bool {
     return isReachable && !needsConnection
 }
 
-protocol DisplayLinkProtocol: AnyObject, Sendable {
+protocol DisplayLinkProtocol: AnyObject {
     var isPaused: Bool { get set }
     var preferredFramesPerSecond: Int { get set }
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
@@ -1126,7 +1126,7 @@ protocol DisplayLinkProtocol: AnyObject, Sendable {
 }
 
 @available(macOS 14.0, *)
-extension CADisplayLink: DisplayLinkProtocol, @unchecked Sendable {
+extension CADisplayLink: DisplayLinkProtocol {
     #if os(macOS)
     var preferredFramesPerSecond: Int {
         set {}
