@@ -38,10 +38,11 @@ public final class AssImageParse: KSParseProtocol {
         } else {
             content = scanner.string
         }
-        return AssImageRenderer(content: content)
+        return AssIncrementImageRenderer(content: content)
     }
 }
 
+// 要统一用AssIncrementImageRenderer，因为AssImageRenderer不是actor，会有并发的crash
 public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
     private static var rendererMap = [String: AssImageRenderer]()
     static func getRender(fontsDir: String) -> AssImageRenderer {
@@ -53,10 +54,16 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
     }
 
     private let uuid = UUID()
-    private let header: String
+    private let header: String?
     private var subtitles = [(subtitle: String, start: Int64, duration: Int64)]()
     private let fontsDir: String?
     private let renderer: AssImageRenderer
+    public init(content: String) {
+        fontsDir = nil
+        header = nil
+        renderer = AssImageRenderer(content: content)
+    }
+
     public init(fontsDir: String?, header: String) {
         self.fontsDir = fontsDir
         self.header = header
@@ -83,7 +90,9 @@ public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
 
     public func search(for time: TimeInterval, size: CGSize, isHDR: Bool) -> [SubtitlePart] {
         if renderer.uuid != uuid {
-            renderer.set(header: header, uuid: uuid)
+            if let header {
+                renderer.set(header: header, uuid: uuid)
+            }
             renderer.add(subtitles: subtitles)
         }
         return renderer.search(for: time, size: size, isHDR: isHDR)
