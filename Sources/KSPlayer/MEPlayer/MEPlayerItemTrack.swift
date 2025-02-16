@@ -154,7 +154,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             }
             isNeedKeyFrame = false
         }
-        let decoder = decoderMap[packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack)]
+        let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
                 let sideData = corePacket.pointee.side_data[i]

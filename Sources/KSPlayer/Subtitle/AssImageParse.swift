@@ -45,7 +45,7 @@ public final class AssImageParse: KSParseProtocol {
 public final actor AssIncrementImageRenderer: KSSubtitleProtocol {
     private static var rendererMap = [String: AssImageRenderer]()
     static func getRender(fontsDir: String) -> AssImageRenderer {
-        rendererMap[fontsDir, default: AssImageRenderer(fontsDir: fontsDir)]
+        rendererMap.value(for: fontsDir, default: AssImageRenderer(fontsDir: fontsDir))
     }
 
     static func removeRender(fontsDir: String) {

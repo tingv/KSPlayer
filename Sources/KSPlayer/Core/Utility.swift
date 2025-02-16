@@ -1150,3 +1150,17 @@ extension UIView {
         #endif
     }
 }
+
+public extension Dictionary {
+    /// subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value
+    /// 不会设置值进去，所以还是要用这个方法
+    mutating func value(for key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
+        if let value = self[key] {
+            return value
+        } else {
+            let value = defaultValue()
+            self[key] = value
+            return value
+        }
+    }
+}
