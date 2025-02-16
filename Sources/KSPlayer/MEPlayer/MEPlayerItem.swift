@@ -1005,6 +1005,9 @@ extension MEPlayerItem: MediaPlayback {
                 interrupt = true
             }
             seekTime = time
+            if state == .seeking {
+                seekingCompletionHandler?(false)
+            }
             seekingCompletionHandler = completion
             state = .seeking
             if oldState == .paused {

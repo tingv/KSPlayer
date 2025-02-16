@@ -10,6 +10,7 @@ public protocol SubtitleDataSource: AnyObject {}
 
 public protocol ConstantSubtitleDataSource: SubtitleDataSource {
     associatedtype Subtitle: SubtitleInfo
+    @MainActor
     var infos: [Subtitle] { get }
 }
 

@@ -547,42 +547,29 @@ extension KSMEPlayer: AVPlaybackCoordinatorPlaybackControlDelegate {
         guard playCommand.expectedCurrentItemIdentifier == (playbackCoordinator as? AVDelegatingPlaybackCoordinator)?.currentItemIdentifier else {
             return
         }
-        return await Task { @MainActor
-            [weak self] in
-            guard let self else {
-                return
-            }
-            if self.playbackState != .playing {
-                self.play()
-            }
-        }.value
+        if playbackState != .playing {
+            await play()
+        }
     }
 
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue pauseCommand: AVDelegatingPlaybackCoordinatorPauseCommand) async {
         guard pauseCommand.expectedCurrentItemIdentifier == (playbackCoordinator as? AVDelegatingPlaybackCoordinator)?.currentItemIdentifier else {
             return
         }
-        return await Task { @MainActor
-            [weak self] in
-            guard let self else {
-                return
-            }
-            if self.playbackState != .paused {
-                self.pause()
-            }
-        }.value
+        if playbackState != .paused {
+            await pause()
+        }
     }
 
-    @MainActor
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue seekCommand: AVDelegatingPlaybackCoordinatorSeekCommand) async {
         guard seekCommand.expectedCurrentItemIdentifier == (playbackCoordinator as? AVDelegatingPlaybackCoordinator)?.currentItemIdentifier else {
             return
         }
-        let seekTime = fmod(seekCommand.itemTime.seconds, duration)
-        if abs(currentPlaybackTime - seekTime) < CGFLOAT_EPSILON {
+        let seekTime = await fmod(seekCommand.itemTime.seconds, duration)
+        if await abs(currentPlaybackTime - seekTime) < CGFLOAT_EPSILON {
             return
         }
-        seek(time: seekTime) { _ in }
+        await _ = seek(time: seekTime)
     }
 
     public func playbackCoordinator(_: AVDelegatingPlaybackCoordinator, didIssue bufferingCommand: AVDelegatingPlaybackCoordinatorBufferingCommand) async {

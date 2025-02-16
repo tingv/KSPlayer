@@ -33,6 +33,17 @@ public protocol MediaPlayback: AnyObject {
     func stop()
 }
 
+public extension MediaPlayback {
+    @MainActor
+    func seek(time: TimeInterval) async -> Bool {
+        await withCheckedContinuation { continuation in
+            seek(time: time) {
+                continuation.resume(returning: $0)
+            }
+        }
+    }
+}
+
 public class DynamicInfo: ObservableObject {
     private let metadataBlock: () -> [String: String]
     private let bytesReadBlock: () -> Int64

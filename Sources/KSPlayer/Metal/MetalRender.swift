@@ -5,7 +5,7 @@
 //  Created by kintan on 2020/1/11.
 //
 @preconcurrency import Accelerate
-@preconcurrency import CoreVideo
+import CoreVideo
 internal import FFmpegKit
 import Foundation
 @preconcurrency import Metal
