@@ -378,8 +378,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
             seekTime = time
         }
         playerItem.seek(time: seekTime) { [weak self] result in
-            guard let self else { return }
-            if result {
+            if result, let self {
                 self.videoOutput.pixelBuffer = nil
                 self.audioOutput.flush()
                 runOnMainThread { [weak self] in

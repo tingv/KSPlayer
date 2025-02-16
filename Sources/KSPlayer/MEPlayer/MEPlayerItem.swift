@@ -759,6 +759,11 @@ extension MEPlayerItem {
         }
         KSLog("seek to \(seekToTime) spend Time: \(CACurrentMediaTime() - seekStartTime)")
         if state == .closed {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.seekingCompletionHandler?(result >= 0)
+                self.seekingCompletionHandler = nil
+            }
             return
         }
         if seekToTime != seekTime {
