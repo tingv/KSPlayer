@@ -155,15 +155,15 @@ public struct KSVideoPlayerView: View {
 
     @MainActor
     public func openURL(_ url: URL, options: KSOptions? = nil) {
-        if url.isAudio || url.isMovie {
+        if url.isSubtitle {
+            let info = URLSubtitleInfo(url: url)
+            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
+        } else {
             if let options {
                 self.options = options
             }
             self.url = url
             title = url.lastPathComponent
-        } else {
-            let info = URLSubtitleInfo(url: url)
-            config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
         }
     }
 
