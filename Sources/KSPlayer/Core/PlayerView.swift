@@ -180,7 +180,7 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
                 // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2.5) { [weak self] in
                     guard let self else { return }
-                    self.toolBar.srtButton.isHidden = layer.subtitleModel.subtitleInfos.isEmpty
+                    toolBar.srtButton.isHidden = layer.subtitleModel.subtitleInfos.isEmpty
                     if #available(iOS 14.0, tvOS 15.0, *) {
                         self.buildMenusForButtons()
                     }
@@ -226,7 +226,7 @@ public extension PlayerView {
         } completion: { [weak self] value in
             guard let self else { return }
             if let value {
-                self.playerLayer?.player.select(track: value)
+                playerLayer?.player.select(track: value)
             }
         }
         let audioTracks = playerLayer?.player.tracks(mediaType: .audio) ?? []
@@ -235,7 +235,7 @@ public extension PlayerView {
         } completion: { [weak self] value in
             guard let self else { return }
             if let value {
-                self.playerLayer?.player.select(track: value)
+                playerLayer?.player.select(track: value)
             }
         }
         toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed".localized, comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
@@ -243,7 +243,7 @@ public extension PlayerView {
         } completion: { [weak self] value in
             guard let self else { return }
             if let value {
-                self.playerLayer?.player.playbackRate = value
+                playerLayer?.player.playbackRate = value
             }
         }
         if let subtitleModel = playerLayer?.subtitleModel {

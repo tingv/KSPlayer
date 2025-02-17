@@ -351,9 +351,9 @@ extension KSAVPlayer {
             guard let self else { return }
             // 在主线程更新进度
             if playerItem.isPlaybackBufferEmpty {
-                self.loadState = .loading
+                loadState = .loading
             } else if playerItem.isPlaybackLikelyToKeepUp || playerItem.isPlaybackBufferFull {
-                self.loadState = .playable
+                loadState = .playable
             }
         }
         bufferEmptyObservation = playerItem.observe(\.isPlaybackBufferEmpty, changeHandler: changeHandler)
@@ -423,12 +423,12 @@ extension KSAVPlayer: MediaPlayerProtocol {
         options.prepareTime = CACurrentMediaTime()
         runOnMainThread { [weak self] in
             guard let self else { return }
-            self.bufferingProgress = 0
-            let playerItem = AVPlayerItem(asset: self.urlAsset)
-            self.options.openTime = CACurrentMediaTime()
-            self.replaceCurrentItem(playerItem: playerItem)
-            self.player.actionAtItemEnd = .pause
-            self.player.volume = self.playbackVolume
+            bufferingProgress = 0
+            let playerItem = AVPlayerItem(asset: urlAsset)
+            options.openTime = CACurrentMediaTime()
+            replaceCurrentItem(playerItem: playerItem)
+            player.actionAtItemEnd = .pause
+            player.volume = playbackVolume
         }
     }
 

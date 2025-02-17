@@ -224,7 +224,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         runOnMainThread { [weak self] in
             guard let self else { return }
             KSLog("playerStateDidChange - \(state)")
-            self.delegate?.player(layer: self, state: state)
+            delegate?.player(layer: self, state: state)
         }
     }
 
@@ -265,7 +265,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 player.seek(time: 0) { [weak self] finished in
                     guard let self else { return }
                     if finished {
-                        self.player.play()
+                        player.play()
                     }
                 }
             } else {
@@ -315,7 +315,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 guard let self else { return }
                 if finished, autoPlay {
                     state = .buffering
-                    self.play()
+                    play()
                 }
                 completion(finished)
             }
@@ -347,7 +347,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。有些视频1s可能不够，所以改成2s
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) { [weak self] in
                 guard let self else { return }
-                self.subtitleModel.addSubtitle(dataSource: subtitleDataSource)
+                subtitleModel.addSubtitle(dataSource: subtitleDataSource)
             }
         }
         state = .readyToPlay
@@ -373,7 +373,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             if shouldSeekTo > 0 {
                 seek(time: shouldSeekTo, autoPlay: true) { [weak self] _ in
                     guard let self else { return }
-                    self.shouldSeekTo = 0
+                    shouldSeekTo = 0
                 }
 
             } else {
@@ -562,7 +562,7 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
             }
             // 刚创建pip的话，需要等待0.3才能pip
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                guard let self, let pipController = self.player.pipController else { return }
+                guard let self, let pipController = player.pipController else { return }
                 pipController.start(layer: self)
             }
         }
@@ -738,24 +738,24 @@ extension KSComplexPlayerLayer {
             guard let self else {
                 return .commandFailed
             }
-            self.play()
+            play()
             return .success
         }
         remoteCommand.pauseCommand.addTarget { [weak self] _ in
             guard let self else {
                 return .commandFailed
             }
-            self.pause()
+            pause()
             return .success
         }
         remoteCommand.togglePlayPauseCommand.addTarget { [weak self] _ in
             guard let self else {
                 return .commandFailed
             }
-            if self.state.isPlaying {
-                self.pause()
+            if state.isPlaying {
+                pause()
             } else {
-                self.play()
+                play()
             }
             return .success
         }
@@ -763,28 +763,28 @@ extension KSComplexPlayerLayer {
             guard let self else {
                 return .commandFailed
             }
-            self.player.shutdown()
+            player.shutdown()
             return .success
         }
         remoteCommand.nextTrackCommand.addTarget { [weak self] _ in
             guard let self else {
                 return .commandFailed
             }
-            self.nextPlayer()
+            nextPlayer()
             return .success
         }
         remoteCommand.previousTrackCommand.addTarget { [weak self] _ in
             guard let self else {
                 return .commandFailed
             }
-            self.previousPlayer()
+            previousPlayer()
             return .success
         }
         remoteCommand.changeRepeatModeCommand.addTarget { [weak self] event in
             guard let self, let event = event as? MPChangeRepeatModeCommandEvent else {
                 return .commandFailed
             }
-            self.options.isLoopPlay = event.repeatType != .off
+            options.isLoopPlay = event.repeatType != .off
             return .success
         }
         remoteCommand.changeShuffleModeCommand.isEnabled = false
@@ -794,7 +794,7 @@ extension KSComplexPlayerLayer {
             guard let self, let event = event as? MPChangePlaybackRateCommandEvent else {
                 return .commandFailed
             }
-            self.player.playbackRate = event.playbackRate
+            player.playbackRate = event.playbackRate
             return .success
         }
         remoteCommand.skipForwardCommand.preferredIntervals = [15]
@@ -802,7 +802,7 @@ extension KSComplexPlayerLayer {
             guard let self, let event = event as? MPSkipIntervalCommandEvent else {
                 return .commandFailed
             }
-            self.seek(time: self.player.currentPlaybackTime + event.interval)
+            seek(time: player.currentPlaybackTime + event.interval)
             return .success
         }
         remoteCommand.skipBackwardCommand.preferredIntervals = [15]
@@ -810,14 +810,14 @@ extension KSComplexPlayerLayer {
             guard let self, let event = event as? MPSkipIntervalCommandEvent else {
                 return .commandFailed
             }
-            self.seek(time: self.player.currentPlaybackTime - event.interval)
+            seek(time: player.currentPlaybackTime - event.interval)
             return .success
         }
         remoteCommand.changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let self, let event = event as? MPChangePlaybackPositionCommandEvent else {
                 return .commandFailed
             }
-            self.seek(time: event.positionTime)
+            seek(time: event.positionTime)
             return .success
         }
         remoteCommand.enableLanguageOptionCommand.addTarget { [weak self] event in
@@ -826,9 +826,9 @@ extension KSComplexPlayerLayer {
             }
             let selectLang = event.languageOption
             if selectLang.languageOptionType == .audible,
-               let trackToSelect = self.player.tracks(mediaType: .audio).first(where: { $0.name == selectLang.displayName })
+               let trackToSelect = player.tracks(mediaType: .audio).first(where: { $0.name == selectLang.displayName })
             {
-                self.player.select(track: trackToSelect)
+                player.select(track: trackToSelect)
             }
             return .success
         }

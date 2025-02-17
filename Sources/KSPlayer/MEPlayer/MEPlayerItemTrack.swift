@@ -176,38 +176,38 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
 //                    startTime = CACurrentMediaTime()
 //                }
                 let frame = try result.get()
-                if self.state == .flush || self.state == .closed {
+                if state == .flush || state == .closed {
                     return
                 }
-                if self.seekTime > 0 {
+                if seekTime > 0 {
                     let timestamp = frame.timestamp + frame.duration
 //                    KSLog("seektime \(self.seekTime), frame \(frame.seconds), mediaType \(packet.assetTrack.mediaType)")
-                    if timestamp <= 0 || frame.timebase.cmtime(for: timestamp).seconds < self.seekTime {
+                    if timestamp <= 0 || frame.timebase.cmtime(for: timestamp).seconds < seekTime {
                         return
                     } else {
-                        self.seekTime = 0.0
+                        seekTime = 0.0
                     }
                 }
                 if let frame = frame as? Frame {
-                    self.outputRenderQueue.push(frame)
-                    self.outputRenderQueue.fps = packet.assetTrack.nominalFrameRate
+                    outputRenderQueue.push(frame)
+                    outputRenderQueue.fps = packet.assetTrack.nominalFrameRate
                 }
             } catch {
                 KSLog("Decoder did Failed : \(error)")
                 if decoder is VideoToolboxDecode {
                     // 因为异步解码报错会回调多次，所以这边需要做一下判断，不要重复创建FFmpegDecode
-                    if self.decoderMap[packet.assetTrack.trackID] === decoder {
+                    if decoderMap[packet.assetTrack.trackID] === decoder {
                         // 在回调里面直接掉用VTDecompressionSessionInvalidate，会卡住,所以要异步。
                         DispatchQueue.global().async {
                             decoder?.shutdown()
                         }
-                        self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
+                        decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: options)
                         KSLog("[video] VideoToolboxDecode fail. switch to ffmpeg decode")
                     }
                     // packet不要在复用了。因为有可能进行了bitStreamFilter，导致内存被释放了，如果调用avcodec_send_packet的话，就会crashcrash
 //                    self.doDecode(packet: packet)
                 } else {
-                    self.state = .failed
+                    state = .failed
                 }
             }
         }
@@ -267,9 +267,9 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
         guard operationQueue.operationCount == 0 else { return }
         decodeOperation = BlockOperation { [weak self] in
             guard let self else { return }
-            Thread.current.name = self.operationQueue.name
+            Thread.current.name = operationQueue.name
             Thread.current.stackSize = KSOptions.stackSize
-            self.decodeThread()
+            decodeThread()
         }
         decodeOperation.queuePriority = .veryHigh
         decodeOperation.qualityOfService = .userInteractive

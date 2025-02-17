@@ -69,13 +69,13 @@ public class TVSlide: UIControl {
 
     private lazy var timer: Timer = .scheduledTimer(withTimeInterval: 0.15, repeats: true) { _ in
         runOnMainThread { [weak self] in
-            guard let self, let moveDirection = self.moveDirection else {
+            guard let self, let moveDirection else {
                 return
             }
-            let rate = min(10, Int((CACurrentMediaTime() - self.pressTime) / 2) + 1)
-            let wrappedValue = self.value.wrappedValue + Float((moveDirection == .right ? 10 : -10) * rate)
-            if wrappedValue >= self.ranges.lowerBound, wrappedValue <= self.ranges.upperBound {
-                self.value.wrappedValue = wrappedValue
+            let rate = min(10, Int((CACurrentMediaTime() - pressTime) / 2) + 1)
+            let wrappedValue = value.wrappedValue + Float((moveDirection == .right ? 10 : -10) * rate)
+            if wrappedValue >= ranges.lowerBound, wrappedValue <= ranges.upperBound {
+                value.wrappedValue = wrappedValue
             }
         }
     }

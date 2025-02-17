@@ -298,7 +298,7 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
                     guard let self else {
                         return
                     }
-                    self.prepare(audioFormat: currentRender.audioFormat)
+                    prepare(audioFormat: currentRender.audioFormat)
                 }
                 return
             }

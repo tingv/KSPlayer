@@ -411,7 +411,7 @@ public extension VideoPlayerView {
             }
             let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
                 guard let self, !isEnabled else { return }
-                self.playerLayer?.player.select(track: track)
+                playerLayer?.player.select(track: track)
             }
             alertController.addAction(action)
             if isEnabled {
@@ -428,8 +428,8 @@ public extension VideoPlayerView {
         let alertController = UIAlertController(title: NSLocalizedString("select video quality", comment: ""), message: nil, preferredStyle: preferredStyle())
         for (index, definition) in resource.definitions.enumerated() {
             let action = UIAlertAction(title: definition.definition, style: .default) { [weak self] _ in
-                guard let self, index != self.currentDefinition else { return }
-                self.change(definitionIndex: index)
+                guard let self, index != currentDefinition else { return }
+                change(definitionIndex: index)
             }
             alertController.addAction(action)
             if index == currentDefinition {
@@ -481,7 +481,7 @@ public extension VideoPlayerView {
             let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
                 guard let self else { return }
                 button.setTitle(title, for: .normal)
-                self.playerLayer?.player.playbackRate = Float(rate)
+                playerLayer?.player.playbackRate = Float(rate)
             }
             alertController.addAction(action)
 

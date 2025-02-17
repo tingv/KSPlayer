@@ -223,8 +223,8 @@ extension KSVideoPlayer: UIViewRepresentable {
                 if state == .bufferFinished, autoHide {
                     delayHide = DispatchWorkItem { [weak self] in
                         guard let self else { return }
-                        if self.state == .bufferFinished {
-                            self.isMaskShow = false
+                        if state == .bufferFinished {
+                            isMaskShow = false
                         }
                     }
                     DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + KSOptions.animateDelayTimeInterval,

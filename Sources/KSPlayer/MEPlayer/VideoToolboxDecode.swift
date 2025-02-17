@@ -79,7 +79,7 @@ class VideoToolboxDecode: DecodeProtocol {
                             let error = NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
                             completionHandler(.failure(error))
                         } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr {
-                            self.needReconfig = true
+                            needReconfig = true
                         }
                     }
                     return
@@ -89,12 +89,12 @@ class VideoToolboxDecode: DecodeProtocol {
                 }
                 var frame = VideoVTBFrame(pixelBuffer: imageBuffer, fps: session.assetTrack.nominalFrameRate, isDovi: session.assetTrack.dovi != nil)
                 frame.timebase = session.assetTrack.timebase
-                if isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, self.maxTimestamp > 0 {
-                    self.startTime = self.maxTimestamp - timestamp
+                if isKeyFrame, packetFlags & AV_PKT_FLAG_DISCARD != 0, maxTimestamp > 0 {
+                    startTime = maxTimestamp - timestamp
                 }
-                self.maxTimestamp = max(self.maxTimestamp, timestamp)
+                maxTimestamp = max(maxTimestamp, timestamp)
                 frame.position = position
-                frame.timestamp = self.startTime + timestamp
+                frame.timestamp = startTime + timestamp
                 frame.set(startTime: session.assetTrack.startTime)
                 frame.duration = duration
                 frame.size = size
@@ -108,10 +108,10 @@ class VideoToolboxDecode: DecodeProtocol {
                     }
                     while frames.count > 0 {
                         let frame = frames[0]
-                        if frame.timestamp - self.lastTimestamp < 2 * duration
+                        if frame.timestamp - lastTimestamp < 2 * duration
                             || frames.count > 4
                         {
-                            self.lastTimestamp = frame.timestamp
+                            lastTimestamp = frame.timestamp
                             completionHandler(.success(frames.removeFirst()))
                         } else {
                             break

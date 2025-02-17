@@ -95,7 +95,7 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
             guard let self else {
                 return
             }
-            self.delegate?.readyToPlay(player: self)
+            delegate?.readyToPlay(player: self)
         }
     }
 }

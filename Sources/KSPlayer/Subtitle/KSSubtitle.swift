@@ -108,7 +108,7 @@ public final class URLSubtitleInfo: SubtitleInfo, @unchecked Sendable {
             if isEnabled, searchProtocol == nil {
                 Task { [weak self] in
                     guard let self else { return }
-                    searchProtocol = try? await self.downloadURL.parseSubtitle(userAgent: self.userAgent)
+                    searchProtocol = try? await downloadURL.parseSubtitle(userAgent: userAgent)
                 }
             }
         }
@@ -136,11 +136,11 @@ public final class URLSubtitleInfo: SubtitleInfo, @unchecked Sendable {
                     return
                 }
                 self.name = filename
-                self.downloadURL = tmpUrl
+                downloadURL = tmpUrl
                 var fileURL = URL(fileURLWithPath: NSTemporaryDirectory())
                 fileURL.appendPathComponent(filename)
                 try? FileManager.default.moveItem(at: tmpUrl, to: fileURL)
-                self.downloadURL = fileURL
+                downloadURL = fileURL
             }
         }
     }

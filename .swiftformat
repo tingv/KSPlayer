@@ -1,3 +1,4 @@
 # 格式化规则
---swiftversion 5.7
+--swiftversion 5.9
 --ifdef noindent
+--disable conditionalAssignment 

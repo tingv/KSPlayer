@@ -118,15 +118,15 @@ public final class KSMEPlayer: NSObject, @unchecked Sendable {
         )
         AudioObjectAddPropertyListenerBlock(audioId, &forPropertyAddress, DispatchQueue.main) { [weak self] _, _ in
             guard let self else { return }
-            self.audioOutput.flush()
+            audioOutput.flush()
             // 切换成蓝牙音箱的话，需要异步暂停播放下，不然会没有声音。并且要延迟1s之后处理，不然不行
-            if self.playbackState == .playing, self.loadState == .playable {
+            if playbackState == .playing, loadState == .playable {
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
                     guard let self else { return }
-                    self.audioOutput.pause()
-                    self.videoOutput.pause()
-                    self.audioOutput.play()
-                    self.videoOutput.play()
+                    audioOutput.pause()
+                    videoOutput.pause()
+                    audioOutput.play()
+                    videoOutput.play()
                 }
             }
         }
@@ -147,21 +147,21 @@ private extension KSMEPlayer {
     func playOrPause() {
         runOnMainThread { [weak self] in
             guard let self else { return }
-            let isPaused = !(self.playbackState == .playing && self.loadState == .playable)
+            let isPaused = !(playbackState == .playing && loadState == .playable)
             if isPaused {
-                self.videoOutput.pause()
-                self.audioOutput.pause()
+                videoOutput.pause()
+                audioOutput.pause()
             } else {
                 // 要先调用video的play。这样才能减少seek之后，声音出来了，但是画面还卡住的概率。
-                self.videoOutput.play()
+                videoOutput.play()
                 /// audioOutput 要手动的调用setAudio(time下，这样才能及时的更新音频的时间
                 /// 不然如果音频没有先渲染的话，那音视频同步算法就无法取到正确的时间戳。导致误丢数据
                 /// 暂停会导致getTime变大，所以要用time更新下时间戳
                 /// seek之后返回的音频和视频的时间戳跟seek的时间戳有可能会差了10s，
                 /// 有时候加载很快，视频帧无法优先展示一帧。所以要取最新的音频时间来更新time
-                self.audioOutput.play()
+                audioOutput.play()
             }
-            self.delegate?.changeLoadState(player: self)
+            delegate?.changeLoadState(player: self)
         }
     }
 
@@ -194,10 +194,10 @@ private extension KSMEPlayer {
             // 切换成蓝牙音箱的话，需要异步暂停播放下，不然会没有声音
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                self.audioOutput.pause()
-                self.videoOutput.pause()
-                self.audioOutput.play()
-                self.videoOutput.play()
+                audioOutput.pause()
+                videoOutput.pause()
+                audioOutput.play()
+                videoOutput.play()
             }
         }
     }
@@ -230,20 +230,20 @@ extension KSMEPlayer: MEPlayerDelegate {
     func sourceDidFailed(error: NSError?) {
         runOnMainThread { [weak self] in
             guard let self else { return }
-            self.delegate?.finish(player: self, error: error)
+            delegate?.finish(player: self, error: error)
         }
     }
 
     func sourceDidFinished() {
         runOnMainThread { [weak self] in
             guard let self else { return }
-            if self.options.isLoopPlay {
-                self.loopCount += 1
-                self.delegate?.playBack(player: self, loopCount: self.loopCount)
-                self.audioOutput.play()
-                self.videoOutput.play()
+            if options.isLoopPlay {
+                loopCount += 1
+                delegate?.playBack(player: self, loopCount: loopCount)
+                audioOutput.play()
+                videoOutput.play()
             } else {
-                self.playbackState = .finished
+                playbackState = .finished
             }
         }
     }
@@ -379,12 +379,12 @@ extension KSMEPlayer: MediaPlayerProtocol {
         }
         playerItem.seek(time: seekTime) { [weak self] result in
             if result, let self {
-                self.videoOutput.pixelBuffer = nil
-                self.audioOutput.flush()
+                videoOutput.pixelBuffer = nil
+                audioOutput.flush()
                 runOnMainThread { [weak self] in
                     guard let self else { return }
-                    if let controlTimebase = self.videoOutput.displayLayer.controlTimebase {
-                        CMTimebaseSetTime(controlTimebase, time: CMTimeMake(value: Int64(self.currentPlaybackTime), timescale: 1))
+                    if let controlTimebase = videoOutput.displayLayer.controlTimebase {
+                        CMTimebaseSetTime(controlTimebase, time: CMTimeMake(value: Int64(currentPlaybackTime), timescale: 1))
                     }
                 }
             }
@@ -462,7 +462,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         if playerItem.seekable, duration > 0, options.hardwareDecode {
             seek(time: currentPlaybackTime) { [weak self] _ in
                 guard let self else { return }
-                self.playbackState = .paused
+                playbackState = .paused
             }
         }
     }

@@ -57,7 +57,7 @@ public class MPVHandle: NSObject {
 
     private func readEvents() {
         queue.async { [weak self] in
-            while let self, let mpv = self.mpv, let event = mpv_wait_event(mpv, 0) {
+            while let self, let mpv, let event = mpv_wait_event(mpv, 0) {
                 if event.pointee.event_id == MPV_EVENT_NONE {
                     break
                 }

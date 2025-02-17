@@ -64,7 +64,7 @@ public class AudioRendererPlayer: AudioOutput {
             guard let self else {
                 return
             }
-            self.request()
+            request()
         }
         if let periodicTimeObserver {
             synchronizer.removeTimeObserver(periodicTimeObserver)
@@ -74,7 +74,7 @@ public class AudioRendererPlayer: AudioOutput {
             guard let self else {
                 return
             }
-            self.renderSource?.setAudio(time: time, position: -1)
+            renderSource?.setAudio(time: time, position: -1)
         }
     }
 

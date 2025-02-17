@@ -125,10 +125,10 @@ public final class MEPlayerItem: @unchecked Sendable {
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
         guard let self else { return 0 }
-        if self.state != .opening, let preload = self.ioContext as? PreLoadProtocol, preload.loadedSize > 0 {
+        if state != .opening, let preload = ioContext as? PreLoadProtocol, preload.loadedSize > 0 {
             return preload.urlPos
         } else {
-            return self.pbArray.map(\.bytesRead).reduce(0, +) ?? 0
+            return pbArray.map(\.bytesRead).reduce(0, +) ?? 0
         }
     } audioBitrate: { [weak self] in
         Int(8 * (self?.audioTrack?.bitrate ?? 0))
@@ -612,9 +612,9 @@ extension MEPlayerItem {
     private func read() {
         readOperation = BlockOperation { [weak self] in
             guard let self else { return }
-            Thread.current.name = (self.operationQueue.name ?? "") + "_read"
+            Thread.current.name = (operationQueue.name ?? "") + "_read"
             Thread.current.stackSize = KSOptions.stackSize
-            self.readThread()
+            readThread()
         }
         readOperation?.queuePriority = .high
         readOperation?.qualityOfService = .utility
@@ -700,8 +700,8 @@ extension MEPlayerItem {
         if seekSuccess {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                self.seekingCompletionHandler?(true)
-                self.seekingCompletionHandler = nil
+                seekingCompletionHandler?(true)
+                seekingCompletionHandler = nil
             }
             state = .reading
             return
@@ -761,8 +761,8 @@ extension MEPlayerItem {
         if state == .closed {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                self.seekingCompletionHandler?(result >= 0)
-                self.seekingCompletionHandler = nil
+                seekingCompletionHandler?(result >= 0)
+                seekingCompletionHandler = nil
             }
             return
         }
@@ -775,9 +775,9 @@ extension MEPlayerItem {
         videoClock.time = CMTime(seconds: seekToTime, preferredTimescale: time.timescale)
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.codecDidChangeCapacity()
-            self.seekingCompletionHandler?(result >= 0)
-            self.seekingCompletionHandler = nil
+            codecDidChangeCapacity()
+            seekingCompletionHandler?(result >= 0)
+            seekingCompletionHandler = nil
         }
         state = .reading
     }
@@ -928,9 +928,9 @@ extension MEPlayerItem: MediaPlayback {
         state = .opening
         openOperation = BlockOperation { [weak self] in
             guard let self else { return }
-            Thread.current.name = (self.operationQueue.name ?? "") + "_open"
+            Thread.current.name = (operationQueue.name ?? "") + "_open"
             Thread.current.stackSize = KSOptions.stackSize
-            self.openThread()
+            openThread()
         }
         openOperation?.queuePriority = .veryHigh
         openOperation?.qualityOfService = .userInitiated
@@ -1174,7 +1174,7 @@ extension MEPlayerItem: AudioOutputRenderSourceDelegate, VideoOutputRenderSource
             guard let self else { return true }
             let main: KSClock
             if KSOptions.audioVideoClockSync {
-                main = self.mainClock()
+                main = mainClock()
             } else {
                 if isAudioStalled || abs(audioClock.getTime() - videoClock.getTime()) < 1 {
                     main = videoClock
@@ -1182,7 +1182,7 @@ extension MEPlayerItem: AudioOutputRenderSourceDelegate, VideoOutputRenderSource
                     main = audioClock
                 }
             }
-            (self.dynamicInfo.audioVideoSyncDiff, type) = self.options.videoClockSync(main: main, nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
+            (dynamicInfo.audioVideoSyncDiff, type) = options.videoClockSync(main: main, nextVideoTime: frame.seconds, fps: Double(frame.fps), frameCount: count)
             if case .remain = type {
                 return false
             } else {

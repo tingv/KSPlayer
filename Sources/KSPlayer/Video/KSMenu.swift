@@ -54,7 +54,7 @@ extension UIButton {
         menu = UIMenu(title: title, current: current, list: list, addDisabled: addDisabled, titleFunc: titleFunc) { [weak self] title, value in
             guard let self else { return }
             handler(value)
-            self.menu = self.menu?.updateActionState(actionTitle: title)
+            menu = menu?.updateActionState(actionTitle: title)
         }
     }
 }

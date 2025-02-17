@@ -75,7 +75,7 @@ public class PlistCacheSubtitleDataSource: CacheSubtitleDataSource, @unchecked S
                 guard let self else {
                     return
                 }
-                (self.srtInfoCaches as NSDictionary).write(toFile: self.srtCacheInfoPath, atomically: false)
+                (srtInfoCaches as NSDictionary).write(toFile: srtCacheInfoPath, atomically: false)
             }
         }
     }

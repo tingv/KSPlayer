@@ -632,7 +632,7 @@ class DisplayLink: DisplayLinkProtocol {
         self.displayLink = displayLink!
         CVDisplayLinkSetOutputHandler(self.displayLink) { [weak self] _, _, _, _, _ in
             guard let self else { return kCVReturnSuccess }
-            self.runloop?.perform(selector, target: target, argument: self, order: 0, modes: [self.mode])
+            runloop?.perform(selector, target: target, argument: self, order: 0, modes: [mode])
             return kCVReturnSuccess
         }
         CVDisplayLinkStart(self.displayLink)
