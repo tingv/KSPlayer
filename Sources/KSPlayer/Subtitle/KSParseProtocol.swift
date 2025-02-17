@@ -154,6 +154,10 @@ extension Scanner {
 
 extension KSOptions {
     static var assStyle: String {
-        "Style: Default,\(textFontName),\(Int(textFontSize * KSOptions.scale / 4)),&Hffffff,&Hffffff,&H0,&H0,\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,2,10,10,10,1"
+        if #available(iOS 14, macOS 11.0, tvOS 14, *) {
+            "Style: Default,\(textFontName),\(Int(textFontSize * KSOptions.scale / 4)),\(textColor.assColor),\(textColor.assColor),\(textBackgroundColor.assColor),\(textBackgroundColor.assColor),\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,\(textPosition.alignment),\(KSOptions.textPosition.leftMargin),\(textPosition.rightMargin),\(KSOptions.textPosition.verticalMargin),1"
+        } else {
+            "Style: Default,\(textFontName),\(Int(textFontSize * KSOptions.scale / 4)),&Hffffff,&Hffffff,&H0,&H0,\(textBold ? "1" : "0"),\(textItalic ? "1" : "0"),0,0,100,100,0,0,1,1,0,\(textPosition.alignment),\(KSOptions.textPosition.leftMargin),\(textPosition.rightMargin),\(KSOptions.textPosition.verticalMargin),1"
+        }
     }
 }

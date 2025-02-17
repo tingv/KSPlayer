@@ -73,8 +73,8 @@ public struct SubtitlePart: CustomStringConvertible, Sendable {
 public struct TextPosition: Equatable, Hashable, Sendable {
     public var verticalAlign: VerticalAlignment = .bottom
     public var horizontalAlign: HorizontalAlignment = .center
-    public var leftMargin: CGFloat = 2
-    public var rightMargin: CGFloat = 2
+    public var leftMargin: CGFloat = 10
+    public var rightMargin: CGFloat = 10
     #if os(tvOs)
     public var verticalMargin: CGFloat = 60
     #else
@@ -93,6 +93,31 @@ public struct TextPosition: Equatable, Hashable, Sendable {
             edgeInsets.trailing = rightMargin
         }
         return edgeInsets
+    }
+
+    public var alignment: String {
+        switch (verticalAlign, horizontalAlign) {
+        case (.bottom, .leading):
+            return "1"
+        case (.bottom, .center):
+            return "2"
+        case (.bottom, .trailing):
+            return "3"
+        case (.center, .leading):
+            return "4"
+        case (.center, .center):
+            return "5"
+        case (.center, .trailing):
+            return "6"
+        case (.top, .leading):
+            return "7"
+        case (.top, .center):
+            return "8"
+        case (.top, .trailing):
+            return "9"
+        case (_, _):
+            return "2"
+        }
     }
 
     public mutating func ass(alignment: String?) {

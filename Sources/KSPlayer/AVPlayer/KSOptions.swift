@@ -353,10 +353,8 @@ open class KSOptions {
     // 丢弃掉字幕自带的样式，用自定义的样式
     @MainActor
     public static var stripSubtitleStyle = true
-    @MainActor
-    public static var textColor: Color = .white
-    @MainActor
-    public static var textBackgroundColor: Color = .clear
+    public nonisolated(unsafe) static var textColor: Color = .white
+    public nonisolated(unsafe) static var textBackgroundColor: Color = .clear
     @MainActor
     public static var textFont: UIFont {
         var font = UIFont(name: textFontName, size: textFontSize, bold: textBold, italic: textItalic)
@@ -389,8 +387,7 @@ open class KSOptions {
     public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
-    @MainActor
-    public static var textPosition = TextPosition()
+    public nonisolated(unsafe) static var textPosition = TextPosition()
     @MainActor
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var subtitleDynamicRange = Image.DynamicRange.high

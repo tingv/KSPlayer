@@ -137,6 +137,24 @@ public extension UIColor {
         self.init(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, alpha: alpha)
     }
 
+    var abgr: Int {
+        var red: CGFloat = 0.0
+        var green: CGFloat = 0.0
+        var blue: CGFloat = 0.0
+        var alpha: CGFloat = 0.0
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        let r = Int(red * 255)
+        let g = Int(green * 255)
+        let b = Int(blue * 255)
+        let a = 255 - Int(alpha * 255)
+        let hex = (a << 24) | (b << 16) | (g << 8) | r
+        return hex
+    }
+
+    var assColor: String {
+        String(format: "&H%08X", abgr)
+    }
+
     func createImage(size: CGSize = .one) -> UIImage {
         #if canImport(UIKit)
         let rect = CGRect(origin: .zero, size: size)
@@ -154,6 +172,13 @@ public extension UIColor {
         image.unlockFocus()
         return image
         #endif
+    }
+}
+
+extension Color {
+    @available(iOS 14, macOS 11.0, tvOS 14, *)
+    var assColor: String {
+        UIColor(self).assColor
     }
 }
 
@@ -775,33 +800,22 @@ extension VerticalAlignment: Identifiable {
     public var id: Self { self }
 }
 
+@available(iOS 14, macOS 11.0, tvOS 14, *)
 extension Color: RawRepresentable {
-    public typealias RawValue = String
-    public init?(rawValue: RawValue) {
-        guard let data = Data(base64Encoded: rawValue) else {
-            self = .black
-            return
+    public init?(rawValue: String) {
+        guard let data = Data(base64Encoded: rawValue),
+              let color = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: data)
+        else {
+            return nil
         }
-
-        do {
-            let color = try NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: data) ?? .black
-            self = Color(color)
-        } catch {
-            self = .black
-        }
+        self = Color(color)
     }
 
-    public var rawValue: RawValue {
-        do {
-            if #available(macOS 11.0, iOS 14, tvOS 14, *) {
-                let data = try NSKeyedArchiver.archivedData(withRootObject: UIColor(self), requiringSecureCoding: false) as Data
-                return data.base64EncodedString()
-            } else {
-                return ""
-            }
-        } catch {
-            return ""
-        }
+    public var rawValue: String {
+        let data = try? NSKeyedArchiver.archivedData(
+            withRootObject: UIColor(self), requiringSecureCoding: false
+        )
+        return data?.base64EncodedString() ?? ""
     }
 }
 
