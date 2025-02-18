@@ -269,7 +269,9 @@ extension MEPlayerItem {
         }
         formatCtx.pointee.interrupt_callback = interruptCB
         formatCtx.pointee.opaque = Unmanaged.passUnretained(self).toOpaque()
-        setHttpProxy()
+        if options.useSystemHTTPProxy {
+            setHttpProxy()
+        }
         ioContext = options.process(url: url, interrupt: interruptCB)
         if let ioContext {
             // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
@@ -613,7 +615,7 @@ extension MEPlayerItem {
         readOperation = BlockOperation { [weak self] in
             guard let self else { return }
             Thread.current.name = (operationQueue.name ?? "") + "_read"
-            Thread.current.stackSize = KSOptions.stackSize
+            Thread.current.stackSize = options.stackSize
             readThread()
         }
         readOperation?.queuePriority = .high
@@ -929,7 +931,7 @@ extension MEPlayerItem: MediaPlayback {
         openOperation = BlockOperation { [weak self] in
             guard let self else { return }
             Thread.current.name = (operationQueue.name ?? "") + "_open"
-            Thread.current.stackSize = KSOptions.stackSize
+            Thread.current.stackSize = options.stackSize
             openThread()
         }
         openOperation?.queuePriority = .veryHigh

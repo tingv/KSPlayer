@@ -32,6 +32,10 @@ open class KSOptions {
     public internal(set) var decodeVideoTime = 0.0
     @MainActor
     public init() {
+        useSystemHTTPProxy = KSOptions.useSystemHTTPProxy
+        yadifMode = KSOptions.yadifMode
+        deInterlaceAddIdet = KSOptions.deInterlaceAddIdet
+        stackSize = KSOptions.stackSize
         hardwareDecode = KSOptions.hardwareDecode
         asynchronousDecompression = KSOptions.asynchronousDecompression
         videoSoftDecodeThreadCount = KSOptions.videoSoftDecodeThreadCount
@@ -95,7 +99,9 @@ open class KSOptions {
 
     // MARK: playback options
 
-    public nonisolated(unsafe) static var stackSize = 65536
+    @MainActor
+    public static var stackSize: Int = 65536
+    public let stackSize: Int
     public var startPlayTime: TimeInterval = 0
     public var startPlayRate: Float = 1.0
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
@@ -204,7 +210,7 @@ open class KSOptions {
                 hardwareDecode = false
                 asynchronousDecompression = false
                 let yadif = hardwareDecode ? "yadif_videotoolbox" : "yadif"
-                var yadifMode = KSOptions.yadifMode
+                var yadifMode = yadifMode
                 //                if let assetTrack = assetTrack as? FFmpegAssetTrack {
                 //                    if assetTrack.realFrameRate.num == 2 * assetTrack.avgFrameRate.num, assetTrack.realFrameRate.den == assetTrack.avgFrameRate.den {
                 //                        if yadifMode == 1 {
@@ -214,7 +220,7 @@ open class KSOptions {
                 //                        }
                 //                    }
                 //                }
-                if KSOptions.deInterlaceAddIdet {
+                if deInterlaceAddIdet {
                     videoFilters.append("idet")
                 }
                 videoFilters.append("\(yadif)=mode=\(yadifMode):parity=-1:deint=1")
@@ -227,7 +233,9 @@ open class KSOptions {
 
     // MARK: network options
 
-    public nonisolated(unsafe) static var useSystemHTTPProxy = true
+    @MainActor
+    public static var useSystemHTTPProxy = true
+    public let useSystemHTTPProxy: Bool
     // 没事不要设置probesize，不然会导致fps判断不准确。除非是很为了秒开或是其他原因才进行设置。
     public var probesize: Int64?
     public var maxAnalyzeDuration: Int64?
@@ -422,8 +430,12 @@ open class KSOptions {
     public static var isClearVideoWhereReplace = true
     @MainActor
     public static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self
-    public nonisolated(unsafe) static var yadifMode = 1
-    public nonisolated(unsafe) static var deInterlaceAddIdet = false
+    @MainActor
+    public static var yadifMode = 1
+    @MainActor
+    public static var deInterlaceAddIdet = false
+    public let yadifMode: Int
+    public let deInterlaceAddIdet: Bool
     @MainActor
     public static var hardwareDecode = true
     /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
