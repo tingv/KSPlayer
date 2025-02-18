@@ -17,7 +17,7 @@ import AppKit
 public class MPVHandle: NSObject {
     var mpv: OpaquePointer? = mpv_create()
     let metalView: MetalView
-    private lazy var queue = DispatchQueue(label: "mpv", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "mpv", qos: .userInitiated)
     @MainActor
     public init(options: KSOptions) {
         metalView = MetalView()
@@ -46,13 +46,16 @@ public class MPVHandle: NSObject {
             mpv_observe_property(mpv, 0, k, v)
         }
         check(status: mpv_initialize(mpv))
-        mpv_set_wakeup_callback(mpv, { ctx in
-            guard let ctx else {
-                return
-            }
-            let `self` = Unmanaged<MPVHandle>.fromOpaque(ctx).takeUnretainedValue()
-            self.readEvents()
-        }, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()))
+        queue.async { [weak self] in
+            guard let self else { return }
+            mpv_set_wakeup_callback(mpv, { ctx in
+                guard let ctx else {
+                    return
+                }
+                let `self` = unsafeBitCast(ctx, to: MPVHandle.self)
+                self.readEvents()
+            }, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()))
+        }
     }
 
     private func readEvents() {
@@ -61,12 +64,12 @@ public class MPVHandle: NSObject {
                 if event.pointee.event_id == MPV_EVENT_NONE {
                     break
                 }
-                self.event(event.pointee)
+                handle(event: event.pointee)
             }
         }
     }
 
-    open func event(_ event: mpv_event) {
+    open func handle(event: mpv_event) {
         switch event.event_id {
         case MPV_EVENT_SHUTDOWN:
             mpv_destroy(mpv)

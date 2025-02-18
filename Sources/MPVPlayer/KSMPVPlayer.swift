@@ -48,8 +48,8 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
         super.init(options: options)
     }
 
-    override public func event(_ event: mpv_event) {
-        super.event(event)
+    override public func handle(event: mpv_event) {
+        super.handle(event: event)
         switch event.event_id {
         case MPV_EVENT_FILE_LOADED:
             sourceDidOpened()
