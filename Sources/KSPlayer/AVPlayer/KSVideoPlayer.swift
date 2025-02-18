@@ -165,6 +165,15 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         private var delayHide: DispatchWorkItem?
+        #if os(macOS)
+        private var eventMonitor: Any? {
+            willSet {
+                if let eventMonitor {
+                    NSEvent.removeMonitor(eventMonitor)
+                }
+            }
+        }
+        #endif
         public var onPlay: ((TimeInterval, TimeInterval) -> Void)?
         public var onFinish: ((KSPlayerLayer, Error?) -> Void)?
         public var onStateChanged: ((KSPlayerLayer, KSPlayerState) -> Void)?
@@ -178,6 +187,13 @@ extension KSVideoPlayer: UIViewRepresentable {
         public init() {}
 
         public func makeView(url: URL, options: KSOptions) -> UIView {
+            #if os(macOS)
+            eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] in
+                guard let self else { return nil }
+                isMaskShow = true
+                return $0
+            }
+            #endif
             if let playerLayer {
                 if playerLayer.url == url {
                     playerLayer.delegate = self
@@ -195,6 +211,9 @@ extension KSVideoPlayer: UIViewRepresentable {
         }
 
         public func resetPlayer() {
+            #if os(macOS)
+            eventMonitor = nil
+            #endif
             onStateChanged = nil
             onPlay = nil
             onFinish = nil

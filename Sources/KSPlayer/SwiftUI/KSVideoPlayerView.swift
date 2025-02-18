@@ -55,13 +55,6 @@ public struct KSVideoPlayerView: View {
             KSCorePlayerView(config: .init(initialValue: config), url: url, options: options, title: _title, subtitleDataSource: subtitleDataSource)
                 .onAppear {
                     liftCycleBlock?(config, false)
-                    // 不要加这个，不然config无法释放，也可以在onDisappear调用removeMonitor释放
-                    //                    #if os(macOS)
-                    //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
-                    //                        isMaskShow = overView
-                    //                        return $0
-                    //                    }
-                    //                    #endif
                 }
                 .onDisappear {
                     liftCycleBlock?(config, true)
