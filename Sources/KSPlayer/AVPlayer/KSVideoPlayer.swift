@@ -289,15 +289,19 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         }
     }
 
-    public func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    public func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         onPlay?(currentTime, totalTime)
-        guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)) else {
+        guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)), var playable = Int(exactly: ceil(layer.player.playableTime)) else {
             return
         }
         current = max(0, current)
+        playable = max(0, playable)
         total = max(0, total)
         if timemodel.currentTime != current {
             timemodel.currentTime = current
+        }
+        if timemodel.bufferTime != playable {
+            timemodel.bufferTime = playable
         }
         if total == 0 {
             timemodel.totalTime = timemodel.currentTime
@@ -381,6 +385,8 @@ public class ControllerTimeModel: ObservableObject {
     public var currentTime = 0
     @Published
     public var totalTime = 1
+    @Published
+    public var bufferTime = 0
 }
 
 #if DEBUG

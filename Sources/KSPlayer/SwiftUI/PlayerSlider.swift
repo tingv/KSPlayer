@@ -17,12 +17,12 @@ public struct PlayerSlider: View {
     private var beginDrag = false
     @FocusState
     private var isFocused: Bool
-    public init(model: ControllerTimeModel, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(model: ControllerTimeModel, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.init(value: Binding {
             Float(model.currentTime)
         } set: { newValue, _ in
             model.currentTime = Int(newValue)
-        }, in: 0 ... Float(model.totalTime), bufferValue: bufferValue, onEditingChanged: onEditingChanged)
+        }, in: 0 ... Float(model.totalTime), bufferValue: Float(model.bufferTime), onEditingChanged: onEditingChanged)
     }
 
     public init(value: Binding<Float>, in bounds: ClosedRange<Float> = 0 ... 1, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
@@ -221,8 +221,9 @@ struct PlayerSlider_Previews: PreviewProvider {
     static var previews: some View {
         let model = ControllerTimeModel()
         model.currentTime = 50
+        model.bufferTime = 75
         model.totalTime = 100
-        return PlayerSlider(model: model, bufferValue: 75)
+        return PlayerSlider(model: model)
     }
 }
 #endif

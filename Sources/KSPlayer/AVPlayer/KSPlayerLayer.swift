@@ -216,11 +216,8 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             runOnMainThread {
                 UIApplication.shared.isIdleTimerDisabled = false
             }
-        } else if state == .buffering || state == .bufferFinished {
-            timer.fireDate = .distantPast
-        } else {
-            timer.fireDate = .distantFuture
         }
+        timer.fireDate = [KSPlayerState.paused, .buffering, .bufferFinished].contains(state) ? .distantPast : .distantFuture
         runOnMainThread { [weak self] in
             guard let self else { return }
             KSLog("playerStateDidChange - \(state)")
@@ -230,7 +227,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
 
     @MainActor
     open func play(currentTime: TimeInterval) {
-        if player.playbackState != .seeking {
+        if player.isPlaying {
             if subtitleModel.isHDR != options.dynamicRange.isHDR {
                 if KSOptions.enableHDRSubtitle {
                     subtitleModel.isHDR = options.dynamicRange.isHDR

@@ -411,7 +411,7 @@ struct VideoTimeShowView: View {
             HStack {
                 Text(model.currentTime.toString(for: .minOrHour))
                     .font(timeFont.monospacedDigit())
-                PlayerSlider(model: model, bufferValue: Float(playerLayer.player.playableTime)) { onEditingChanged in
+                PlayerSlider(model: model) { onEditingChanged in
                     if onEditingChanged {
                         playerLayer.pause()
                     } else {
