@@ -22,8 +22,22 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
     public var allowsExternalPlayback: Bool = false
     public var usesExternalPlaybackWhileExternalScreenIsActive: Bool = false
     public private(set) var isReadyToPlay = false
-    public private(set) var playbackState = MediaPlaybackState.idle
-    public private(set) var loadState = MediaLoadState.idle
+    public private(set) var loadState = MediaLoadState.idle {
+        didSet {
+            if loadState != oldValue {
+                playOrPause()
+            }
+        }
+    }
+
+    public private(set) var playbackState = MediaPlaybackState.idle {
+        didSet {
+            if playbackState != oldValue {
+                playOrPause()
+            }
+        }
+    }
+
     public var seekable: Bool = false
     public var duration: TimeInterval = 0
     public var fileSize: Int64 = 0
@@ -61,11 +75,9 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
     override public func change(property: mpv_event_property, name: String) {
         super.change(property: property, name: name)
         switch name {
-        case "pause":
+        case MPVOption.PlaybackControl.pause:
             if let paused = UnsafePointer<Bool>(OpaquePointer(property.data))?.pointee {
-                if paused {
-                    playbackState = .paused
-                }
+                playbackState = paused ? .paused : .playing
             }
         case MPVProperty.pausedForCache:
             if let paused = UnsafePointer<Bool>(OpaquePointer(property.data))?.pointee {
@@ -76,7 +88,7 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
         }
     }
 
-    func sourceDidOpened() {
+    private func sourceDidOpened() {
         isReadyToPlay = true
         seekable = getFlag(MPVProperty.seekable)
         duration = getDouble(MPVProperty.duration)
@@ -96,6 +108,13 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
                 return
             }
             delegate?.readyToPlay(player: self)
+        }
+    }
+
+    private func playOrPause() {
+        runOnMainThread { [weak self] in
+            guard let self else { return }
+            delegate?.changeLoadState(player: self)
         }
     }
 }

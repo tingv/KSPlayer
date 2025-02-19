@@ -190,7 +190,10 @@ extension KSVideoPlayer: UIViewRepresentable {
             #if os(macOS)
             eventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] in
                 guard let self else { return nil }
-                isMaskShow = true
+                if let view = playerLayer?.player.view, view.window == $0.window {
+                    let mouseLocation = $0.locationInWindow
+                    isMaskShow = view.bounds.contains(mouseLocation)
+                }
                 return $0
             }
             #endif
