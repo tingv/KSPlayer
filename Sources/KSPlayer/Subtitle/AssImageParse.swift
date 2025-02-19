@@ -21,7 +21,8 @@ public final class AssImageParse: KSParseProtocol {
             scanner.scanString("WEBVTT")
             return true
         }
-        if KSOptions.isASSUseImageRender, scanner.scanString("[Script Info]") != nil {
+        // 兼容不规范的ass字幕
+        if KSOptions.isASSUseImageRender, let info = scanner.scanUpToCharacters(from: .newlines), info.contains("[Script Info]") {
             return true
         }
         return false

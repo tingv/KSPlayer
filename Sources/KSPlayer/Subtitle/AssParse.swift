@@ -14,7 +14,8 @@ public class AssParse: KSParseProtocol {
     private var playResX = Float(0.0)
     private var playResY = Float(0.0)
     public func canParse(scanner: Scanner) -> Bool {
-        guard scanner.scanString("[Script Info]") != nil else {
+        // 兼容不规范的ass字幕
+        guard let info = scanner.scanUpToCharacters(from: .newlines), info.contains("[Script Info]") else {
             return false
         }
         while scanner.scanString("Format:") == nil {
