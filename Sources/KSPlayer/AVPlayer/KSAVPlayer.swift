@@ -104,7 +104,7 @@ public class KSAVPlayer {
         [:]
     } bytesRead: { [weak self] in
         guard let self else { return 0 }
-        numberOfBytesTransferred
+        return numberOfBytesTransferred
     } audioBitrate: { [weak self] in
         0
     } videoBitrate: { [weak self] in

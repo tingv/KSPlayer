@@ -361,7 +361,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     public var seekable: Bool { playerItem.seekable }
 
-    public var dynamicInfo: DynamicInfo? {
+    public var dynamicInfo: DynamicInfo {
         playerItem.dynamicInfo
     }
 

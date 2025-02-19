@@ -495,10 +495,7 @@ struct VideoSettingView: View {
                     playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: [Locale.current.identifier])
                 }
                 .buttonStyle(.bordered)
-
-                if let dynamicInfo = playerLayer.player.dynamicInfo {
-                    DynamicInfoView(dynamicInfo: dynamicInfo)
-                }
+                DynamicInfoView(dynamicInfo: playerLayer.player.dynamicInfo)
                 let fileSize = playerLayer.player.fileSize
                 if fileSize > 0 {
                     LabeledContent("File Size".localized, value: fileSize.kmFormatted + "B")

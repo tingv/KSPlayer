@@ -25,6 +25,7 @@ public protocol MediaPlayback: AnyObject {
     var chapters: [Chapter] { get }
     var currentPlaybackTime: TimeInterval { get }
     var playbackRate: Float { get set }
+    var dynamicInfo: DynamicInfo { get }
     func prepareToPlay()
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
     func startRecord(url: URL)
@@ -74,7 +75,7 @@ public class DynamicInfo: ObservableObject {
     public var byteRate = Int64(0)
     public var droppedVideoFrameCount = UInt32(0)
     public var droppedVideoPacketCount = UInt32(0)
-    init(metadata: @escaping () -> [String: String], bytesRead: @escaping () -> Int64, audioBitrate: @escaping () -> Int, videoBitrate: @escaping () -> Int) {
+    public init(metadata: @escaping () -> [String: String], bytesRead: @escaping () -> Int64, audioBitrate: @escaping () -> Int, videoBitrate: @escaping () -> Int) {
         metadataBlock = metadata
         bytesReadBlock = bytesRead
         audioBitrateBlock = audioBitrate
@@ -116,7 +117,6 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var playbackCoordinator: AVPlaybackCoordinator { get }
     @MainActor
     var pipController: KSPictureInPictureProtocol? { get set }
-    var dynamicInfo: DynamicInfo? { get }
     init(url: URL, options: KSOptions)
     func replace(url: URL, options: KSOptions)
     func play()

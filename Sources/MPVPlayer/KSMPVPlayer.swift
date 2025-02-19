@@ -38,6 +38,17 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
         }
     }
 
+    public lazy var dynamicInfo = DynamicInfo { [weak self] in
+        [:]
+    } bytesRead: { [weak self] in
+        guard let self else { return 0 }
+        return 0
+    } audioBitrate: { [weak self] in
+        0
+    } videoBitrate: { [weak self] in
+        0
+    }
+
     public var seekable: Bool = false
     public var duration: TimeInterval = 0
     public var fileSize: Int64 = 0
@@ -168,10 +179,6 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         // swiftlint:disable force_cast
         _playbackCoordinator as! AVPlaybackCoordinator
         // swiftlint:enable force_cast
-    }
-
-    public var dynamicInfo: KSPlayer.DynamicInfo? {
-        nil
     }
 
     public func replace(url: URL, options _: KSPlayer.KSOptions) {

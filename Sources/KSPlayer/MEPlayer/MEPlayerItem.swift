@@ -120,7 +120,7 @@ public final class MEPlayerItem: @unchecked Sendable {
         }
     }
 
-    lazy var dynamicInfo = DynamicInfo { [weak self] in
+    public lazy var dynamicInfo = DynamicInfo { [weak self] in
         // metadata可能会实时变化。所以把它放在DynamicInfo里面
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
