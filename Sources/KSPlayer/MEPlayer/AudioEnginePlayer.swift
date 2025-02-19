@@ -182,7 +182,7 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
         if let channelLayout = audioFormat.channelLayout {
             KSLog("[audio] outputFormat channelLayout \(channelLayout.channelDescriptions)")
         }
-        sourceNode = AVAudioSourceNode(format: audioFormat) { [weak self] _, timestamp, frameCount, audioBufferList in
+        sourceNode = AVAudioSourceNode(format: audioFormat) { @Sendable [weak self] _, timestamp, frameCount, audioBufferList in
             if timestamp.pointee.mSampleTime == 0 {
                 return noErr
             }
