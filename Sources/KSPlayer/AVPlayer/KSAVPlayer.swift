@@ -100,7 +100,17 @@ public class KSAVPlayer {
     public var pipController: KSPictureInPictureProtocol? = nil
 
     public var naturalSize: CGSize = .zero
-    public let dynamicInfo: DynamicInfo? = nil
+    public lazy var dynamicInfo = DynamicInfo { [weak self] in
+        [:]
+    } bytesRead: { [weak self] in
+        guard let self else { return 0 }
+        numberOfBytesTransferred
+    } audioBitrate: { [weak self] in
+        0
+    } videoBitrate: { [weak self] in
+        0
+    }
+
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     public var playbackCoordinator: AVPlaybackCoordinator {
         playerView.player.playbackCoordinator
