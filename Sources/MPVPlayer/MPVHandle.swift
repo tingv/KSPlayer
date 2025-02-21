@@ -27,11 +27,12 @@ public class MPVHandle: NSObject {
         #else
         check(status: mpv_request_log_messages(mpv, "no"))
         #endif
-        setOption(name: "input-media-keys", value: "yes")
+        setOption(name: MPVOption.Input.inputMediaKeys, value: "yes")
         var layer = metalView.layer
         check(status: mpv_set_option(mpv, MPVOption.Window.wid, MPV_FORMAT_INT64, &layer))
         setOption(name: "subs-match-os-language", value: "yes")
         setOption(name: "subs-fallback", value: "yes")
+//        setOption(name: MPVOption.GPURendererOptions.targetColorspaceHint, value: "yes")
         setOption(name: MPVOption.GPURendererOptions.gpuApi, value: "vulkan")
 //        setOption(name: MPVOption.GPURendererOptions.gpuContext, value: "moltenvk")
         if KSOptions.audioPlayerType == AudioRendererPlayer.self {

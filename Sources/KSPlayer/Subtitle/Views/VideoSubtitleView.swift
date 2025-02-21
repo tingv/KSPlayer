@@ -40,6 +40,7 @@ public struct VideoSubtitleView: View {
 extension NSAttributedString {
     @MainActor
     var view: some View {
+        // Text还没支持NSStrokeColor
         if #available(macOS 12, iOS 15, tvOS 15, *), !KSOptions.stripSubtitleStyle {
             Text(AttributedString(self))
         } else {

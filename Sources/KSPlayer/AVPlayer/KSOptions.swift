@@ -353,7 +353,7 @@ open class KSOptions {
 
     var fontsDir: URL?
     public nonisolated(unsafe) static var defaultFont: URL?
-    public nonisolated(unsafe) static var enableHDRSubtitle = true
+    public nonisolated(unsafe) static var enableHDRSubtitle = false
     public nonisolated(unsafe) static var isASSUseImageRender = false
     public nonisolated(unsafe) static var isSRTUseImageRender = false
     // 如果图片字幕的比率跟视频的比率不一致，是否要对图片进行伸缩
@@ -423,7 +423,6 @@ open class KSOptions {
     // MARK: video options
 
     /// 开启VR模式的陀飞轮
-
     @MainActor
     public static var enableSensor = true
     @MainActor
