@@ -294,21 +294,23 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         guard var current = Int(exactly: ceil(currentTime)), var total = Int(exactly: ceil(totalTime)), var playable = Int(exactly: ceil(layer.player.playableTime)) else {
             return
         }
-        current = max(0, current)
-        playable = max(0, playable)
-        total = max(0, total)
-        if timemodel.currentTime != current {
-            timemodel.currentTime = current
+        if layer.state.isPlaying {
+            current = max(0, current)
+            total = max(0, total)
+            if timemodel.currentTime != current {
+                timemodel.currentTime = current
+            }
+            if total == 0 {
+                timemodel.totalTime = timemodel.currentTime
+            } else {
+                if timemodel.totalTime != total {
+                    timemodel.totalTime = total
+                }
+            }
         }
+        playable = max(0, playable)
         if timemodel.bufferTime != playable {
             timemodel.bufferTime = playable
-        }
-        if total == 0 {
-            timemodel.totalTime = timemodel.currentTime
-        } else {
-            if timemodel.totalTime != total {
-                timemodel.totalTime = total
-            }
         }
     }
 

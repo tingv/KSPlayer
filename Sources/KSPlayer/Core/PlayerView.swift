@@ -191,10 +191,12 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
         }
     }
 
-    open func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    open func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         delegate?.playerController(currentTime: currentTime, totalTime: totalTime)
-        playTimeDidChange?(currentTime, totalTime)
-        toolBar.currentTime = currentTime
+        if layer.state.isPlaying {
+            playTimeDidChange?(currentTime, totalTime)
+            toolBar.currentTime = currentTime
+        }
         self.totalTime = totalTime
     }
 
