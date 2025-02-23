@@ -341,11 +341,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             if subtitleModel.selectedSubtitleInfo == nil, let infos = subtitleDataSource.infos as? [MediaPlayerTrack & SubtitleInfo] {
                 subtitleModel.selectedSubtitleInfo = options.wantedSubtitle(tracks: infos) as? SubtitleInfo
             }
-            // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。有些视频1s可能不够，所以改成2s
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2) { [weak self] in
-                guard let self else { return }
-                subtitleModel.addSubtitle(dataSource: subtitleDataSource)
-            }
+            subtitleModel.addSubtitle(dataSource: subtitleDataSource)
         }
         state = .readyToPlay
         #if os(macOS)
@@ -391,6 +387,10 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 delegate?.player(layer: self, bufferedCount: bufferedCount, consumeTime: diff)
             }
             if bufferedCount == 0 {
+                if let subtitleDataSource = player.subtitleDataSource {
+                    // 因为有些内嵌字幕是放在视频流的。要等到解码之后才会有字幕。所以要放在第一次可以播放的时候
+                    subtitleModel.addSubtitle(dataSource: subtitleDataSource)
+                }
                 var dic = ["firstTime": diff]
                 if options.tcpConnectedTime > 0 {
                     dic["initTime"] = options.dnsStartTime - startTime
