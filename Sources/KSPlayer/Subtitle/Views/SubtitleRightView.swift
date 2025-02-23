@@ -20,7 +20,6 @@ struct SubtitleRightView: View {
                 .shadow(color: .black.opacity(0.9), radius: 2, x: 1, y: 1)
                 .foregroundColor(KSOptions.textColor)
                 .background(KSOptions.textBackgroundColor)
-                .multilineTextAlignment(.center)
             #if !os(tvOS)
                 .textSelection()
             #endif
