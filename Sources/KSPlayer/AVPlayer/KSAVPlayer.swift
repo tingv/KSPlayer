@@ -176,7 +176,7 @@ public class KSAVPlayer {
         }
     }
 
-    #if os(xrOS)
+    #if os(visionOS)
     public var allowsExternalPlayback = false
     public var usesExternalPlaybackWhileExternalScreenIsActive = false
     public let isExternalPlaybackActive = false
@@ -574,7 +574,7 @@ class AVMediaPlayerTrack: @preconcurrency MediaPlayerTrack {
             bitRate = 0
         }
 
-        #if os(xrOS)
+        #if os(visionOS)
         isPlayable = false
         #else
         isPlayable = track.assetTrack?.isPlayable ?? false
@@ -588,7 +588,7 @@ class AVMediaPlayerTrack: @preconcurrency MediaPlayerTrack {
         bitDepth = formatDescription?.bitDepth ?? 0
         // swiftlint:enable force_cast
         description = (formatDescription?.mediaSubType ?? .boxed).rawValue.string
-        #if os(xrOS)
+        #if os(visionOS)
         Task {
             isPlayable = await (try? track.assetTrack?.load(.isPlayable)) ?? false
         }

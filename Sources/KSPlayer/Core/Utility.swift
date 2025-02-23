@@ -220,7 +220,7 @@ extension AVAsset {
         let audioTrackM = compositionM.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         let videoTrackM = compositionM.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
         let cutRange = CMTimeRange(start: beginTime, end: endTime)
-        #if os(xrOS)
+        #if os(visionOS)
         if let assetAudioTrack = try await loadTracks(withMediaType: .audio).first {
             try audioTrackM?.insertTimeRange(cutRange, of: assetAudioTrack, at: .zero)
         }
@@ -239,7 +239,7 @@ extension AVAsset {
     }
 
     // todo 先注释掉。等到xcode16出正式版本了，在处理，不然老版本会找不到符号。
-    #if !os(xrOS)
+    #if !os(visionOS)
     func createExportSession(beginTime: TimeInterval, endTime: TimeInterval) async throws -> AVAssetExportSession? {
         let compositionM = try await createComposition(beginTime: beginTime, endTime: endTime)
         guard let exportSession = AVAssetExportSession(asset: compositionM, presetName: "") else {

@@ -8,7 +8,7 @@
 import AVKit
 import SwiftUI
 
-#if !os(xrOS)
+#if !os(visionOS)
 public struct AirPlayView: UIViewRepresentable {
     public init() {}
 

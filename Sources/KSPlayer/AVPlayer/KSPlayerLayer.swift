@@ -189,7 +189,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
                 prepareToPlay()
             }
         }
-        #if canImport(UIKit) && !os(xrOS)
+        #if canImport(UIKit) && !os(visionOS)
         NotificationCenter.default.addObserver(self, selector: #selector(wirelessRouteActiveDidChange(notification:)), name: .MPVolumeViewWirelessRouteActiveDidChange, object: nil)
         #endif
         #if !os(macOS)
@@ -452,7 +452,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    #if canImport(UIKit) && !os(xrOS)
+    #if canImport(UIKit) && !os(visionOS)
     @MainActor
     @objc private func wirelessRouteActiveDidChange(notification: Notification) {
         guard let volumeView = notification.object as? MPVolumeView, isWirelessRouteActive != volumeView.isWirelessRouteActive else { return }

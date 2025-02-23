@@ -126,7 +126,7 @@ public enum KSVideoPlayerViewBuilder {
             }
         } label: {
             Image(systemName: "waveform.circle.fill")
-            #if os(xrOS)
+            #if os(visionOS)
                 .padding()
                 .clipShape(Circle())
             #endif
@@ -197,7 +197,7 @@ public enum KSVideoPlayerViewBuilder {
             #endif
         }
         .borderlessButton()
-        #if os(xrOS)
+        #if os(visionOS)
             .contentTransition(.symbolEffect(.replace))
         #endif
         #if !os(tvOS)
@@ -233,7 +233,7 @@ private extension View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public extension KSVideoPlayerViewBuilder {
     static var speakerSystemName: String {
-        #if os(xrOS) || os(macOS)
+        #if os(visionOS) || os(macOS)
         "speaker.fill"
         #else
         "speaker.wave.2.fill"
@@ -250,7 +250,7 @@ extension KSPlayerState {
         if self == .error {
             return "play.slash.fill"
         } else if self == .playedToTheEnd {
-            #if os(xrOS) || os(macOS)
+            #if os(visionOS) || os(macOS)
             return "restart.circle"
             #else
             return "restart.circle.fill"

@@ -46,13 +46,13 @@ public struct KSCorePlayerView: View {
         #endif
             .ignoresSafeArea()
 
-        #if os(iOS) || os(xrOS)
+        #if os(iOS) || os(visionOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
         #if !os(iOS)
         .focusable(!config.isMaskShow)
         #endif
-        #if !os(xrOS)
+        #if !os(visionOS)
         .onKeyPressLeftArrow {
             config.skip(interval: -15)
         }

@@ -21,7 +21,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
     public var volumeViewSlider = UXSlider()
     public var backButton = UIButton()
     public var airplayStatusView: UIView = AirplayStatusView()
-    #if !os(xrOS)
+    #if !os(visionOS)
     public var routeButton = AVRoutePickerView()
     #endif
     private let routeDetector = AVRouteDetector()
@@ -34,7 +34,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
         }
     }
 
-    #if !os(xrOS)
+    #if !os(visionOS)
     private var brightness: CGFloat = UIScreen.main.brightness {
         didSet {
             UIScreen.main.brightness = brightness
@@ -81,7 +81,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
             airplayStatusView.centerXAnchor.constraint(equalTo: centerXAnchor),
             airplayStatusView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
-        #if !os(xrOS)
+        #if !os(visionOS)
         routeButton.isHidden = true
         navigationBar.addArrangedSubview(routeButton)
         routeButton.translatesAutoresizingMaskIntoConstraints = false
@@ -97,7 +97,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
         maskImageView.alpha = 1
         maskImageView.image = nil
         panGesture.isEnabled = false
-        #if !os(xrOS)
+        #if !os(visionOS)
         routeButton.isHidden = !routeDetector.multipleRoutesDetected
         #endif
     }
@@ -255,7 +255,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
                     volumeViewSlider.value = tmpPanValue
                 }
             } else if KSOptions.enableBrightnessGestures {
-                #if !os(xrOS)
+                #if !os(visionOS)
                 brightness += CGFloat(panValue(velocity: point, direction: direction, currentTime: Float(toolBar.currentTime), totalTime: Float(totalTime)))
                 #endif
             }
@@ -299,7 +299,7 @@ extension IOSVideoPlayerView {
     }
 
     @objc private func routesAvailableDidChange(notification _: Notification) {
-        #if !os(xrOS)
+        #if !os(visionOS)
         routeButton.isHidden = !routeDetector.multipleRoutesDetected
         #endif
     }

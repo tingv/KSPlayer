@@ -7,7 +7,7 @@
 
 import AVFoundation
 import SwiftUI
-#if os(tvOS) || os(xrOS)
+#if os(tvOS) || os(visionOS)
 internal import DisplayCriteria
 #endif
 import AVKit
@@ -86,7 +86,7 @@ open class KSOptions {
     }
 
     open func playerLayerDeinit() {
-        #if os(tvOS) || os(xrOS)
+        #if os(tvOS) || os(visionOS)
         runOnMainThread {
             UIApplication.shared.windows.first?.avDisplayManager.preferredDisplayCriteria = nil
         }
@@ -547,7 +547,7 @@ open class KSOptions {
     @MainActor
     open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription) {
         dynamicRange = isDovi ? .dolbyVision : formatDescription.dynamicRange
-        #if os(tvOS) || os(xrOS)
+        #if os(tvOS) || os(visionOS)
         guard let displayManager = UIApplication.shared.windows.first?.avDisplayManager,
               displayManager.isDisplayCriteriaMatchingEnabled
         else {

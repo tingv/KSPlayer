@@ -19,9 +19,9 @@ open class SubtitleModel: ObservableObject {
         public var rawValue: CGFloat {
             switch self {
             case .smaller:
-                #if os(tvOS) || os(xrOS)
+                #if os(tvOS) || os(visionOS)
                 return 48
-                #elseif os(macOS) || os(xrOS)
+                #elseif os(macOS) || os(visionOS)
                 return 20
                 #else
                 if UITraitCollection.current.userInterfaceIdiom == .phone {
@@ -31,9 +31,9 @@ open class SubtitleModel: ObservableObject {
                 }
                 #endif
             case .standard:
-                #if os(tvOS) || os(xrOS)
+                #if os(tvOS) || os(visionOS)
                 return 58
-                #elseif os(macOS) || os(xrOS)
+                #elseif os(macOS) || os(visionOS)
                 return 26
                 #else
                 if UITraitCollection.current.userInterfaceIdiom == .phone {
@@ -43,9 +43,9 @@ open class SubtitleModel: ObservableObject {
                 }
                 #endif
             case .large:
-                #if os(tvOS) || os(xrOS)
+                #if os(tvOS) || os(visionOS)
                 return 68
-                #elseif os(macOS) || os(xrOS)
+                #elseif os(macOS) || os(visionOS)
                 return 32
                 #else
                 if UITraitCollection.current.userInterfaceIdiom == .phone {

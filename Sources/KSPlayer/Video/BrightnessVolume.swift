@@ -13,7 +13,7 @@ open class BrightnessVolume {
     public static let shared = BrightnessVolume()
     public var progressView: BrightnessVolumeViewProtocol & UIView = ProgressView()
     init() {
-        #if !os(tvOS) && !os(xrOS)
+        #if !os(tvOS) && !os(visionOS)
         brightnessObservation = UIScreen.main.observe(\.brightness, options: .new) { [weak self] _, change in
             runOnMainThread {
                 if let self, let value = change.newValue {

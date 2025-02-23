@@ -296,7 +296,7 @@ struct VideoControllerView: View {
                 } label: {
                     Image(systemName: "x.circle.fill")
                 }
-                #if os(xrOS)
+                #if os(visionOS)
                 .glassBackgroundEffect()
                 #endif
                 KSVideoPlayerViewBuilder.muteButton(config: config)
@@ -304,12 +304,12 @@ struct VideoControllerView: View {
                     .frame(maxWidth: 100)
                     .tint(.white.opacity(0.8))
                     .padding(.leading, 16)
-                #if os(xrOS)
+                #if os(visionOS)
                     .glassBackgroundEffect()
                 #endif
                 if let audioTracks = config.playerLayer?.player.tracks(mediaType: .audio), !audioTracks.isEmpty {
                     KSVideoPlayerViewBuilder.audioButton(config: config, audioTracks: audioTracks)
-                    #if os(xrOS)
+                    #if os(visionOS)
                         .aspectRatio(1, contentMode: .fit)
                         .glassBackgroundEffect()
                     #endif
@@ -326,7 +326,7 @@ struct VideoControllerView: View {
                 #endif
             }
             Spacer()
-            #if !os(xrOS)
+            #if !os(visionOS)
             HStack(spacing: 20) {
                 KSVideoPlayerViewBuilder.backwardButton(config: config)
                 KSVideoPlayerViewBuilder.playButton(config: config)
@@ -351,7 +351,7 @@ struct VideoControllerView: View {
         .sheet(isPresented: $showVideoSetting) {
             VideoSettingView(config: config, subtitleTitle: title)
         }
-        #if os(xrOS)
+        #if os(visionOS)
         .ornament(visibility: config.isMaskShow ? .visible : .hidden, attachmentAnchor: .scene(.bottom)) {
             VStack(alignment: .leading) {
                 HStack {
@@ -419,7 +419,7 @@ struct VideoTimeShowView: View {
                     }
                 }
                 .frame(maxHeight: 20)
-                #if os(xrOS)
+                #if os(visionOS)
                     .tint(.white.opacity(0.8))
                 #endif
                 Text((model.totalTime).toString(for: .minOrHour))
@@ -504,7 +504,7 @@ struct VideoSettingView: View {
                 Text("Loading...".localized)
             }
         }
-        #if os(macOS) || targetEnvironment(macCatalyst) || os(xrOS)
+        #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
         .toolbar {
             Button("Done".localized) {
                 dismiss()

@@ -18,7 +18,7 @@ Feature       | Free      |
 |Picture in Picture supports subtitle display|✅|
 |Annex-B async hardware decoding(Live Stream)|✅|
 |Use the fonts in the video to render subtitles|✅|
-|IOS Blu-ray disc playback on all Apple platforms|❌|
+|ISO Blu-ray disc playback on all Apple platforms|❌|
 |Use memory cache for fast seek in short time range|✅|
 |Cache data to Hard Drive,Preload data to Hard Drive|❌|
 |Offline AI real-time subtitle generation and translation|❌|
