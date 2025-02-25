@@ -13,7 +13,14 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
     public private(set) var trackID: Int32 = 0
     public let codecName: String
     public var name: String = ""
-    public private(set) var languageCode: String?
+    public internal(set) var languageCode: String? {
+        didSet {
+            if let languageCode, name == codecName {
+                name = languageCode
+            }
+        }
+    }
+
     public var nominalFrameRate: Float = 0
     public private(set) var avgFrameRate = Timebase.defaultValue
     public private(set) var realFrameRate = Timebase.defaultValue

@@ -464,6 +464,8 @@ extension MEPlayerItem {
     private func createAssetTracks(formatCtx: UnsafeMutablePointer<AVFormatContext>) {
         allPlayerItemTracks.removeAll()
         assetTracks.removeAll()
+        var audioIndex = 0
+        var subtitleIndex = 0
         assetTracks = (0 ..< Int(formatCtx.pointee.nb_streams)).compactMap { i in
             if let coreStream = formatCtx.pointee.streams[i] {
                 coreStream.pointee.discard = AVDISCARD_ALL
@@ -475,7 +477,17 @@ extension MEPlayerItem {
                     if assetTrack.mediaType == .subtitle || abs((assetTrack.startTime - startTime).seconds) < 3 {
                         assetTrack.startTime = startTime
                     }
+                    if assetTrack.mediaType == .audio {
+                        if let ioContext, ioContext.audioLanguageCodes.count > audioIndex, assetTrack.languageCode == nil {
+                            assetTrack.languageCode = ioContext.audioLanguageCodes[audioIndex]
+                        }
+                        audioIndex += 1
+                    }
                     if assetTrack.mediaType == .subtitle {
+                        if let ioContext, ioContext.audioLanguageCodes.count > subtitleIndex, assetTrack.languageCode == nil {
+                            assetTrack.languageCode = ioContext.subtitleLanguageCodes[subtitleIndex]
+                        }
+                        subtitleIndex += 1
                         let subtitle = assetTrack.isImageSubtitle ?
                             AsyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 8, options: options, expanding: false) :
                             SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 128, options: options, expanding: true)
