@@ -484,7 +484,7 @@ extension MEPlayerItem {
                         audioIndex += 1
                     }
                     if assetTrack.mediaType == .subtitle {
-                        if let ioContext, ioContext.audioLanguageCodes.count > subtitleIndex, assetTrack.languageCode == nil {
+                        if let ioContext, ioContext.subtitleLanguageCodes.count > subtitleIndex, assetTrack.languageCode == nil {
                             assetTrack.languageCode = ioContext.subtitleLanguageCodes[subtitleIndex]
                         }
                         subtitleIndex += 1
