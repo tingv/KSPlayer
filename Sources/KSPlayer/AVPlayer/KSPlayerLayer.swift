@@ -338,10 +338,10 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public func readyToPlay(player: some MediaPlayerProtocol) {
         addSubtitle(to: player.view)
         if let subtitleDataSource = player.subtitleDataSource {
+            subtitleModel.addSubtitle(dataSource: subtitleDataSource)
             if subtitleModel.selectedSubtitleInfo == nil, let infos = subtitleDataSource.infos as? [MediaPlayerTrack & SubtitleInfo] {
                 subtitleModel.selectedSubtitleInfo = options.wantedSubtitle(tracks: infos) as? SubtitleInfo
             }
-            subtitleModel.addSubtitle(dataSource: subtitleDataSource)
         }
         state = .readyToPlay
         #if os(macOS)
