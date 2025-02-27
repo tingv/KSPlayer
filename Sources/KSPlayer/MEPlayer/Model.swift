@@ -204,6 +204,10 @@ public struct Timebase: Sendable {
     func cmtime(for timestamp: Int64) -> CMTime { CMTime(value: timestamp * Int64(num), timescale: den) }
 }
 
+extension AVRational {
+    func cmtime(for timestamp: Int64) -> CMTime { CMTime(value: timestamp * Int64(num), timescale: den) }
+}
+
 extension Timebase {
     public var rational: AVRational { AVRational(num: num, den: den) }
 

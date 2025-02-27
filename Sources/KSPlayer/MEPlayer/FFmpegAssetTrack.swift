@@ -295,7 +295,11 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
     }
 
     func createContext(options: KSOptions) throws -> UnsafeMutablePointer<AVCodecContext> {
-        try codecpar.createContext(options: options)
+        let codecContext = try codecpar.createContext(options: options)
+        if let stream {
+            codecContext.pointee.pkt_timebase = stream.pointee.time_base
+        }
+        return codecContext
     }
 
     public var isEnabled: Bool {

@@ -9,6 +9,9 @@ import Accelerate
 import CoreGraphics
 import Foundation
 import Libavformat
+import Libavutil
+internal import FFmpegKit
+
 #if canImport(UIKit)
 import UIKit
 #else
@@ -66,12 +69,21 @@ class SubtitleDecode: DecodeProtocol {
             return
         }
         var gotsubtitle = Int32(0)
-        _ = avcodec_decode_subtitle2(codecContext, &subtitle, &gotsubtitle, packet.corePacket)
-        if gotsubtitle == 0 {
+        let res = avcodec_decode_subtitle2(codecContext, &subtitle, &gotsubtitle, packet.corePacket)
+        if res < 0 || gotsubtitle == 0 {
             return
         }
-        let timestamp = packet.timestamp
-        var start = packet.assetTrack.timebase.cmtime(for: timestamp).seconds + TimeInterval(subtitle.start_display_time) / 1000.0
+
+        let timestamp: Int64
+        var start: TimeInterval
+        if subtitle.pts != swift_AV_NOPTS_VALUE {
+            timestamp = subtitle.pts
+            start = Double(subtitle.pts) / Double(AV_TIME_BASE)
+        } else {
+            timestamp = packet.timestamp
+            start = codecContext.pointee.pkt_timebase.cmtime(for: timestamp).seconds
+        }
+        start += Double(subtitle.start_display_time) / 1000.0
         if start >= startTime {
             start -= startTime
         }

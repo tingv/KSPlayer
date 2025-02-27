@@ -30,7 +30,6 @@ class FFmpegDecode: DecodeProtocol {
         } catch {
             KSLog(error as CustomStringConvertible)
         }
-        codecContext?.pointee.time_base = assetTrack.timebase.rational
         isVideo = assetTrack.mediaType == .video
         filter = MEFilter(timebase: assetTrack.timebase, nominalFrameRate: assetTrack.nominalFrameRate, options: options)
         if isVideo {
