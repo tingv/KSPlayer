@@ -366,8 +366,8 @@ public extension FixedWidthInteger {
 open class AbstractAVIOContext: DownloadProtocol {
     // 这个要调高一点才不会频繁的进行网络请求，减少卡顿
     public let bufferSize: Int32
-    public var audioLanguageCodes = [String]()
-    public var subtitleLanguageCodes = [String]()
+    public var audioLanguageCodeMap = [Int32: String]()
+    public var subtitleLanguageCodeMap = [Int32: String]()
     public init(bufferSize: Int32 = 256 * 1024) {
         self.bufferSize = bufferSize
     }

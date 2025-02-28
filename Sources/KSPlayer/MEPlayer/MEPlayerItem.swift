@@ -475,7 +475,19 @@ extension MEPlayerItem {
                     if assetTrack.mediaType == .subtitle || abs((assetTrack.startTime - startTime).seconds) < 3 {
                         assetTrack.startTime = startTime
                     }
+                    if assetTrack.mediaType == .audio {
+                        if let ioContext, ioContext.audioLanguageCodeMap.count > 0 {
+                            if assetTrack.languageCode == nil, let id = assetTrack.stream?.pointee.id, let languageCode = ioContext.audioLanguageCodeMap[id] {
+                                assetTrack.languageCode = languageCode
+                            }
+                        }
+                    }
                     if assetTrack.mediaType == .subtitle {
+                        if let ioContext, ioContext.subtitleLanguageCodeMap.count > 0 {
+                            if assetTrack.languageCode == nil, let id = assetTrack.stream?.pointee.id, let languageCode = ioContext.subtitleLanguageCodeMap[id] {
+                                assetTrack.languageCode = languageCode
+                            }
+                        }
                         let subtitle = assetTrack.isImageSubtitle ?
                             AsyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 8, options: options, expanding: false) :
                             SyncPlayerItemTrack<SubtitleFrame>(mediaType: .subtitle, frameCapacity: 128, options: options, expanding: true)
@@ -510,14 +522,6 @@ extension MEPlayerItem {
         let subtitles = assetTracks.filter {
             $0.mediaType == .subtitle
         }
-        if let ioContext, ioContext.subtitleLanguageCodes.count > 0 {
-            let sub = max(subtitles.count - ioContext.subtitleLanguageCodes.count, 0)
-            for i in sub ..< subtitles.count {
-                if subtitles[i].languageCode == nil {
-                    subtitles[i].languageCode = ioContext.subtitleLanguageCodes[i - sub]
-                }
-            }
-        }
         // 因为本地视频加载很快，所以要在这边就把图片字幕给打开。不然前几秒的图片视频可能就无法展示出来了。
         options.wantedSubtitle(tracks: subtitles)?.isEnabled = true
     }
@@ -544,14 +548,6 @@ extension MEPlayerItem {
 
     private func findBestAudioAssetTrack() -> FFmpegAssetTrack? {
         let audios = assetTracks.filter { $0.mediaType == .audio }
-        if let ioContext, ioContext.audioLanguageCodes.count > 0 {
-            let sub = max(audios.count - ioContext.audioLanguageCodes.count, 0)
-            for i in sub ..< audios.count {
-                if audios[i].languageCode == nil {
-                    audios[i].languageCode = ioContext.audioLanguageCodes[i - sub]
-                }
-            }
-        }
         let wantedStreamNb: Int32
         if !audios.isEmpty, let track = options.wantedAudio(tracks: audios) {
             wantedStreamNb = track.trackID

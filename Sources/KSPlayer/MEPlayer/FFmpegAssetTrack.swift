@@ -28,7 +28,7 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
     public let mediaType: AVFoundation.AVMediaType
     public let formatName: String?
     public let bitDepth: Int32
-    private var stream: UnsafeMutablePointer<AVStream>?
+    var stream: UnsafeMutablePointer<AVStream>?
     var startTime = CMTime.zero
     var codecpar: AVCodecParameters
     var timebase: Timebase = .defaultValue
