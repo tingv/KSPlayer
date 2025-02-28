@@ -298,6 +298,8 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
         let codecContext = try codecpar.createContext(options: options)
         if let stream {
             codecContext.pointee.pkt_timebase = stream.pointee.time_base
+        } else {
+            codecContext.pointee.pkt_timebase = timebase.rational
         }
         return codecContext
     }

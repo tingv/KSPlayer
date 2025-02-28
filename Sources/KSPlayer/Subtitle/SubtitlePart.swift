@@ -26,7 +26,7 @@ public struct SubtitlePart: CustomStringConvertible, Sendable {
     public var end: TimeInterval
     public var render: Either<SubtitleImageInfo, (NSAttributedString, TextPosition?)>
     public var description: String {
-        "Subtile Group ==========\nstart: \(start)\nend:\(end)\ntext:\(String(describing: render))"
+        "Subtile Group start: \(start) end:\(end) text:\(String(describing: render))"
     }
 
     public init(_ start: TimeInterval, _ end: TimeInterval, _ string: String) {

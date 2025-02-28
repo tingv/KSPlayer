@@ -44,6 +44,7 @@ extension FFmpegAssetTrack: KSSubtitleProtocol {
                 var newRect = left.rect * (hZoom, vZoom)
                 parts[i].render = .left(SubtitleImageInfo(rect: newRect.integral, image: left.image, displaySize: size))
             }
+//            KSLog("[subtitle] time: \(time) \(parts[i])")
         }
         return parts
     }

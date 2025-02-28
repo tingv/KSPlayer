@@ -92,7 +92,7 @@ class SubtitleDecode: DecodeProtocol {
             duration = TimeInterval(subtitle.end_display_time - subtitle.start_display_time) / 1000.0
         }
         if duration == 0, packet.duration != 0 {
-            duration = packet.assetTrack.timebase.cmtime(for: packet.duration).seconds
+            duration = codecContext.pointee.pkt_timebase.cmtime(for: packet.duration).seconds
         }
         let end: TimeInterval
         if duration == 0 {
