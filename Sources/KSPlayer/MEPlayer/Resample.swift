@@ -309,9 +309,7 @@ public class AudioDescriptor: Equatable {
             interleaved = false
         }
         interleaved = KSOptions.audioPlayerType == AudioRendererPlayer.self
-        if !(KSOptions.audioPlayerType == AudioRendererPlayer.self || KSOptions.audioPlayerType == AudioUnitPlayer.self) {
-            commonFormat = .pcmFormatFloat32
-        }
+        commonFormat = .pcmFormatFloat32
         return AVAudioFormat(commonFormat: commonFormat, sampleRate: Double(sampleRate), interleaved: interleaved, channelLayout: AVAudioChannelLayout(layoutTag: layoutTag)!)
         //        AVAudioChannelLayout(layout: outChannel.layoutTag.channelLayout)
     }

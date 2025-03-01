@@ -613,7 +613,8 @@ extension MEPlayerItem {
             // 音频要比较所有的音轨，因为truehd的fps是1200，跟其他的音轨差距太大了
             let audios = assetTracks.filter { $0.mediaType == .audio }
             let fps = audios.map(\.nominalFrameRate).max() ?? 44
-            let frameCapacity = options.audioFrameMaxCount(fps: fps, channelCount: Int(first.audioDescriptor?.audioFormat.channelCount ?? 2))
+            let channelCount = audios.map { $0.formatDescription?.audioStreamBasicDescription?.mChannelsPerFrame ?? 2 }.max() ?? 2
+            let frameCapacity = options.audioFrameMaxCount(fps: fps, channelCount: Int(channelCount))
             let track = options.syncDecodeAudio ? SyncPlayerItemTrack<AudioFrame>(mediaType: .audio, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<AudioFrame>(mediaType: .audio, frameCapacity: frameCapacity, options: options)
             track.delegate = self
             allPlayerItemTracks.append(track)

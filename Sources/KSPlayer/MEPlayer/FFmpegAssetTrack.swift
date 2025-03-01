@@ -296,6 +296,7 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
 
     func createContext(options: KSOptions) throws -> UnsafeMutablePointer<AVCodecContext> {
         let codecContext = try codecpar.createContext(options: options)
+        // 需要设置pkt_timebase，这样字幕AVSubtitle的pts才会有效
         if let stream {
             codecContext.pointee.pkt_timebase = stream.pointee.time_base
         } else {
