@@ -321,7 +321,7 @@ open class KSOptions {
 //                return false
 //            }
             if isFirst || isSeek {
-                guard capacity.frameCount >= capacity.frameMaxCount / 2 else {
+                guard capacity.frameCount >= 2 else {
                     return false
                 }
                 if isSecondOpen {
