@@ -107,6 +107,10 @@ class FFmpegDecode: DecodeProtocol {
                 }
                 success = true
                 hasDecodeSuccess = true
+                // 过滤掉不正常的音频数据，防止crash
+                if !isVideo, inputFrame.pointee.ch_layout.nb_channels > 24 {
+                    continue
+                }
                 decodeFrame(inputFrame: inputFrame, packet: packet, completionHandler: completionHandler)
             } else {
                 if result == swift_AVERROR_EOF {

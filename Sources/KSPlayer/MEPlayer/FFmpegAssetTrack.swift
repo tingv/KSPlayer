@@ -61,7 +61,7 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
             description += "(\(bitsPerRawSample.kmFormatted) bit)"
         }
         if let audioDescriptor {
-            description += ", \(audioDescriptor.sampleRate)Hz"
+            description += ", \(audioDescriptor.sampleRate.kmFormatted)Hz"
             description += ", \(audioDescriptor.channel.description)"
         }
         if let formatDescription {

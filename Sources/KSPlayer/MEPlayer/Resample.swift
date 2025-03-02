@@ -308,7 +308,13 @@ public class AudioDescriptor: Equatable {
             commonFormat = .pcmFormatFloat32
             interleaved = false
         }
-        interleaved = KSOptions.audioPlayerType == AudioRendererPlayer.self
+        if KSOptions.audioPlayerType == AudioRendererPlayer.self {
+            interleaved = true
+        } else if KSOptions.audioPlayerType == AudioEnginePlayer.self || KSOptions.audioPlayerType == AudioGraphPlayer.self {
+            // AudioEnginePlayer 和AudioGraphPlayer 不能interleaved 为true，不然会crash
+            interleaved = false
+        }
+        // 都要改成是Float32。这样播放dts才不会有小声的问题
         commonFormat = .pcmFormatFloat32
         return AVAudioFormat(commonFormat: commonFormat, sampleRate: Double(sampleRate), interleaved: interleaved, channelLayout: AVAudioChannelLayout(layoutTag: layoutTag)!)
         //        AVAudioChannelLayout(layout: outChannel.layoutTag.channelLayout)
