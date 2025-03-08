@@ -134,10 +134,10 @@ extension SystemView: BrightnessVolumeViewProtocol {
     public func setProgress(_ progress: Float, type: UInt) {
         if type == 0 {
             imageView.image = brightnessImage
-            titleLabel.text = NSLocalizedString("brightness", comment: "")
+            titleLabel.text = "brightness".localized
         } else {
             imageView.image = volumeImage
-            titleLabel.text = NSLocalizedString("volume", comment: "")
+            titleLabel.text = "volume".localized
         }
         let level = Int(progress * Float(stackView.arrangedSubviews.count))
         for i in 0 ..< stackView.arrangedSubviews.count {

@@ -95,7 +95,7 @@ public final class EmptySubtitleInfo: SubtitleInfo {
     public var isEnabled: Bool = true
     public let subtitleID: String = ""
     public var delay: TimeInterval = 0
-    public let name = NSLocalizedString("no show subtitle", comment: "")
+    public let name = "no show subtitle".localized
     public func search(for _: TimeInterval, size _: CGSize, isHDR _: Bool) -> [SubtitlePart] {
         []
     }

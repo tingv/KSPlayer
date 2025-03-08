@@ -321,7 +321,7 @@ public class AirplayStatusView: UIView {
         airplaymessage.backgroundColor = .clear
         airplaymessage.textColor = .white
         airplaymessage.font = .systemFont(ofSize: 14)
-        airplaymessage.text = NSLocalizedString("AirPlay 投放中", comment: "")
+        airplaymessage.text = "AirPlay 投放中".localized
         airplaymessage.textAlignment = .center
         addSubview(airplaymessage)
         translatesAutoresizingMaskIntoConstraints = false
@@ -395,7 +395,7 @@ public class MenuController {
 
     class func openFileMenu() -> UIMenu {
         let openCommand = UIKeyCommand(input: "O", modifierFlags: .command, action: #selector(IOSVideoPlayerView.openFileAction(_:)))
-        openCommand.title = NSLocalizedString("Open File", comment: "")
+        openCommand.title = "Open File".localized
         let openMenu = UIMenu(title: "",
                               image: nil,
                               identifier: UIMenu.Identifier("com.example.apple-samplecode.menus.openFileMenu"),

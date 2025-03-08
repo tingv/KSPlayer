@@ -64,7 +64,7 @@ open class VideoPlayerView: PlayerView {
                 toolBar.definitionButton.isHidden = resource.definitions.count < 2
                 if #available(iOS 14.0, tvOS 15.0, *) {
                     #if !os(tvOS)
-                    toolBar.definitionButton.setMenu(title: NSLocalizedString("video quality", comment: ""), current: resource.definitions[currentDefinition], list: resource.definitions) { value in
+                    toolBar.definitionButton.setMenu(title: "video quality".localized, current: resource.definitions[currentDefinition], list: resource.definitions) { value in
                         value.definition
                     } completion: { [weak self] value in
                         guard let self else { return }
@@ -402,7 +402,11 @@ public extension VideoPlayerView {
         guard let tracks = playerLayer?.player.tracks(mediaType: type == .audioSwitch ? .audio : .video) else {
             return
         }
-        let alertController = UIAlertController(title: NSLocalizedString(type == .audioSwitch ? "switch audio" : "switch video", comment: ""), message: nil, preferredStyle: preferredStyle())
+        let alertController = UIAlertController(
+            title: type == .audioSwitch ? "switch audio".localized : "switch video".localized,
+            message: nil,
+            preferredStyle: preferredStyle()
+        )
         for track in tracks {
             let isEnabled = track.isEnabled
             var title = track.name
@@ -419,13 +423,13 @@ public extension VideoPlayerView {
                 action.setValue(isEnabled, forKey: "checked")
             }
         }
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: nil))
+        alertController.addAction(UIAlertAction(title: "cancel".localized, style: .cancel, handler: nil))
         viewController?.present(alertController, animated: true, completion: nil)
     }
 
     private func changeDefinitions(button _: UIButton) {
         guard let resource, resource.definitions.count > 1 else { return }
-        let alertController = UIAlertController(title: NSLocalizedString("select video quality", comment: ""), message: nil, preferredStyle: preferredStyle())
+        let alertController = UIAlertController(title: "select video quality".localized, message: nil, preferredStyle: preferredStyle())
         for (index, definition) in resource.definitions.enumerated() {
             let action = UIAlertAction(title: definition.definition, style: .default) { [weak self] _ in
                 guard let self, index != currentDefinition else { return }
@@ -437,7 +441,7 @@ public extension VideoPlayerView {
                 action.setValue(true, forKey: "checked")
             }
         }
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: nil))
+        alertController.addAction(UIAlertAction(title: "cancel".localized, style: .cancel, handler: nil))
         viewController?.present(alertController, animated: true, completion: nil)
     }
 
@@ -447,12 +451,12 @@ public extension VideoPlayerView {
         }
         let availableSubtitles = srtControl.subtitleInfos
         guard !availableSubtitles.isEmpty else { return }
-        let alertController = UIAlertController(title: NSLocalizedString("subtitle", comment: ""),
+        let alertController = UIAlertController(title: "subtitle".localized,
                                                 message: nil,
                                                 preferredStyle: preferredStyle())
 
         let currentSub = srtControl.selectedSubtitleInfo
-        let disableAction = UIAlertAction(title: NSLocalizedString("Disabled", comment: ""), style: .default) { [weak self] _ in
+        let disableAction = UIAlertAction(title: "Disabled".localized, style: .default) { [weak self] _ in
             self?.playerLayer?.subtitleModel.selectedSubtitleInfo = nil
         }
         alertController.addAction(disableAction)
@@ -470,12 +474,12 @@ public extension VideoPlayerView {
                 action.setValue(true, forKey: "checked")
             }
         }
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: nil))
+        alertController.addAction(UIAlertAction(title: "cancel".localized, style: .cancel, handler: nil))
         viewController?.present(alertController, animated: true, completion: nil)
     }
 
     private func changePlaybackRate(button: UIButton) {
-        let alertController = UIAlertController(title: NSLocalizedString("select speed", comment: ""), message: nil, preferredStyle: preferredStyle())
+        let alertController = UIAlertController(title: "select speed".localized, message: nil, preferredStyle: preferredStyle())
         for rate in [0.75, 1.0, 1.25, 1.5, 2.0] {
             let title = "\(rate) x"
             let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
@@ -490,7 +494,7 @@ public extension VideoPlayerView {
                 action.setValue(true, forKey: "checked")
             }
         }
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: nil))
+        alertController.addAction(UIAlertAction(title: "cancel".localized, style: .cancel, handler: nil))
         viewController?.present(alertController, animated: true, completion: nil)
     }
 }

@@ -223,7 +223,7 @@ public extension PlayerView {
     func buildMenusForButtons() {
         #if !os(tvOS)
         let videoTracks = playerLayer?.player.tracks(mediaType: .video) ?? []
-        toolBar.videoSwitchButton.setMenu(title: NSLocalizedString("switch video", comment: ""), current: videoTracks.first(where: { $0.isEnabled }), list: videoTracks) { value in
+        toolBar.videoSwitchButton.setMenu(title: "switch video".localized, current: videoTracks.first(where: { $0.isEnabled }), list: videoTracks) { value in
             value.name + " \(value.naturalSize.width)x\(value.naturalSize.height)"
         } completion: { [weak self] value in
             guard let self else { return }
@@ -232,7 +232,7 @@ public extension PlayerView {
             }
         }
         let audioTracks = playerLayer?.player.tracks(mediaType: .audio) ?? []
-        toolBar.audioSwitchButton.setMenu(title: NSLocalizedString("switch audio", comment: ""), current: audioTracks.first(where: { $0.isEnabled }), list: audioTracks) { value in
+        toolBar.audioSwitchButton.setMenu(title: "switch audio".localized, current: audioTracks.first(where: { $0.isEnabled }), list: audioTracks) { value in
             value.description
         } completion: { [weak self] value in
             guard let self else { return }
@@ -240,7 +240,7 @@ public extension PlayerView {
                 playerLayer?.player.select(track: value)
             }
         }
-        toolBar.playbackRateButton.setMenu(title: NSLocalizedString("speed".localized, comment: ""), current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
+        toolBar.playbackRateButton.setMenu(title: "speed".localized, current: playerLayer?.player.playbackRate ?? 1, list: [0.75, 1.0, 1.25, 1.5, 2.0]) { value in
             "\(value) x"
         } completion: { [weak self] value in
             guard let self else { return }
@@ -249,7 +249,7 @@ public extension PlayerView {
             }
         }
         if let subtitleModel = playerLayer?.subtitleModel {
-            toolBar.srtButton.setMenu(title: NSLocalizedString("subtitle".localized, comment: ""), current: subtitleModel.selectedSubtitleInfo, list: subtitleModel.subtitleInfos, addDisabled: true) { value in
+            toolBar.srtButton.setMenu(title: "subtitle".localized, current: subtitleModel.selectedSubtitleInfo, list: subtitleModel.subtitleInfos, addDisabled: true) { value in
                 value.name
             } completion: { [weak self] value in
                 guard let self else { return }

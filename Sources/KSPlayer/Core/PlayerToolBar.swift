@@ -267,7 +267,7 @@ public class PlayerToolBar: UIStackView {
         playButton.isSelected = false
         timeSlider.value = 0.0
         timeSlider.isPlayable = false
-        playbackRateButton.setTitle(NSLocalizedString("speed", comment: ""), for: .normal)
+        playbackRateButton.setTitle("speed".localized, for: .normal)
     }
 }
 

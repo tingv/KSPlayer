@@ -335,7 +335,7 @@ struct VideoControllerView: View {
             Spacer()
             HStack(spacing: 18) {
                 KSVideoPlayerViewBuilder.titleView(title: title, config: config)
-                Spacer(minLength: 0)
+                Spacer()
                 KSVideoPlayerViewBuilder.playbackRateButton(playbackRate: $config.playbackRate)
                 KSVideoPlayerViewBuilder.pipButton(config: config)
                 KSVideoPlayerViewBuilder.recordButton(config: config)
