@@ -435,7 +435,7 @@ public class MenuController {
         case upArrow
         case downArrow
         func localizedString() -> String {
-            NSLocalizedString("\(rawValue)", comment: "")
+            NSLocalizedString(rawValue, comment: "")
         }
 
         @MainActor

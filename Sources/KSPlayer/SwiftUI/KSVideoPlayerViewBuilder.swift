@@ -61,6 +61,8 @@ public enum KSVideoPlayerViewBuilder {
         Group {
             Text(title)
                 .font(.title2.weight(.semibold))
+                .multilineTextAlignment(.leading)
+                .frame(minWidth: 150, alignment: .leading)
             ProgressView()
                 .opacity((config.state == .buffering || config.playerLayer?.player.playbackState == .seeking) ? 1 : 0)
         }

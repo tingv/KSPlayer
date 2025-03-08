@@ -351,6 +351,8 @@ open class KSOptions {
 
     // MARK: subtile options
 
+    /// 这个是用来存放视频的自带字体，会在播放结束被清空，所以访问权限设置为internal。
+    /// 如果一个文件夹下的字体太多的话，那libass显示的时候就会内存增加太多。
     var fontsDir: URL?
     public nonisolated(unsafe) static var defaultFont: URL?
     public nonisolated(unsafe) static var enableHDRSubtitle = false
