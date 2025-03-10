@@ -157,8 +157,8 @@ extension KSVideoPlayer: UIViewRepresentable {
                     oldValue.subtitleModel.translationSession = nil
                 }
                 #endif
-                oldValue.delegate = nil
                 if !oldValue.isPictureInPictureActive {
+                    oldValue.delegate = nil
                     oldValue.stop()
                 }
             }
@@ -181,6 +181,7 @@ extension KSVideoPlayer: UIViewRepresentable {
 
         public init(playerLayer: KSPlayerLayer) {
             self.playerLayer = playerLayer
+            playerLayer.delegate = self
             state = playerLayer.state
         }
 
