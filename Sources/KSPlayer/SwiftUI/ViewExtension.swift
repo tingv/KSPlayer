@@ -36,7 +36,7 @@ public struct PlayBackCommands: Commands {
 #endif
 
 @available(iOS 15, tvOS 16, macOS 13, *)
-public struct MenuView<Label, SelectionValue, Content>: View where Label: View, SelectionValue: Hashable, Content: View {
+public struct MenuView<SelectionValue, Content, Label>: View where SelectionValue: Hashable, Content: View, Label: View {
     public let selection: Binding<SelectionValue>
     @ViewBuilder
     public let content: () -> Content
@@ -44,6 +44,13 @@ public struct MenuView<Label, SelectionValue, Content>: View where Label: View, 
     public let label: () -> Label
     @State
     private var showMenu = false
+    public init(selection: Binding<SelectionValue>, @ViewBuilder content: @escaping () -> Content, @ViewBuilder label: @escaping () -> Label) {
+        self.selection = selection
+        self.content = content
+        self.label = label
+        showMenu = showMenu
+    }
+
     public var body: some View {
         if #available(tvOS 17, iOS 16, macOS 13.0, *) {
             Menu {
