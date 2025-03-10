@@ -221,7 +221,7 @@ public extension KSOptions {
 }
 
 extension UIApplication {
-    static var isLandscape: Bool {
+    public static var isLandscape: Bool {
         UIApplication.shared.activeScene?.interfaceOrientation.isLandscape ?? false
     }
 
