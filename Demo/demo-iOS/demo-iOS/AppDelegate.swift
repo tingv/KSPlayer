@@ -119,7 +119,6 @@ var testObjects: [KSPlayerResource] = {
                 options.syncDecodeAudio = true
             } else if url.lastPathComponent == "subrip.mkv" {
                 options.asynchronousDecompression = false
-                options.videoFilters.append("yadif_videotoolbox=mode=0:parity=-1:deint=1")
             }
             objects.append(KSPlayerResource(url: url, options: options, name: url.lastPathComponent))
         }

@@ -49,7 +49,7 @@ open class KSOptions {
         canStartPictureInPictureAutomaticallyFromInline = KSOptions.canStartPictureInPictureAutomaticallyFromInline
         formatContextOptions["user_agent"] = userAgent
         // 参数的配置可以参考protocols.texi 和 http.c
-        // 这个一定要，不然有的流就会判断不准FieldOrder
+        /// 这个一定要，不然有的流就会判断不准FieldOrder
         formatContextOptions["scan_all_pmts"] = 1
         /// ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
         /// 但是日志会报Will reconnect at，导致重复播放一段时间，所以要重新建立链接。
@@ -70,8 +70,12 @@ open class KSOptions {
 //        formatContextOptions["protocol_whitelist"] = "file,http,https,tcp,tls,crypto,async,cache,data,httpproxy"
         // 开启这个，纯ipv6地址会无法播放。并且有些视频结束了，但还会一直尝试重连。所以这个值默认不设置
 //        formatContextOptions["reconnect_at_eof"] = 1
-        // 开启这个，会导致tcp Failed to resolve hostname 还会一直重试
-//        formatContextOptions["reconnect_on_network_error"] = 1
+        /// 开启这个，会导致tcp Failed to resolve hostname 还会一直重试，
+        /// 所以设置了reconnect_delay_max，防止一直重试
+        /// 用alist的话，一定要打开这个开关，因为alist要多次重连才能播放成功
+        formatContextOptions["reconnect_on_network_error"] = 1
+        /// 要用这个来控制最大的超时时长。调用read失败之后会重试，然后open也会重试。所以总共会四次。
+        formatContextOptions["reconnect_delay_max"] = 0
         // There is total different meaning for 'listen_timeout' option in rtmp
         // set 'listen_timeout' = -1 for rtmp、rtsp
 //        formatContextOptions["listen_timeout"] = 3
