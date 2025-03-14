@@ -116,7 +116,7 @@ public class KSAVPlayer {
         playerView.player.playbackCoordinator
     }
 
-    public private(set) var bufferingProgress = 0 {
+    public private(set) var bufferingProgress = UInt8(0) {
         didSet {
             delegate?.changeBuffering(player: self, progress: bufferingProgress)
         }
@@ -283,7 +283,7 @@ extension KSAVPlayer {
             guard playableTime > 0 else { return }
             let loadedTime = playableTime - currentPlaybackTime
             guard loadedTime > 0 else { return }
-            bufferingProgress = Int(min(loadedTime * 100 / item.preferredForwardBufferDuration, 100))
+            bufferingProgress = item.preferredForwardBufferDuration == 0 ? 100 : (loadedTime * 100 / item.preferredForwardBufferDuration).uInt8
             if bufferingProgress >= 100 {
                 loadState = .playable
             }
@@ -463,6 +463,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
         loadState = .idle
         urlAsset.cancelLoading()
         replaceCurrentItem(playerItem: nil)
+        delegate?.playerDidClear(player: self)
     }
 
     public func replace(url: URL, options: KSOptions) {

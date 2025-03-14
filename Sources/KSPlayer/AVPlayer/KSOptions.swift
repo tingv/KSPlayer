@@ -106,7 +106,11 @@ open class KSOptions {
     @MainActor
     public static var stackSize: Int = 65536
     public let stackSize: Int
+    /// 启播的开始位置，以秒为单位
     public var startPlayTime: TimeInterval = 0
+    //// 启播的开始位置，百分比(0-1.0)
+    public var startPlayTimePercentage: Double = 0
+    /// 一开始播放的播放速度
     public var startPlayRate: Float = 1.0
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
     @MainActor
@@ -309,7 +313,7 @@ open class KSOptions {
         /// 这边要用最大值，因为有的视频可能音频达到15秒了，但是视频已经100多秒了，导致内存暴涨。
         /// isPlayable已经保证能够有足够的缓存用于播放了
         let loadedTime = capacitys.map(\.loadedTime).max() ?? 0
-        let progress = preferredForwardBufferDuration == 0 ? 100 : loadedTime * 100.0 / preferredForwardBufferDuration
+        let progress = preferredForwardBufferDuration == 0 ? 100 : (loadedTime * 100.0 / preferredForwardBufferDuration).uInt8
         let isPlayable = capacitys.allSatisfy { capacity in
             if capacity.isEndOfFile {
                 return true

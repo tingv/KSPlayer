@@ -215,12 +215,17 @@ public extension MediaPlayerProtocol {
 
 @MainActor
 public protocol MediaPlayerDelegate: AnyObject {
+    /// 视频信息加载完成，可以开始播放了
     func readyToPlay(player: some MediaPlayerProtocol)
+    /// 播放状态更新
     func changeLoadState(player: some MediaPlayerProtocol)
-    // 缓冲加载进度，0-100
-    func changeBuffering(player: some MediaPlayerProtocol, progress: Int)
+    // 缓冲加载进度更新，progress: 0-100
+    func changeBuffering(player: some MediaPlayerProtocol, progress: UInt8)
     func playBack(player: some MediaPlayerProtocol, loopCount: Int)
+    /// 视频播放完成
     func finish(player: some MediaPlayerProtocol, error: Error?)
+    /// 视频资源清理完成
+    func playerDidClear(player: some MediaPlayerProtocol)
 }
 
 public protocol MediaPlayerTrack: AnyObject, CustomStringConvertible {

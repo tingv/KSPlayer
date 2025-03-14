@@ -376,6 +376,9 @@ extension MEPlayerItem {
             startTime = CMTime(value: formatCtx.pointee.start_time, timescale: AV_TIME_BASE)
         }
         initDuration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
+        if options.startPlayTimePercentage > 0 {
+            options.startPlayTime = initDuration * options.startPlayTimePercentage
+        }
         dynamicInfo.byteRate = formatCtx.pointee.bit_rate / 8
         // 尽量少调用avio_size，这个会调用fileSize，可能会触发网络请求
         initFileSize = avio_size(formatCtx.pointee.pb)
@@ -988,6 +991,7 @@ extension MEPlayerItem: MediaPlayback {
             }
             self.pbArray.removeAll()
             avformat_close_input(&self.outputFormatCtx)
+            self.delegate?.sourceDidClear()
             self.closeOperation = nil
             self.operationQueue.cancelAllOperations()
         }

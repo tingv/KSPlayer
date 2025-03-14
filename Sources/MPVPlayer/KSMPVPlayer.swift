@@ -226,7 +226,12 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         if let mpv {
             mpv_set_wakeup_callback(mpv, nil, nil)
         }
-        command(.stop)
+        command(.stop) { [weak self] _ in
+            guard let self else {
+                return
+            }
+            delegate?.playerDidClear(player: self)
+        }
     }
 
     public func reset() {

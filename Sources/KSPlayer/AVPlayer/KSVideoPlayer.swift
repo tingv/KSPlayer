@@ -158,6 +158,7 @@ extension KSVideoPlayer: UIViewRepresentable {
                 }
                 #endif
                 if !oldValue.isPictureInPictureActive {
+                    // 需要清空delegate，不然会更新state。然后crash
                     oldValue.delegate = nil
                     oldValue.stop()
                 }
@@ -222,7 +223,9 @@ extension KSVideoPlayer: UIViewRepresentable {
             onPlay = nil
             onFinish = nil
             onBufferChanged = nil
-            playerLayer = nil
+            playerLayer?.delegate = nil
+            playerLayer?.stop()
+//            playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
         }
@@ -322,6 +325,8 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
     public func player(layer _: KSPlayerLayer, bufferedCount: Int, consumeTime: TimeInterval) {
         onBufferChanged?(bufferedCount, consumeTime)
     }
+
+    public func playerDidClear(layer _: KSPlayerLayer) {}
 }
 
 extension KSVideoPlayer: @preconcurrency Equatable {

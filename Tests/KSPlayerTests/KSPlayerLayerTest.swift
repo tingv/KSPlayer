@@ -89,4 +89,6 @@ extension KSPlayerLayerTest: KSPlayerLayerDelegate {
     func player(layer _: KSPlayerLayer, bufferedCount: Int, consumeTime _: TimeInterval) {
         bufferedCounts.append(bufferedCount)
     }
+
+    func playerDidClear(layer _: KSPlayerLayer) {}
 }

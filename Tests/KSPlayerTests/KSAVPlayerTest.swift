@@ -50,7 +50,7 @@ extension KSAVPlayerTest: MediaPlayerDelegate {
 
     func changeLoadState(player _: some MediaPlayerProtocol) {}
 
-    func changeBuffering(player _: some MediaPlayerProtocol, progress _: Int) {}
+    func changeBuffering(player _: some MediaPlayerProtocol, progress _: UInt8) {}
 
     func playBack(player _: some MediaPlayerProtocol, loopCount _: Int) {}
 
@@ -59,4 +59,6 @@ extension KSAVPlayerTest: MediaPlayerDelegate {
             readyToPlayContinuation?.resume()
         }
     }
+
+    func playerDidClear(player _: some MediaPlayerProtocol) {}
 }

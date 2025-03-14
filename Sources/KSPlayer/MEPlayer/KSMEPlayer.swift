@@ -20,7 +20,7 @@ public final class KSMEPlayer: NSObject, @unchecked Sendable {
     private var options: KSOptions
     public let videoOutput: VideoOutput & UIView
 
-    public private(set) var bufferingProgress = 0 {
+    public private(set) var bufferingProgress = UInt8(0) {
         willSet {
             runOnMainThread { [weak self] in
                 guard let self else { return }
@@ -274,17 +274,12 @@ extension KSMEPlayer: MEPlayerDelegate {
                     }
                 }
             }
-            var progress = 100
+            let progress: UInt8
             if loadingState.isPlayable {
                 loadState = .playable
+                progress = 100
             } else {
-                if loadingState.progress.isInfinite {
-                    progress = 100
-                } else if loadingState.progress.isNaN {
-                    progress = 0
-                } else {
-                    progress = min(100, Int(loadingState.progress))
-                }
+                progress = min(100, loadingState.progress)
             }
             if playbackState == .playing {
                 runOnMainThread { [weak self] in
@@ -302,6 +297,13 @@ extension KSMEPlayer: MEPlayerDelegate {
 
     func sourceDidChange(oldBitRate: Int64, newBitrate: Int64) {
         KSLog("oldBitRate \(oldBitRate) change to newBitrate \(newBitrate)")
+    }
+
+    func sourceDidClear() {
+        runOnMainThread { [weak self] in
+            guard let self else { return }
+            delegate?.playerDidClear(player: self)
+        }
     }
 }
 

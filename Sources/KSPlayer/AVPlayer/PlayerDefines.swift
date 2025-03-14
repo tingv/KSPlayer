@@ -202,7 +202,8 @@ extension CapacityProtocol {
 public struct LoadingState {
     // 预先加载了多少秒
     public internal(set) var loadedTime: TimeInterval
-    public let progress: TimeInterval
+    // 缓冲加载进度
+    public let progress: UInt8
     public let packetCount: Int
     public let frameCount: Int
     public let isEndOfFile: Bool
@@ -546,4 +547,16 @@ public enum DecodeType: String {
     case hardware
     case asynchronousHardware
     case vulka
+}
+
+extension Double {
+    var uInt8: UInt8 {
+        if self < 0 || isNaN {
+            return 0
+        } else if self >= Double(UInt8.max) {
+            return UInt8.max
+        } else {
+            return UInt8(self)
+        }
+    }
 }

@@ -63,12 +63,13 @@ public protocol KSPlayerLayerDelegate: AnyObject {
     func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval)
     func player(layer: KSPlayerLayer, finish error: Error?)
     func player(layer: KSPlayerLayer, bufferedCount: Int, consumeTime: TimeInterval)
+    func playerDidClear(layer: KSPlayerLayer)
 }
 
 open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public weak var delegate: KSPlayerLayerDelegate?
     @Published
-    public var bufferingProgress: Int = 0
+    public var bufferingProgress: UInt8 = 0
     @Published
     public var loopCount: Int = 0
     public private(set) var options: KSOptions {
@@ -426,7 +427,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         }
     }
 
-    public func changeBuffering(player _: some MediaPlayerProtocol, progress: Int) {
+    public func changeBuffering(player _: some MediaPlayerProtocol, progress: UInt8) {
         bufferingProgress = progress
     }
 
@@ -450,6 +451,10 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
             }
             delegate?.player(layer: self, finish: error)
         }
+    }
+
+    public func playerDidClear(player _: some MediaPlayerProtocol) {
+        delegate?.playerDidClear(layer: self)
     }
 
     #if canImport(UIKit) && !os(visionOS)

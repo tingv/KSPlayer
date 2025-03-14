@@ -51,6 +51,8 @@ protocol MEPlayerDelegate: AnyObject {
     func sourceDidFailed(error: NSError?)
     func sourceDidFinished()
     func sourceDidChange(oldBitRate: Int64, newBitrate: Int64)
+    /// 资源清空之后的回调
+    func sourceDidClear()
 }
 
 // MARK: protocol

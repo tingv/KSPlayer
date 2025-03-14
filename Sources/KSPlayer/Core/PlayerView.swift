@@ -207,6 +207,8 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     open func player(layer _: KSPlayerLayer, bufferedCount: Int, consumeTime: TimeInterval) {
         delegate?.playerController(bufferedCount: bufferedCount, consumeTime: consumeTime)
     }
+
+    open func playerDidClear(layer _: KSPlayerLayer) {}
 }
 
 public extension PlayerView {
