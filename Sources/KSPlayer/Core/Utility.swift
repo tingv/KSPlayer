@@ -403,8 +403,7 @@ public extension CGSize {
         if newRect.maxY > toSize.height {
             newRect.origin.y += diff
         }
-        let integral = newRect.integral
-        newRect.origin = integral.origin
+        newRect.origin = newRect.integral.origin
         return newRect
     }
 }

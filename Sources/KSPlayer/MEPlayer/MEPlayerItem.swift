@@ -760,6 +760,7 @@ extension MEPlayerItem {
         let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
         //                allPlayerItemTracks.forEach { $0.seek(time: seekToTime) }
         // can not seek to key frame
+        KSLog("will seek to \(seekToTime)")
         let seekStartTime = CACurrentMediaTime()
         var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
         //                var result = av_seek_frame(formatCtx, -1, timeStamp, seekFlags)

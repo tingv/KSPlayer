@@ -154,17 +154,19 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
             }
             isNeedKeyFrame = false
         }
-        let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         if corePacket.pointee.side_data_elems > 0 {
             for i in 0 ..< Int(corePacket.pointee.side_data_elems) {
                 let sideData = corePacket.pointee.side_data[i]
-                if sideData.type == AV_PKT_DATA_A53_CC {
+                if sideData.type == AV_PKT_DATA_DOVI_CONF {
+                    let dovi = sideData.data.withMemoryRebound(to: DOVIDecoderConfigurationRecord.self, capacity: 1) { $0 }.pointee
+                } else if sideData.type == AV_PKT_DATA_A53_CC {
                 } else if sideData.type == AV_PKT_DATA_WEBVTT_IDENTIFIER || sideData.type == AV_PKT_DATA_WEBVTT_SETTINGS {
-//                    let str = String(cString: sideData.data)
-//                    KSLog(str)
+                    //                    let str = String(cString: sideData.data)
+                    //                    KSLog(str)
                 }
             }
         }
+        let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         //        var startTime = CACurrentMediaTime()
         decoder.decodeFrame(from: packet) { [weak self, weak decoder] result in
             guard let self else {

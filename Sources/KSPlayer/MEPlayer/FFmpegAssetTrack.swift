@@ -145,7 +145,8 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
     init?(codecpar: AVCodecParameters) {
         self.codecpar = codecpar
         bitRate = codecpar.bit_rate
-        // codec_tag byte order is LSB first CMFormatDescription.MediaSubType(rawValue: codecpar.codec_tag.bigEndian)
+        // codec_tag byte order is LSB first
+        let tag = CMFormatDescription.MediaSubType(rawValue: codecpar.codec_tag.bigEndian)
         let codecType = codecpar.codec_id.mediaSubType
         var codecName = ""
         if let descriptor = avcodec_descriptor_get(codecpar.codec_id) {
