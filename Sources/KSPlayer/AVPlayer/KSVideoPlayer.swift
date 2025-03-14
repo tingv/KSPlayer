@@ -223,9 +223,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             onPlay = nil
             onFinish = nil
             onBufferChanged = nil
-            playerLayer?.delegate = nil
-            playerLayer?.stop()
-//            playerLayer = nil
+            playerLayer = nil
             delayHide?.cancel()
             delayHide = nil
         }
