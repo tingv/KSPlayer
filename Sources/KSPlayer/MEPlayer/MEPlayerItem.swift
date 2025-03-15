@@ -895,6 +895,9 @@ extension MEPlayerItem {
                         createCodec(formatCtx: formatCtx)
                         allPlayerItemTracks.forEach { $0.decode() }
                     }
+                } else {
+                    // 点播失败的话，重新av_read_frame还是会继续报同样的错，所以直接抛出错误
+                    error = .init(errorCode: .readFrame, userInfo: [NSUnderlyingErrorKey: AVError(code: readResult)])
                 }
             } else if readResult == swift_AVERROR_EOF || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
