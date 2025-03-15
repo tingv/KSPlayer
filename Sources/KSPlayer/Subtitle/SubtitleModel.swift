@@ -169,8 +169,9 @@ open class SubtitleModel: ObservableObject {
                     newParts = parts.filter { part in
                         part == currentTime
                     }
-                } else if newParts.allSatisfy { !$0.isEmpty } {
-                    // 如果当前的字幕里面有空字幕的话，那就不要跟之前的字幕合并了。可以认为空字幕就是一个终止的信号。
+                } else if newParts.allSatisfy { !$0.isEmpty && $0.render.left == nil } {
+                    /// 如果当前的字幕里面有空字幕的话，那就不要跟之前的字幕合并了。可以认为空字幕就是一个终止的信号。
+                    /// 图片字幕也不要进行合并了
                     for part in parts {
                         if part == currentTime, part.end != .infinity, newParts.allSatisfy({ $0 != part }) {
                             newParts.append(part)
