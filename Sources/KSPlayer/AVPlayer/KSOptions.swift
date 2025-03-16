@@ -51,11 +51,11 @@ open class KSOptions {
         // 参数的配置可以参考protocols.texi 和 http.c
         /// 这个一定要，不然有的流就会判断不准FieldOrder
         formatContextOptions["scan_all_pmts"] = 1
+        /// 这个参数是点播用的，如果不设置的话，那可能那可以会报错Stream ends prematurely at，无法自动重试。
         /// ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
-        /// 但是日志会报Will reconnect at，导致重复播放一段时间，所以要重新建立链接。
-        /// 重新建立链接会有概率在playerItem.prepareToPlay()crash。所以改成不自动重新建立链接了。
-        /// 最好是在播放结束的时候重新调用prepareToPlay方法
+        /// 但是日志会报Will reconnect at，导致重复播放一段时间，所以就自己内部重新建立链接。
 //        formatContextOptions["reconnect"] = 1
+        /// 不能seek的链接(直播流)，如果失败了。需要重试reconnect_streamed为true才能进行重试操作
         formatContextOptions["reconnect_streamed"] = 1
         // 需要加这个超时，不然从wifi切换到4g就会一直卡住, 超时不能为5，不然iptv的ts流会隔30s就超时
         formatContextOptions["rw_timeout"] = 10_000_000
@@ -68,7 +68,7 @@ open class KSOptions {
 //        formatContextOptions["max_analyze_duration"] = 300 * 1000
         // 默认情况下允许所有协议，只有嵌套协议才需要指定这个协议子集，例如m3u8里面有http。
 //        formatContextOptions["protocol_whitelist"] = "file,http,https,tcp,tls,crypto,async,cache,data,httpproxy"
-        // 开启这个，纯ipv6地址会无法播放。并且有些视频结束了，但还会一直尝试重连。所以这个值默认不设置
+        // 开启这个，纯ipv6地址会无法播放。并且有些视频结束了，但还会一直尝试重连。所以这个值默认不设置。
 //        formatContextOptions["reconnect_at_eof"] = 1
         /// 开启这个，会导致tcp Failed to resolve hostname 还会一直重试，
         /// 所以设置了reconnect_delay_max，防止一直重试
@@ -230,6 +230,10 @@ open class KSOptions {
                 //                }
                 if deInterlaceAddIdet {
                     videoFilters.append("idet")
+                }
+                // 如果帧率大于30的话，那就不要Yadif_2x了。不然帧率会跟不上。
+                if assetTrack.nominalFrameRate > 30, yadifMode == 1 || yadifMode == 3 {
+                    yadifMode -= 1
                 }
                 videoFilters.append("\(yadif)=mode=\(yadifMode):parity=-1:deint=1")
                 if yadifMode == 1 || yadifMode == 3 {
@@ -519,8 +523,10 @@ open class KSOptions {
         !hasDecodeSuccess
     }
 
-    open func wantedVideo(tracks _: [MediaPlayerTrack]) -> MediaPlayerTrack? {
-        nil
+    /// 默认要选择那个视频轨道，如果是返回nil的话。那就会默认由ffmpeg自己来决定，一般是会选择分辨率低的。
+    /// 在蓝光场景的话，有可能低分辨率的那个是会蓝屏，所以这边默认选择第一个，就不会有这个蓝屏的问题
+    open func wantedVideo(tracks: [MediaPlayerTrack]) -> MediaPlayerTrack? {
+        tracks.first
     }
 
     open func videoFrameMaxCount(fps _: Float, naturalSize _: CGSize, isLive _: Bool) -> UInt8 {
