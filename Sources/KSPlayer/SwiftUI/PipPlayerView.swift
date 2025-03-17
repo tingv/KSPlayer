@@ -10,24 +10,24 @@ import SwiftUI
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
 public struct PipPlayerView: View {
-    @StateObject
-    public var coordinator = KSVideoPlayer.Coordinator()
     private let playerLayer: KSPlayerLayer
     @Binding
     private var alignment: Alignment
     private let block: (Bool) -> Void
     @FocusState
     private var focusableView: FocusableView?
+    @State
+    private var isMuted: Bool
     public init(playerLayer: KSPlayerLayer, alignment: Binding<Alignment>, focusableView: FocusState<FocusableView?>, block: @escaping (Bool) -> Void) {
         self.playerLayer = playerLayer
         _alignment = alignment
         _focusableView = focusableView
         self.block = block
-        _coordinator = .init(wrappedValue: KSVideoPlayer.Coordinator(playerLayer: playerLayer))
+        isMuted = playerLayer.player.isMuted
     }
 
     public var body: some View {
-        KSVideoPlayer(coordinator: .init(wrappedValue: coordinator), playerLayer: playerLayer)
+        KSVideoPlayer(playerLayer: playerLayer)
             .overlay {
                 HStack {
                     Button {
@@ -65,12 +65,20 @@ public struct PipPlayerView: View {
                         }
                     }
                     .focused($focusableView, equals: .pipMove)
+                    Button {
+                        playerLayer.player.isMuted.toggle()
+                        isMuted = playerLayer.player.isMuted
+                    } label: {
+                        Image(systemName: isMuted ? KSVideoPlayerViewBuilder.speakerDisabledSystemName : KSVideoPlayerViewBuilder.speakerSystemName)
+                            .menuLabelStyle()
+                    }
+                    .focused($focusableView, equals: .mute)
                 }
                 .opacity(focusableView == nil ? 0 : 1)
             }
     }
 
     public enum FocusableView {
-        case pipFull, pipClose, pipMove
+        case pipFull, pipClose, pipMove, mute
     }
 }

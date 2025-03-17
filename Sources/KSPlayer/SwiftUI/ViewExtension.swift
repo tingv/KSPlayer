@@ -35,7 +35,7 @@ public struct PlayBackCommands: Commands {
 }
 #endif
 
-@available(iOS 15, tvOS 16, macOS 13, *)
+@available(iOS 15, tvOS 15, macOS 13, *)
 public struct MenuView<SelectionValue, Content, Label>: View where SelectionValue: Hashable, Content: View, Label: View {
     public let selection: Binding<SelectionValue>
     @ViewBuilder

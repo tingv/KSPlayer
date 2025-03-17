@@ -29,10 +29,20 @@ public struct KSVideoPlayer {
         self.options = options
     }
 
-    public init(coordinator: ObservedObject<Coordinator>, playerLayer: KSPlayerLayer) {
-        _coordinator = coordinator
+    public init(playerLayer: KSPlayerLayer) {
+        _coordinator = .init(wrappedValue: Coordinator(playerLayer: playerLayer))
         url = playerLayer.url
         options = playerLayer.options
+    }
+
+    public init?(coordinator: Coordinator) {
+        _coordinator = .init(wrappedValue: coordinator)
+        if let playerLayer = coordinator.playerLayer {
+            url = playerLayer.url
+            options = playerLayer.options
+        } else {
+            return nil
+        }
     }
 }
 

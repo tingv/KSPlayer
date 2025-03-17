@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+@available(iOS 15.0, macOS 13.0, tvOS 15.0, *)
 @MainActor
 public enum KSVideoPlayerViewBuilder {
     @ViewBuilder
@@ -222,9 +222,9 @@ public enum KSVideoPlayerViewBuilder {
 }
 
 private extension View {
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    @available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
     func centerControlButtonStyle() -> some View {
-        font(.system(.title, design: .rounded, weight: .bold))
+        font(.system(.title, design: .rounded).bold())
             .imageScale(.large)
             .foregroundStyle(.white)
             .padding(12)
@@ -232,7 +232,7 @@ private extension View {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+@available(iOS 15.0, macOS 13.0, tvOS 15.0, *)
 public extension KSVideoPlayerViewBuilder {
     static var speakerSystemName: String {
         #if os(visionOS) || os(macOS)
