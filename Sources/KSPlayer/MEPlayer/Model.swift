@@ -460,10 +460,24 @@ public final class VideoVTBFrame: MEFrame {
     public var timestamp: Int64 = 0
     public var size: Int32 = 0
     public let fps: Float
-    public let isDovi: Bool
+    public private(set) var isDovi: Bool {
+        didSet {
+            if isDovi != oldValue {
+                pixelBuffer.updateColorspace(isDovi: isDovi)
+            }
+        }
+    }
+
     public var edrMetaData: EDRMetaData? = nil
     public var pixelBuffer: PixelBufferProtocol
-    var doviData: dovi_metadata? = nil
+    var doviData: dovi_metadata? = nil {
+        didSet {
+            if doviData != nil {
+                isDovi = true
+            }
+        }
+    }
+
     public init(pixelBuffer: PixelBufferProtocol, fps: Float, isDovi: Bool) {
         self.pixelBuffer = pixelBuffer
         // ffmpeg硬解码出来的colorspace不对，所以要自己设置下。我自己实现的硬解在macos是对的，但是在iOS也会不对，所以统一设置下。

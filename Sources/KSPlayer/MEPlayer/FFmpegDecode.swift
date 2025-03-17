@@ -217,6 +217,9 @@ class FFmpegDecode: DecodeProtocol {
                     } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA {
                         let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
                         doviData = map_dovi_metadata(data).pointee
+                        if packet.assetTrack.dovi == nil, options.hardwareDecode, options.display !== KSOptions.displayEnumDovi {
+                            options.display = KSOptions.displayEnumDovi
+                        }
                     }
                 }
             }
