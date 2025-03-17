@@ -35,7 +35,7 @@ public struct PlayBackCommands: Commands {
 }
 #endif
 
-@available(iOS 15, tvOS 15, macOS 13, *)
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
 public struct MenuView<SelectionValue, Content, Label>: View where SelectionValue: Hashable, Content: View, Label: View {
     public let selection: Binding<SelectionValue>
     @ViewBuilder
@@ -76,7 +76,7 @@ public struct MenuView<SelectionValue, Content, Label>: View where SelectionValu
 }
 
 public extension View {
-    @available(iOS 15, macOS 13, tvOS 15, *)
+    @available(iOS 15, macOS 12, tvOS 15, *)
     func menuLabelStyle() -> some View {
         modifier(MenuLabelStyleModifier())
     }

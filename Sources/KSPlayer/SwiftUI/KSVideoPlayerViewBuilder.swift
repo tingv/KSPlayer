@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 15.0, macOS 13.0, tvOS 15.0, *)
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
 @MainActor
 public enum KSVideoPlayerViewBuilder {
     @ViewBuilder
@@ -232,7 +232,7 @@ private extension View {
     }
 }
 
-@available(iOS 15.0, macOS 13.0, tvOS 15.0, *)
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, *)
 public extension KSVideoPlayerViewBuilder {
     static var speakerSystemName: String {
         #if os(visionOS) || os(macOS)
