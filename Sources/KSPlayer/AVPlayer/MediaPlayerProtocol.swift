@@ -54,17 +54,17 @@ public class DynamicInfo: ObservableObject {
         metadataBlock()
     }
 
-    // 单位是B
+    /// 单位是Byte
     public var bytesRead: Int64 {
         bytesReadBlock()
     }
 
-    // 单位是b/s
+    /// 单位是bit/s
     public var audioBitrate: Int {
         audioBitrateBlock()
     }
 
-    // 单位是b/s
+    /// 单位是bit/s
     public var videoBitrate: Int {
         videoBitrateBlock()
     }
@@ -93,6 +93,7 @@ public struct Chapter {
 public protocol MediaPlayerProtocol: MediaPlayback {
     var delegate: MediaPlayerDelegate? { get set }
     var view: UIView { get }
+    /// 当前已缓存的最大时间戳
     var playableTime: TimeInterval { get }
     var isReadyToPlay: Bool { get }
     var playbackState: MediaPlaybackState { get }

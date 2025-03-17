@@ -54,9 +54,9 @@ open class KSOptions {
         /// 这个参数是点播用的，如果不设置的话，那可能那可以会报错Stream ends prematurely at，无法自动重试。
         /// ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
         /// 但是日志会报Will reconnect at，导致重复播放一段时间，所以就自己内部重新建立链接。
-//        formatContextOptions["reconnect"] = 1
+        formatContextOptions["reconnect"] = 1
         /// 不能seek的链接(直播流)，如果失败了。需要重试reconnect_streamed为true才能进行重试操作
-        formatContextOptions["reconnect_streamed"] = 1
+//        formatContextOptions["reconnect_streamed"] = 1
         // 需要加这个超时，不然从wifi切换到4g就会一直卡住, 超时不能为5，不然iptv的ts流会隔30s就超时
         formatContextOptions["rw_timeout"] = 10_000_000
         // 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
