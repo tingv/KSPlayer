@@ -30,16 +30,12 @@ public struct KSVideoPlayer {
     }
 
     public init(playerLayer: KSPlayerLayer) {
-        _coordinator = .init(wrappedValue: Coordinator(playerLayer: playerLayer))
-        url = playerLayer.url
-        options = playerLayer.options
+        self.init(coordinator: .init(wrappedValue: Coordinator(playerLayer: playerLayer)), url: playerLayer.url, options: playerLayer.options)
     }
 
     public init?(coordinator: Coordinator) {
-        _coordinator = .init(wrappedValue: coordinator)
         if let playerLayer = coordinator.playerLayer {
-            url = playerLayer.url
-            options = playerLayer.options
+            self.init(playerLayer: playerLayer)
         } else {
             return nil
         }

@@ -24,6 +24,9 @@ struct SubtitleRightView: View {
                 .textSelection()
             #endif
                 .padding(textPosition.edgeInsets)
+                .if(textPosition.horizontalAlign == .center) {
+                    $0.multilineTextAlignment(.center)
+                }
         }
         .if(textPosition != KSOptions.textPosition && KSOptions.stripSubtitleStyle) {
             $0.padding(KSOptions.textPosition.edgeInsets)

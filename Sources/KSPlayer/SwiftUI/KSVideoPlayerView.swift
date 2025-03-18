@@ -36,7 +36,7 @@ public struct KSVideoPlayerView: View {
     @State
     private var isDropdownShow = false
     private let liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)?
-    public init(coordinator: KSVideoPlayer.Coordinator? = nil, url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?, config _: KSVideoPlayer.Coordinator? = nil, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
+    public init(coordinator: KSVideoPlayer.Coordinator? = nil, url: State<URL?>, options: State<KSOptions>, title: State<String>, subtitleDataSource: SubtitleDataSource?, liftCycleBlock: ((KSVideoPlayer.Coordinator, Bool) -> Void)? = nil) {
         _url = url
         _title = title
         _options = options
