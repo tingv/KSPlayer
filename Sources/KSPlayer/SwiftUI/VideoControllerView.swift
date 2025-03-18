@@ -244,7 +244,8 @@ struct VideoSettingView: View {
     var subtitleTitle: String
     @Environment(\.dismiss)
     private var dismiss
-
+    @State
+    private var subtitleFileImport = false
     var body: some View {
         PlatformView {
             if let playerLayer = config.playerLayer {
@@ -299,6 +300,12 @@ struct VideoSettingView: View {
                     playerLayer.subtitleModel.searchSubtitle(query: subtitleTitle, languages: [Locale.current.identifier])
                 }
                 .buttonStyle(.bordered)
+                #if !os(tvOS)
+                Button("Add Subtitle".localized) {
+                    subtitleFileImport = true
+                }
+                .buttonStyle(.bordered)
+                #endif
                 DynamicInfoView(dynamicInfo: playerLayer.player.dynamicInfo)
                 let fileSize = playerLayer.player.fileSize
                 if fileSize > 0 {
@@ -308,6 +315,19 @@ struct VideoSettingView: View {
                 Text("Loading...".localized)
             }
         }
+        #if !os(tvOS)
+        .fileImporter(isPresented: $subtitleFileImport, allowedContentTypes: [.data]) { result in
+            guard let url = try? result.get() else {
+                return
+            }
+            if url.startAccessingSecurityScopedResource() {
+                if url.isSubtitle {
+                    let info = URLSubtitleInfo(url: url)
+                    config.playerLayer?.subtitleModel.selectedSubtitleInfo = info
+                }
+            }
+        }
+        #endif
         #if os(macOS) || targetEnvironment(macCatalyst) || os(visionOS)
         .toolbar {
             Button("Done".localized) {
