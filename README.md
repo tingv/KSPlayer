@@ -7,37 +7,19 @@ KSPlayer is a powerful media play framework for iOS, tvOS, macOS, xrOS, visionOS
 
 English | [简体中文](./README_CN.md)
 
-## Features
-Feature       | Free      |
-| ----------- | ----------- |
-|AV1 hardware decoding|✅|
-|All demuxers, All decoders|✅|
-|Record video clips at any time|✅|
-|Smoothly Play 8K or 120 FPS Video|✅|
-|Dovi P5 displays HDR (not overheating)|❌|
-|Picture in Picture supports subtitle display|✅|
-|Annex-B async hardware decoding(Live Stream)|✅|
-|Use the fonts in the video to render subtitles|✅|
-|ISO Blu-ray disc playback on all Apple platforms|❌|
-|Use memory cache for fast seek in short time range|✅|
-|Cache data to Hard Drive,Preload data to Hard Drive|❌|
-|Offline AI real-time subtitle generation and translation|❌|
-|Full display of ass subtitles effect(Render as image using libass)|✅|
-|Play videos in a small window in the App (resumable, supports tvos and ios)|❌|
-|FFmpeg version|7.0.2|
-|Record video|✅|✅|
-|360° panorama video|✅|✅|
-|Picture in Picture|✅|✅|
-|Hardware accelerator|✅|✅|
-|Seamless loop playback|✅|✅|
-|De-interlace auto detect|✅|✅|
-|4k/HDR/HDR10/HDR10+/Dolby Vision|✅|✅|
-|Custom url protocols such as nfs/smb/UPnP |✅|✅|
-|Multichannel Audio/Dolby AC-4/Spatial Audio|✅|✅|
-|Text subtitle/Image subtitle/Closed Captions|✅|✅|
-|Search Online Subtitles(shooter/assrt/opensubtitles)|✅|✅|
-|Low latency 4K live video streaming (less than 200ms on LAN)|✅|✅|
-|Automatically switch to multi-bitrate streams based on network|✅|✅|
+## Paid Features
+
+If you donate more than $100 per month, you can get a 10% discount on paid features; if you donate more than $200, you can get a 20% discount. And so on, if you donate more than $500 per month, you can get a 50% discount.
+
+Feature| Function Point | Cost（One-time fee) |
+| -------- | ----------- | ----------- |
+|Dovi P5 displays HDR  | 1. Utilizes hardware decoding to accurately render Dolby Vision (DV) colors while maintaining optimal thermal performance. <br> 2. Enables Dolby Vision activation on tvOS systems. <br> 3. Important Notice: This implementation utilizes a reverse-engineered approach without official Dolby licensing. Brightness levels in specific video segments may deviate from Infuse | $1000 |
+|Cache And Preload video  |1. Cache can control how many bytes of the watched clips are saved in the hard disk cache. In this way, if the user rolls back, there is no need to load. Live streaming rollback playback is realized. <br> 2. Preloading can load more content to the hard disk in advance to avoid network instability fluctuations. And the hard disk cache size can be controlled, and the hard disk cache can be updated in real time according to the playback progress. Preloading is suitable for on-demand scenarios. <br> 3. This function does not support m3u8 <br> 4. Supports nesting of other custom io protocols such as smb, nfs, iso. Smb can also be preloaded. <br> 5. This function defaults to clearing the hard disk cache when exiting playback, and also supports persisting the hard disk cache for easy playback next time.| $1000|
+|Blu-ray disc playback | 1. Supports all Apple platforms <br> 2. The transmission protocol of the Blu-ray original disk supports file, http, and https. And supports nested smb and nfs protocols <br> 3. Supports nested hard disk preloading function <br> 4. Supports display of audio and subtitle languages | $1000| 
+|Custom Picture in Picture | 1. Support turning the normal playback page into a small window for playback in the App. <br> 2. The small window supports restoring to the normal playback window. <br> 3. Support iOS and tvOS <br> 4. On tvOS, you can switch between small window and full screen video content | $500 |
+|AI subtitle | 1. Convert voice to text, which is better on iOS18. <br> 2. Support translating text to user-specified voice. | $300 |
+|Custom Protocol | 1. Remote directory and file browsing and playback <br> 2.Each protocol costs $50 separately <br> 3. Support the following protocols <br> NFS、SMB、FTP、UPnP、WebDav| $50|
+| | |
 
 ## The list of App using this SDK
 App Store Link| Logo |
@@ -318,6 +300,8 @@ Name| Logo |
 |[nihalahmed](https://github.com/nihalahmed)||
 |[HatimDa](https://github.com/HatimDa)||
 |[johnil](https://github.com/johnil)||
+|[scorebreak](https://github.com/scorebreak)||
+|[nsplay1990](https://github.com/nsplay1990)||
 
 Thanks to [nightfall708](https://github.com/nightfall708) for sponsoring a mac mini
 

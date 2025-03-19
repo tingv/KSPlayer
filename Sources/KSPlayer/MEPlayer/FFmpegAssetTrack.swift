@@ -301,6 +301,7 @@ public final class FFmpegAssetTrack: MediaPlayerTrack {
         if let stream {
             codecContext.pointee.pkt_timebase = stream.pointee.time_base
         } else {
+            // Closed Captions字幕需要设置pkt_timebase，这样时间戳才会是准的，但是Closed Captions字幕没有在第一个视频帧的位置就出现，而是在最后一个视频帧才出现，就会导致字幕一闪而过。
             codecContext.pointee.pkt_timebase = timebase.rational
         }
         return codecContext
