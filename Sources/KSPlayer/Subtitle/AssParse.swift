@@ -166,39 +166,19 @@ extension String {
     func parseStyle(attributes: inout [NSAttributedString.Key: Any], style: String?, textPosition: inout TextPosition) -> NSAttributedString {
         guard let style else {
             let attributedStr = NSMutableAttributedString()
-            for string in split(separator: "\n") {
-                if attributedStr.length != 0 {
-                    attributedStr.append(NSAttributedString(string: String("\n")))
+            let scanner = Scanner(string: self)
+            while !scanner.isAtEnd {
+                if let text = scanner.scanUpToString("<") {
+                    attributedStr.append(NSAttributedString(string: text, attributes: attributes))
                 }
-                if string.contains("<"), string.contains(">") {
-                    let scanner = Scanner(string: String(string))
-                    // 要加这行代码这样空格才不会被吃掉
-                    scanner.charactersToBeSkipped = nil
-                    if let text = scanner.scanUpToString("<") {
-                        attributedStr.append(NSAttributedString(string: text))
-                    }
-                    if scanner.scanString("<font ") != nil {
-                        if scanner.scanString("size=\"") != nil, let fontSize = scanner.scanFloat(), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
-                            var attributes = attributes
-                            attributes[.font] = UIFont.systemFont(ofSize: CGFloat(fontSize))
-                            attributedStr.append(NSAttributedString(string: text, attributes: attributes))
-                        } else if scanner.scanString("color=\"#") != nil, let hex = scanner.scanInt(representation: .hexadecimal), scanner.scanUpToString(">") != nil, scanner.scanString(">") != nil, let text = scanner.scanUpToString("<") {
-                            var attributes = attributes
-                            attributes[.foregroundColor] = UIColor(rgb: hex)
-                            attributedStr.append(NSAttributedString(string: text, attributes: attributes))
-                        }
-                        scanner.scanString("</font>")
-                        if let text = scanner.scanUpToCharacters(from: .newlines) {
-                            attributedStr.append(NSAttributedString(string: text))
-                        }
-                        continue
+                if scanner.scanString("<font") != nil {
+                    if let attrString = scanner.parseFontStyle(attributes: attributes) {
+                        attributedStr.append(attrString)
                     }
                 }
-                attributedStr.append(NSAttributedString(string: String(string), attributes: attributes))
-            }
-            // 如果最后有换行符的话，那需要补上，因为split会把最后的换行符去掉，不会返回一个空的字符串
-            if hasSuffix("\n") {
-                attributedStr.append(NSAttributedString(string: String("\n")))
+                if let text = scanner.scanUpToCharacters(from: .newlines) {
+                    attributedStr.append(NSAttributedString(string: text, attributes: attributes))
+                }
             }
             return attributedStr
         }
@@ -269,6 +249,37 @@ extension String {
             attributes[.font] = font
         }
         return NSAttributedString(string: self, attributes: attributes)
+    }
+}
+
+extension Scanner {
+    func parseFontStyle(attributes: [NSAttributedString.Key: Any]) -> NSAttributedString? {
+        var attributes = attributes
+        var fontName: String?
+        if scanString("face=\"") != nil, let name = scanUpToString("\""), scanString("\"") != nil {
+            fontName = name
+        }
+        var font: UIFont?
+        if scanString("size=\"") != nil, let fontSize = scanFloat(), scanString("\"") != nil {
+            if let fontName {
+                font = UIFont(name: fontName, size: CGFloat(fontSize))
+            }
+            font = font ?? UIFont.systemFont(ofSize: CGFloat(fontSize))
+        }
+        if scanString("color=\"#") != nil, let hex = scanInt(representation: .hexadecimal), scanString("\"") != nil {
+            attributes[.foregroundColor] = UIColor(rgb: hex)
+        }
+        if scanString(">") != nil, var text = scanUpToString("</font>") {
+            scanString("</font>")
+            if text.hasPrefix("<i>"), text.hasSuffix("</i>") {
+                text.removeFirst(3)
+                text.removeLast(4)
+                font = font?.union(symbolicTrait: .traitItalic)
+            }
+            attributes[.font] = font
+            return NSAttributedString(string: text, attributes: attributes)
+        }
+        return nil
     }
 }
 
