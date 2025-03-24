@@ -260,7 +260,9 @@ extension Scanner {
             fontName = name
         }
         var font: UIFont?
-        if scanString("size=\"") != nil, let fontSize = scanFloat(), scanString("\"") != nil {
+        if scanString("size=\"") != nil, let fontSize = scanFloat() {
+            _ = scanUpToString("\"")
+            _ = scanString("\"")
             if let fontName {
                 font = UIFont(name: fontName, size: CGFloat(fontSize))
             }

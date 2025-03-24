@@ -1,14 +1,9 @@
+import Foundation
 @testable import KSPlayer
-import XCTest
+import Testing
 
-extension XCTestCase {
-    // 用swift test的话无法返回url
-    func testURLForResource(_ resourceName: String) -> URL {
-        Bundle(url: Bundle(for: type(of: self)).url(forResource: "KSPlayer_KSPlayerTests.bundle", withExtension: nil)!)!.url(forResource: resourceName, withExtension: nil)!
-    }
-}
-
-class SubtitleTest: XCTestCase {
+class SubtitleTest {
+    @Test
     func testSrt() {
         let string = """
         1
@@ -59,12 +54,13 @@ class SubtitleTest: XCTestCase {
         """
         let scanner = Scanner(string: string)
         let parse = SrtParse()
-        XCTAssertEqual(parse.canParse(scanner: scanner), true)
+        #expect(parse.canParse(scanner: scanner))
         let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
-        XCTAssertEqual(parts.count, 9)
-        XCTAssertEqual(parts[8].end, 3601.14)
+        #expect(parts.count == 9)
+        #expect(parts[8].end == 3601.14)
     }
 
+    @Test
     func testSrt2() async {
         let string = """
         1
@@ -80,13 +76,39 @@ class SubtitleTest: XCTestCase {
         """
         let scanner = Scanner(string: string)
         let parse = SrtParse()
-        XCTAssertEqual(parse.canParse(scanner: scanner), true)
+        #expect(parse.canParse(scanner: scanner))
         let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
-        XCTAssertEqual(parts.count, 2)
-        XCTAssertEqual(parts[0].text?.string.contains("<"), false)
-        XCTAssertEqual(parts[1].text?.string.contains("<"), false)
+        #expect(parts.count == 2)
+        #expect(parts[0].text?.string.contains("<") == false)
+        #expect(parts[1].text?.string.contains("<") == false)
     }
 
+    @Test
+    func testSrt3() async {
+        let string = """
+        115
+        00:11:10,810 --> 00:11:13,543
+        如果我杀了他，她会从悬崖上跳下去。
+        <font face="sans-serif" size="71">If I kill him, she'll throw
+        herself off a cliff.</font>
+
+        116
+        00:11:13,633 --> 00:11:16,005
+        当拉尔！我需要你在这里！你在哪里？
+        <font face="sans-serif" size="71"><i>Danglars! I need you here!
+        Where are you?</i></font>
+
+        """
+        let scanner = Scanner(string: string)
+        let parse = SrtParse()
+        #expect(parse.canParse(scanner: scanner))
+        let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
+        #expect(parts.count == 2)
+        #expect(parts[0].text?.string.contains("<") == false)
+        #expect(parts[1].text?.string.contains("<") == false)
+    }
+
+    @Test
     func testVtt() {
         let string = """
         WEBVTT
@@ -124,11 +146,12 @@ class SubtitleTest: XCTestCase {
         """
         let scanner = Scanner(string: string)
         let parse = VTTParse()
-        XCTAssertEqual(parse.canParse(scanner: scanner), true)
+        #expect(parse.canParse(scanner: scanner))
         let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
-        XCTAssertEqual(parts.count, 7)
+        #expect(parts.count == 7)
     }
 
+    @Test
     func testVtt2() {
         let string = """
         WEBVTT
@@ -149,8 +172,8 @@ class SubtitleTest: XCTestCase {
         """
         let scanner = Scanner(string: string)
         let parse = VTTParse()
-        XCTAssertEqual(parse.canParse(scanner: scanner), true)
+        #expect(parse.canParse(scanner: scanner))
         let parts = parse.parse(scanner: scanner) as! [SubtitlePart]
-        XCTAssertEqual(parts.count, 3)
+        #expect(parts.count == 3)
     }
 }
