@@ -177,6 +177,7 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
         KSLog("[audio] set preferredOutputNumberOfChannels: \(audioFormat.channelCount)")
+        try? AVAudioSession.sharedInstance().setPreferredSampleRate(audioFormat.sampleRate)
         #endif
         KSLog("[audio] outputFormat AudioFormat: \(audioFormat)")
         if let channelLayout = audioFormat.channelLayout {

@@ -166,6 +166,7 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unche
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
         KSLog("[audio] set preferredOutputNumberOfChannels: \(audioFormat.channelCount)")
+        try? AVAudioSession.sharedInstance().setPreferredSampleRate(audioFormat.sampleRate)
         #endif
         sampleSize = audioFormat.sampleSize
         var audioStreamBasicDescription = audioFormat.formatDescription.audioStreamBasicDescription

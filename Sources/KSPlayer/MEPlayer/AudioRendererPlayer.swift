@@ -59,6 +59,7 @@ public class AudioRendererPlayer: AudioOutput {
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(audioFormat.channelCount))
         KSLog("[audio] set preferredOutputNumberOfChannels: \(audioFormat.channelCount)")
+        try? AVAudioSession.sharedInstance().setPreferredSampleRate(audioFormat.sampleRate)
         #endif
         renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
             guard let self else {
@@ -145,6 +146,7 @@ public class AudioRendererPlayer: AudioOutput {
             #if !os(macOS)
             if AVAudioSession.sharedInstance().preferredInputNumberOfChannels != channelCount {
                 try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(Int(channelCount))
+                try? AVAudioSession.sharedInstance().setPreferredSampleRate(render.audioFormat.sampleRate)
             }
             #endif
         }
