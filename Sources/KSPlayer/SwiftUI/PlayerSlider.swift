@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-@available(iOS 15, tvOS 15, macOS 12, *)
+@available(iOS 15, macOS 12, tvOS 15, *)
 public struct PlayerSlider: View {
     let value: Binding<Float>
     let bufferValue: Float
@@ -120,7 +120,7 @@ public struct PlayerSlider: View {
     }
 }
 
-@available(iOS 15, tvOS 15, macOS 12, *)
+@available(iOS 15, macOS 12, tvOS 15, *)
 private struct ProgressTrack: View {
     let value: Binding<Float>
     let bufferValue: Float
@@ -216,7 +216,7 @@ private func valueFrom(distance: Float, availableDistance: Float, bounds: Closed
 }
 
 #if DEBUG
-@available(iOS 15, tvOS 15, macOS 12, *)
+@available(iOS 15, macOS 12, tvOS 15, *)
 struct PlayerSlider_Previews: PreviewProvider {
     static var previews: some View {
         let model = ControllerTimeModel()

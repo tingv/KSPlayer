@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, *)
 public struct KSCorePlayerView: View {
     @ObservedObject
     private var config: KSVideoPlayer.Coordinator

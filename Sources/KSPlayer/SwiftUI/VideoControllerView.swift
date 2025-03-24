@@ -203,7 +203,7 @@ struct VideoControllerView: View {
     }
 }
 
-@available(iOS 15, tvOS 15, macOS 12, *)
+@available(iOS 15, macOS 12, tvOS 15, *)
 struct VideoTimeShowView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
