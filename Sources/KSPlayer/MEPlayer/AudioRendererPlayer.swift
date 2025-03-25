@@ -8,6 +8,9 @@
 import AVFoundation
 import Foundation
 
+/**
+ 支持airpod的空间音频。
+ */
 public class AudioRendererPlayer: AudioOutput {
     public var playbackRate: Float = 1 {
         didSet {

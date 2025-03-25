@@ -9,6 +9,13 @@ import AudioToolbox
 import AVFAudio
 import CoreAudio
 
+/**
+  内存占用最小，但是少了一些功能：只有macOS支持音量调节 其他OS不支持。但是音响效果是最好的，解决了下面几个问题。
+  1. Sound dynamics are deficient overall, regardless of the multichannel sound tracks played.
+  2. Some surround effects between the speakers are absent.
+  3. The subwoofer's bass reproduction is not at the expected level (underpowered).
+  倍数实现使用的是ffmpg的filter，会导致无法实时生效，但是这个也有另外一个好处是 频繁的进行倍速播放不会crash。其他的音频输出是会有概率出现的，
+ **/
 public final class AudioUnitPlayer: AudioOutput, @unchecked Sendable {
     private var audioUnitForOutput: AudioUnit!
     private var currentRenderReadOffset = UInt32(0)

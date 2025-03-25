@@ -46,7 +46,7 @@ class SubtitleDecode: DecodeProtocol {
                             .replacingOccurrences(of: "Style: Default,Serif,18,&Hffffff,&Hffffff,&Hff000000,&Hff000000,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1", with: KSOptions.assStyle)
                     }
                     // 所以文字字幕都会自动转为ass的格式，都会有subtitle_header。所以还要判断下字幕的类型
-                    if (KSOptions.isASSUseImageRender && isASS) || KSOptions.isSRTUseImageRender {
+                    if (KSOptions.isASSUseImageRender && isASS) || (KSOptions.isSRTUseImageRender && !isASS) {
                         assImageRenderer = AssIncrementImageRenderer(fontsDir: options.fontsDir?.path, header: subtitleHeader)
                         assetTrack.subtitleRender = assImageRenderer
                     } else {

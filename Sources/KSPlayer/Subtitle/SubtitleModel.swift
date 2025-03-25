@@ -12,52 +12,6 @@ import Translation
 #endif
 @MainActor
 open class SubtitleModel: ObservableObject {
-    public enum Size {
-        case smaller
-        case standard
-        case large
-        public var rawValue: CGFloat {
-            switch self {
-            case .smaller:
-                #if os(tvOS) || os(visionOS)
-                return 48
-                #elseif os(macOS) || os(visionOS)
-                return 20
-                #else
-                if UITraitCollection.current.userInterfaceIdiom == .phone {
-                    return 12
-                } else {
-                    return 20
-                }
-                #endif
-            case .standard:
-                #if os(tvOS) || os(visionOS)
-                return 58
-                #elseif os(macOS) || os(visionOS)
-                return 26
-                #else
-                if UITraitCollection.current.userInterfaceIdiom == .phone {
-                    return 16
-                } else {
-                    return 26
-                }
-                #endif
-            case .large:
-                #if os(tvOS) || os(visionOS)
-                return 68
-                #elseif os(macOS) || os(visionOS)
-                return 32
-                #else
-                if UITraitCollection.current.userInterfaceIdiom == .phone {
-                    return 20
-                } else {
-                    return 32
-                }
-                #endif
-            }
-        }
-    }
-
     #if (os(iOS) || os(macOS)) && !targetEnvironment(macCatalyst)
     private var _translationSessionConf: Any?
     @available(iOS 18.0, macOS 15.0, *)

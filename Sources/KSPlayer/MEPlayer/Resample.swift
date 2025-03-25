@@ -314,15 +314,16 @@ public class AudioDescriptor: Equatable {
             // AudioEnginePlayer 和AudioGraphPlayer 不能interleaved 为true，不然会crash
             interleaved = false
         }
-        // 都要改成是Float32。这样播放dts才不会有小声的问题
+        /// 都要改成是Float32。这样播放dts才不会有小声的问题。
+        /// 不能使用Float64，不然AudioGraph会crash，其他的音频输出会无法播放
         commonFormat = .pcmFormatFloat32
+
         return AVAudioFormat(commonFormat: commonFormat, sampleRate: Double(sampleRate), interleaved: interleaved, channelLayout: AVAudioChannelLayout(layoutTag: layoutTag)!)
         //        AVAudioChannelLayout(layout: outChannel.layoutTag.channelLayout)
     }
 
     public func update(frame: AVFrame) {
         sampleFormat = AVSampleFormat(rawValue: frame.format)
-        sampleRate = frame.sample_rate
         if frame.sample_rate <= 0 {
             sampleRate = 48000
         } else {

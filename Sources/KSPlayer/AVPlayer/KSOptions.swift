@@ -378,12 +378,13 @@ open class KSOptions {
     public nonisolated(unsafe) static var textColor: Color = .white
     public nonisolated(unsafe) static var textBackgroundColor: Color = .clear
     @MainActor
-    public static var textFont: UIFont {
-        var font = UIFont(name: textFontName, size: textFontSize, bold: textBold, italic: textItalic)
+    public static func textFont(width: Double) -> UIFont {
+        let size = subtileFontSize * width / 384
+        var font = UIFont(name: textFontName, size: size, bold: textBold, italic: textItalic)
         if let font {
             return font
         } else {
-            var font = UIFont.systemFont(ofSize: textFontSize)
+            var font = UIFont.systemFont(ofSize: size)
             if textBold || textItalic {
                 var symbolicTrait = UIFontDescriptor.SymbolicTraits()
                 if textBold {
@@ -398,15 +399,13 @@ open class KSOptions {
         }
     }
 
-    public nonisolated(unsafe) static var textFontName: String = {
-        /// systemFont返回的是AppleSystemUIFont。libass遇到韩语就会无法显示，所以需要指明系统字体名SF Pro。
-        return "SF Pro"
-        let font = UIFont.systemFont(ofSize: textFontSize)
-        // tvos ios需要取familyName，才是对的。而macos familyName和fontName是一样的
-        return font.familyName ?? font.fontName
-    }()
-
-    public nonisolated(unsafe) static var textFontSize = SubtitleModel.Size.standard.rawValue
+    /// systemFont返回的是AppleSystemUIFont。libass遇到韩语就会无法显示，所以需要指明系统字体名SF Pro。
+    /// tvos ios需要取familyName，才是对的。而macos familyName和fontName是一样的
+    public nonisolated(unsafe) static var textFontName: String = "SF Pro"
+    /// 把textFontSize作废掉了。改成用subtileFontSize。
+    /// subtileFontSize会自动根据屏幕宽度来计算字段的大小。这样才能自适应各种屏幕。
+    /// 目前这个值是根据宽度384来进行设置，保持跟ffmpeg里面的字幕字体设置一致
+    public nonisolated(unsafe) static var subtileFontSize = 16.0
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
     public nonisolated(unsafe) static var textPosition = TextPosition()

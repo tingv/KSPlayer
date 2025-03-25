@@ -83,10 +83,10 @@ public class Defaults: ObservableObject {
         }
     }
 
-    @AppStorage("textFontSize")
-    public var textFontSize = KSOptions.textFontSize {
+    @AppStorage("subtileFontSize")
+    public var subtileFontSize = KSOptions.subtileFontSize {
         didSet {
-            KSOptions.textFontSize = textFontSize
+            KSOptions.subtileFontSize = subtileFontSize
         }
     }
 
@@ -172,7 +172,7 @@ public class Defaults: ObservableObject {
     private init() {
         KSOptions.hardwareDecode = hardwareDecode
         MEOptions.isUseDisplayLayer = isUseDisplayLayer
-        KSOptions.textFontSize = textFontSize
+        KSOptions.subtileFontSize = subtileFontSize
         KSOptions.textBold = textBold
         KSOptions.textItalic = textItalic
         KSOptions.textColor = textColor

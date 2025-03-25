@@ -9,6 +9,9 @@ import AudioToolbox
 import AVFAudio
 import CoreAudio
 
+/**
+ 不支持播放超过 108khz的音频
+ */
 public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unchecked Sendable {
     public private(set) var audioUnitForDynamicsProcessor: AudioUnit
     private let graph: AUGraph
