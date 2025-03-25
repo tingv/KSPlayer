@@ -403,7 +403,7 @@ open class KSOptions {
     /// tvos ios需要取familyName，才是对的。而macos familyName和fontName是一样的
     public nonisolated(unsafe) static var textFontName: String = "SF Pro"
     /// 把textFontSize作废掉了。改成用subtileFontSize。
-    /// subtileFontSize会自动根据屏幕宽度来计算字段的大小。这样才能自适应各种屏幕。
+    /// subtileFontSize会自动根据屏幕宽度来计算字体的大小。所以理论下，不用单独为各种系统设置字体了。可以自适应了。
     /// 目前这个值是根据宽度384来进行设置，保持跟ffmpeg里面的字幕字体设置一致
     public nonisolated(unsafe) static var subtileFontSize = 16.0
     public nonisolated(unsafe) static var textBold = false
@@ -452,8 +452,8 @@ open class KSOptions {
     public static var hardwareDecode = true
     /// 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
     /// m3u8的Interlaced流，需要关闭自研的硬解才能判断是Interlaced
-    /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到硬解才可以。自研的硬解不会失败，但是会有一小段的花屏。
-    /// 异步硬解支持直播流Annexb格式了。并且当前只有异步硬解支持av1硬解
+    /// 但是ts格式的视频seek完之后，FFmpeg的硬解会失败，需要切换到软解才可以。自研的硬解不会失败，但是会有一小段的花屏。
+    /// 低端设备，如果是播放4k视频的话，建议打开这个开关。这样才不会有音画不同步的问题。
     @MainActor
     public static var asynchronousDecompression = false
     @MainActor
@@ -541,7 +541,12 @@ open class KSOptions {
         nil
     }
 
-    // 虽然只有iOS才支持PIP。但是因为AVSampleBufferDisplayLayer能够支持HDR10+。所以默认还是推荐用AVSampleBufferDisplayLayer
+    /**
+     true: 使用AVSampleBufferDisplayLayer进行渲染， false: 使用Metal进行渲染
+     1. iOS需要这个函数返回true才能pip
+     2.AVSampleBufferDisplayLayer 在系统不同的版本，可能会有不同的表现。所以如果遇到不同的系统版本，画面表现不一致的问题，那就试下让这个函数返回true。
+     3. iOS16以下的设备，会出现内嵌图片字幕闪烁的问题，这个函数返回false就不会闪烁了
+       */
     @MainActor
     open func isUseDisplayLayer() -> Bool {
         display === KSOptions.displayEnumPlane
