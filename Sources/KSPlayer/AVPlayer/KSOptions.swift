@@ -59,8 +59,9 @@ open class KSOptions {
 //        formatContextOptions["reconnect_streamed"] = 1
         // 需要加这个超时，不然从wifi切换到4g就会一直卡住, 超时不能为5，不然iptv的ts流会隔30s就超时
         formatContextOptions["rw_timeout"] = 10_000_000
-        // 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
-        // 开启这个，百度网盘的视频链接无法播放
+        /// 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
+        /// 开启这个，百度网盘的视频链接无法播放
+        /// 开启这个配置的话，那点播的m3u8会获取不到总时长
         // formatContextOptions["multiple_requests"] = 1
         // 下面是用来处理秒开的参数，有需要的自己打开。默认不开，不然在播放某些特殊的ts直播流会频繁卡顿。
 //        formatContextOptions["auto_convert"] = 0
@@ -76,6 +77,8 @@ open class KSOptions {
         formatContextOptions["reconnect_on_network_error"] = 1
         /// 要用这个来控制最大的超时时长。调用read失败之后会重试，然后open也会重试。所以总共会四次。
         formatContextOptions["reconnect_delay_max"] = 0
+        // 要加这个，因为有的hls里面的格式是jpg
+        formatContextOptions["allowed_extensions"] = "ALL"
         // There is total different meaning for 'listen_timeout' option in rtmp
         // set 'listen_timeout' = -1 for rtmp、rtsp
 //        formatContextOptions["listen_timeout"] = 3
