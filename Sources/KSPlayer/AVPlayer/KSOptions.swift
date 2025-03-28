@@ -364,7 +364,7 @@ open class KSOptions {
         return UInt8(min(count, 255))
     }
 
-    // MARK: subtile options
+    // MARK: subtitle options
 
     /// 这个是用来存放视频的自带字体，会在播放结束被清空，所以访问权限设置为internal。
     /// 如果一个文件夹下的字体太多的话，那libass显示的时候就会内存增加太多。
@@ -382,7 +382,7 @@ open class KSOptions {
     public nonisolated(unsafe) static var textBackgroundColor: Color = .clear
     @MainActor
     public static func textFont(width: Double) -> UIFont {
-        let size = subtileFontSize * width / 384
+        let size = subtitleFontSize * width / 384
         var font = UIFont(name: textFontName, size: size, bold: textBold, italic: textItalic)
         if let font {
             return font
@@ -405,10 +405,10 @@ open class KSOptions {
     /// systemFont返回的是AppleSystemUIFont。libass遇到韩语就会无法显示，所以需要指明系统字体名SF Pro。
     /// tvos ios需要取familyName，才是对的。而macos familyName和fontName是一样的
     public nonisolated(unsafe) static var textFontName: String = "SF Pro"
-    /// 把textFontSize作废掉了。改成用subtileFontSize。
-    /// subtileFontSize会自动根据屏幕宽度来计算字体的大小。所以理论下，不用单独为各种系统设置字体了。可以自适应了。
+    /// 把textFontSize作废掉了。改成用subtitleFontSize。
+    /// subtitleFontSize会自动根据屏幕宽度来计算字体的大小。所以理论下，不用单独为各种系统设置字体了。可以自适应了。
     /// 目前这个值是根据宽度384来进行设置，保持跟ffmpeg里面的字幕字体设置一致
-    public nonisolated(unsafe) static var subtileFontSize = 16.0
+    public nonisolated(unsafe) static var subtitleFontSize = 16.0
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
     public nonisolated(unsafe) static var textPosition = TextPosition()

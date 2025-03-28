@@ -89,8 +89,8 @@ struct SettingVideoView: View {
 }
 
 struct SettingSubtitleView: View {
-    @Default(\.subtileFontSize)
-    private var subtileFontSize
+    @Default(\.subtitleFontSize)
+    private var subtitleFontSize
     @Default(\.textBold)
     private var textBold
     @Default(\.textItalic)
@@ -116,7 +116,7 @@ struct SettingSubtitleView: View {
                     #if os(iOS)
                     Text("Fone Size:")
                     #endif
-                    TextField("Fone Size:", value: $subtileFontSize, format: .number)
+                    TextField("Fone Size:", value: $subtitleFontSize, format: .number)
                 }
                 Toggle("Bold", isOn: $textBold)
                 Toggle("Italic", isOn: $textItalic)

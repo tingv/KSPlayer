@@ -10,8 +10,10 @@ import AVFAudio
 import CoreAudio
 
 /**
- 不支持播放超过 108khz的音频
- */
+ 不推荐使用这个音频输出
+  不支持播放超过 108khz的音频
+  iOS在锁屏之后会没有声音要过一会儿才有声音。
+  */
 public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unchecked Sendable {
     public private(set) var audioUnitForDynamicsProcessor: AudioUnit
     private let graph: AUGraph
