@@ -166,6 +166,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
                 }
             }
         }
+
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
         //        var startTime = CACurrentMediaTime()
         decoder.decodeFrame(from: packet) { [weak self, weak decoder] result in
@@ -203,7 +204,8 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
                         DispatchQueue.global().async {
                             decoder?.shutdown()
                         }
-                        decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: options)
+                        options.asynchronousDecompression = false
+                        decoderMap[packet.assetTrack.trackID] = nil
                         KSLog("[video] VideoToolboxDecode fail. switch to ffmpeg decode")
                     }
                     // packet不要在复用了。因为有可能进行了bitStreamFilter，导致内存被释放了，如果调用avcodec_send_packet的话，就会crashcrash

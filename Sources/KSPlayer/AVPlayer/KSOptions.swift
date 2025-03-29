@@ -412,6 +412,9 @@ open class KSOptions {
     public nonisolated(unsafe) static var textBold = false
     public nonisolated(unsafe) static var textItalic = false
     public nonisolated(unsafe) static var textPosition = TextPosition()
+    /// 图片字幕的缩放因子
+    @MainActor
+    public static var subtitleImageScale = 1.0
     @MainActor
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static var subtitleDynamicRange = Image.DynamicRange.high

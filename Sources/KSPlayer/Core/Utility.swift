@@ -382,6 +382,7 @@ public extension CGSize {
         width / height < ratio ? CGSize(width: Int(width), height: Int(width / ratio)) : CGSize(width: Int(height * ratio), height: Int(height))
     }
 
+    @MainActor
     func convert(rect: CGRect, playRatio: Double, toSize: CGSize) -> CGRect {
         guard height != 0, width != 0, toSize.width != 0, toSize.height != 0 else {
             return rect
@@ -395,8 +396,22 @@ public extension CGSize {
         } else {
             zoom = min(hZoom, vZoom)
         }
+        // 先计算不考虑字体大小的位置和尺寸
         var newRect = rect * zoom
         let newDisplaySize = self * zoom
+        let subtitleImageScale = KSOptions.subtitleImageScale
+        if subtitleImageScale != 1 {
+            // 保存原始中心点
+            let originalCenterX = newRect.midX
+            let originalCenterY = newRect.midY
+            // 根据字体大小调整矩形大小
+            newRect.size.width *= subtitleImageScale
+            newRect.size.height *= subtitleImageScale
+            // 调整位置，使其保持原来的中心点
+            newRect.origin.x = originalCenterX - newRect.width / 2
+            newRect.origin.y = originalCenterY - newRect.height / 2
+        }
+        // 应用屏幕居中调整
         newRect.origin.x += (toSize.width - newDisplaySize.width) / 2
         let diff = (toSize.height - newDisplaySize.height) / 2
         newRect.origin.y += diff
