@@ -42,7 +42,7 @@ public final class MEPlayerItem: @unchecked Sendable {
     private var videoDisplayCount = UInt8(0)
     private var seekByBytes = false
     private var lastVideoClock = KSClock()
-    private var ioContext: AbstractAVIOContext?
+    public private(set) var ioContext: AbstractAVIOContext?
     private var pbArray = [PBClass]()
     private var interrupt = false
     private var formatName = ""

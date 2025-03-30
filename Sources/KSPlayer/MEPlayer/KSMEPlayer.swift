@@ -308,6 +308,10 @@ extension KSMEPlayer: MEPlayerDelegate {
 }
 
 extension KSMEPlayer: MediaPlayerProtocol {
+    public var ioContext: AbstractAVIOContext? {
+        playerItem.ioContext
+    }
+
     public var chapters: [Chapter] {
         playerItem.chapters
     }

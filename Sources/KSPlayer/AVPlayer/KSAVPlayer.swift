@@ -373,6 +373,10 @@ extension KSAVPlayer {
 }
 
 extension KSAVPlayer: MediaPlayerProtocol {
+    public var ioContext: AbstractAVIOContext? {
+        nil
+    }
+
     public func startRecord(url _: URL) {}
 
     public func stopRecord() {}

@@ -288,6 +288,9 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         onStateChanged?(layer, state)
         if state == .readyToPlay {
             playbackRate = layer.player.playbackRate
+            #if DEBUG
+            timemodel.preLoadProtocol = layer.player.ioContext as? any PreLoadProtocol
+            #endif
         } else if state == .bufferFinished {
             isMaskShow = false
         } else {
@@ -399,6 +402,9 @@ public class ControllerTimeModel: ObservableObject {
     public var totalTime = 1
     @Published
     public var bufferTime = 0
+    #if DEBUG
+    public var preLoadProtocol: PreLoadProtocol?
+    #endif
 }
 
 #if DEBUG

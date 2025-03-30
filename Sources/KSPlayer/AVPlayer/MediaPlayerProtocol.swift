@@ -26,6 +26,7 @@ public protocol MediaPlayback: AnyObject {
     var currentPlaybackTime: TimeInterval { get }
     var playbackRate: Float { get set }
     var dynamicInfo: DynamicInfo { get }
+    var ioContext: AbstractAVIOContext? { get }
     func prepareToPlay()
     func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void))
     func startRecord(url: URL)

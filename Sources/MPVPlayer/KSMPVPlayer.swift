@@ -131,6 +131,10 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
 }
 
 extension KSMPVPlayer: MediaPlayerProtocol {
+    public var ioContext: AbstractAVIOContext? {
+        nil
+    }
+
     public func startRecord(url _: URL) {}
 
     public func stopRecord() {}

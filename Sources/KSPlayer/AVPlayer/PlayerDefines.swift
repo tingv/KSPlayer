@@ -405,10 +405,40 @@ public protocol DownloadProtocol {
     func close()
 }
 
+public class CacheEntry: Codable {
+    private static let maxEntrySize = 8 * 1024 * 1024
+    public let logicalPos: Int64
+    public let physicalPos: UInt64
+    public var size: UInt64
+    public var eof: Bool = false
+    public var maxSize: UInt64?
+    public init(logicalPos: Int64, physicalPos: UInt64, size: UInt64, maxSize: UInt64? = nil) {
+        self.logicalPos = logicalPos
+        self.physicalPos = physicalPos
+        self.size = size
+        self.maxSize = maxSize
+    }
+
+    public func isOut(size: UInt64) -> Bool {
+        if self.size > CacheEntry.maxEntrySize {
+            true
+        } else if let maxSize, self.size + size > maxSize {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 public protocol PreLoadProtocol {
     // 预先加载了多少Byte
     var loadedSize: Int64 { get }
     var urlPos: Int64 { get }
+    #if DEBUG
+    var entryList: [CacheEntry] { get }
+    var logicalPos: Int64 { get }
+    func fileSize() -> Int64
+    #endif
     func more() -> Int32
 }
 

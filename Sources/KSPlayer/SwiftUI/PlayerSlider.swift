@@ -17,12 +17,18 @@ public struct PlayerSlider: View {
     private var beginDrag = false
     @FocusState
     private var isFocused: Bool
+    #if DEBUG
+    private var preLoadProtocol: PreLoadProtocol?
+    #endif
     public init(model: ControllerTimeModel, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.init(value: Binding {
             Float(model.currentTime)
         } set: { newValue, _ in
             model.currentTime = Int(newValue)
         }, in: 0 ... Float(model.totalTime), bufferValue: Float(model.bufferTime), onEditingChanged: onEditingChanged)
+        #if DEBUG
+        preLoadProtocol = model.preLoadProtocol
+        #endif
     }
 
     public init(value: Binding<Float>, in bounds: ClosedRange<Float> = 0 ... 1, bufferValue: Float, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
@@ -30,6 +36,9 @@ public struct PlayerSlider: View {
         self.bufferValue = bufferValue
         self.bounds = bounds
         self.onEditingChanged = onEditingChanged
+        #if DEBUG
+        preLoadProtocol = nil
+        #endif
     }
 
     public var body: some View {
@@ -42,6 +51,20 @@ public struct PlayerSlider: View {
         }
         #else
         GeometryReader { geometry in
+            #if DEBUG
+            if let preLoadProtocol, preLoadProtocol.fileSize() > 0 {
+                ForEach(Array(preLoadProtocol.entryList.enumerated()), id: \.offset) { _, entry in
+                    Rectangle()
+                        .fill(Color.indigo.opacity(0.8))
+                        .offset(x: CGFloat(Double(entry.logicalPos) / Double(preLoadProtocol.fileSize())) * geometry.size.width)
+                        .frame(width: CGFloat(Double(entry.size) / Double(preLoadProtocol.fileSize())) * geometry.size.width)
+                }
+                Rectangle()
+                    .fill(Color.green)
+                    .offset(x: CGFloat(Double(preLoadProtocol.logicalPos) / Double(preLoadProtocol.fileSize())) * geometry.size.width)
+                    .frame(width: 3)
+            }
+            #endif
             // 进度部分
             ProgressTrack(value: value, bufferValue: bufferValue, bounds: bounds, progressColor: KSOptions.progressColor)
                 .frame(height: KSOptions.trackHeight)
