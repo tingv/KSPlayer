@@ -524,8 +524,16 @@ open class KSOptions {
         #endif
     }
 
-    open func recreateContext(hasDecodeSuccess: Bool) -> Bool {
-        !hasDecodeSuccess
+    /// 当硬件解码调用avcodec_send_packet失败的话，会调用这个方法判断是否要切换成软解。返回true的话，那代表要切换成软解。
+    /// 如果之前一直都没有成功过的话，那就需要切换成软解
+    /// 如果有成功过，但是当前是关键帧解码失败的话，那就切换成软解。
+    /// 因为直播流rtsp直播可能会一开始就报解码失败，但是不需要切换解码。所以提供这个方法，让开发者进行重载。
+    open func recreateContext(hasDecodeSuccess: Bool, isKeyFrame: Bool) -> Bool {
+        if hasDecodeSuccess {
+            return isKeyFrame
+        } else {
+            return true
+        }
     }
 
     /// 默认要选择那个视频轨道，如果是返回nil的话。那就会默认由ffmpeg自己来决定，一般是会选择分辨率低的。

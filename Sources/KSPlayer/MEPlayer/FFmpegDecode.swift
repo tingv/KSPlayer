@@ -54,13 +54,14 @@ class FFmpegDecode: DecodeProtocol {
               硬解前后台切换的话，视频会报错-1313558101
               频繁seek的话，音频会报错-1094995529
              如果之前一直都没有成功过的话，那就需要切换成软解
+
              视频报错AVError.tryAgain.code的话，也不要转为软解。因为dovi解码有可能返回这个错。
              增加开关判断是否要转为软解。因为直播流rtsp直播可能会一开始就报解码失败，但是不需要切换解码
               **/
-            if isVideo, options.hardwareDecode, codecContext?.pointee.hw_device_ctx != nil, options.recreateContext(hasDecodeSuccess: hasDecodeSuccess) {
+            if isVideo, options.hardwareDecode, codecContext?.pointee.hw_device_ctx != nil, options.recreateContext(hasDecodeSuccess: hasDecodeSuccess, isKeyFrame: packet.isKeyFrame) {
                 avcodec_free_context(&codecContext)
                 options.hardwareDecode = false
-                KSLog("[video] videoToolbox ffmpeg decode have not success. change to software decode")
+                KSLog("[video] videoToolbox ffmpeg decode hasDecodeSuccess:\(hasDecodeSuccess), isKeyFrame\(packet.isKeyFrame). change to software decode")
                 codecContext = try? packet.assetTrack.createContext(options: options)
                 avcodec_send_packet(codecContext, packet.corePacket)
             } else {
