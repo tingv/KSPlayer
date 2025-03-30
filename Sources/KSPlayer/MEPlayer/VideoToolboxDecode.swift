@@ -109,7 +109,7 @@ class VideoToolboxDecode: DecodeProtocol {
                     while frames.count > 0 {
                         let frame = frames[0]
                         if frame.timestamp - lastTimestamp < 2 * duration
-                            || frames.count > 4
+                            || frames.count > 6
                         {
                             lastTimestamp = frame.timestamp
                             completionHandler(.success(frames.removeFirst()))
