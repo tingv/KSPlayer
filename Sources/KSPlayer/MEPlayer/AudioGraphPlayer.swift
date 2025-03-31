@@ -22,7 +22,6 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unche
     private var audioUnitForOutput: AudioUnit!
     private var currentRenderReadOffset = UInt32(0)
     private var sourceNodeAudioFormat: AVAudioFormat?
-    private var sampleSize = UInt32(MemoryLayout<Float>.size)
     #if os(macOS)
     private var volumeBeforeMute: Float = 0.0
     #endif
@@ -173,7 +172,6 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unche
         KSLog("[audio] set preferredOutputNumberOfChannels: \(audioFormat.channelCount)")
         try? AVAudioSession.sharedInstance().setPreferredSampleRate(audioFormat.sampleRate)
         #endif
-        sampleSize = audioFormat.sampleSize
         var audioStreamBasicDescription = audioFormat.formatDescription.audioStreamBasicDescription
         let audioStreamBasicDescriptionSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
         let channelLayout = audioFormat.channelLayout?.layout
@@ -255,23 +253,25 @@ extension AudioGraphPlayer {
         }, Unmanaged.passUnretained(self).toOpaque())
     }
 
-    private func audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer, numberOfFrames: UInt32) {
-        var ioDataWriteOffset = 0
-        var numberOfSamples = numberOfFrames
-        while numberOfSamples > 0 {
+    private func audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer, numberOfFrames _: UInt32) {
+        guard ioData.count > 0 else {
+            return
+        }
+        var mDataByteSize = ioData[0].mDataByteSize
+        while mDataByteSize > 0 {
             if currentRender == nil {
                 currentRender = renderSource?.getAudioOutputRender()
             }
             guard let currentRender else {
                 break
             }
-            let residueLinesize = currentRender.numberOfSamples - currentRenderReadOffset
+            let residueLinesize = UInt32(currentRender.dataSize) - currentRenderReadOffset
             guard residueLinesize > 0 else {
                 self.currentRender = nil
                 continue
             }
             if sourceNodeAudioFormat != currentRender.audioFormat {
-                runOnMainThread { [weak self, currentRender] in
+                runOnMainThread { [weak self] in
                     guard let self else {
                         return
                     }
@@ -279,33 +279,30 @@ extension AudioGraphPlayer {
                 }
                 return
             }
-            let framesToCopy = min(numberOfSamples, residueLinesize)
-            let bytesToCopy = Int(framesToCopy * sampleSize)
-            let offset = Int(currentRenderReadOffset * sampleSize)
+            let bytesToCopy = min(mDataByteSize, residueLinesize)
             for i in 0 ..< min(ioData.count, currentRender.data.count) {
                 if let source = currentRender.data[i], let destination = ioData[i].mData {
-                    (destination + ioDataWriteOffset).copyMemory(from: source + offset, byteCount: bytesToCopy)
+                    (destination + Int(ioData[i].mDataByteSize - mDataByteSize)).copyMemory(from: source + Int(currentRenderReadOffset), byteCount: Int(bytesToCopy))
                 }
             }
-            numberOfSamples -= framesToCopy
-            ioDataWriteOffset += bytesToCopy
-            currentRenderReadOffset += framesToCopy
+            currentRenderReadOffset += bytesToCopy
+            mDataByteSize -= bytesToCopy
         }
-        let sizeCopied = (numberOfFrames - numberOfSamples) * sampleSize
-        for i in 0 ..< ioData.count {
-            let sizeLeft = Int(ioData[i].mDataByteSize - sizeCopied)
-            if sizeLeft > 0 {
-                memset(ioData[i].mData! + Int(sizeCopied), 0, sizeLeft)
+        if mDataByteSize > 0 {
+            for i in 0 ..< ioData.count {
+                memset(ioData[i].mData! + Int(ioData[i].mDataByteSize - mDataByteSize), 0, Int(mDataByteSize))
             }
         }
     }
 
     private func audioPlayerDidRenderSample(sampleTimestamp _: AudioTimeStamp) {
         if let currentRender {
-            let currentPreparePosition = currentRender.timestamp + currentRender.duration * Int64(currentRenderReadOffset) / Int64(currentRender.numberOfSamples)
+            let currentPreparePosition = currentRender.timestamp + currentRender.duration * Int64(currentRenderReadOffset) / Int64(currentRender.dataSize)
             if currentPreparePosition > 0 {
                 var time = currentRender.timebase.cmtime(for: currentPreparePosition)
                 if outputLatency != 0 {
+                    /// AVSampleBufferAudioRenderer不需要处理outputLatency。其他音频输出的都要处理。
+                    /// 没有蓝牙的话，outputLatency为0.015，有蓝牙耳机的话为0.176
                     time = time - CMTime(seconds: outputLatency, preferredTimescale: time.timescale)
                 }
                 renderSource?.setAudio(time: time, position: currentRender.position)

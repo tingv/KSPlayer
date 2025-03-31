@@ -208,7 +208,7 @@ class AudioSwresample: FrameChange {
         var bufferSize = [Int32(0)]
         // 返回值是有乘以声道，所以不用返回值
         _ = av_samples_get_buffer_size(&bufferSize, channels, outSamples, descriptor.audioFormat.sampleFormat, 1)
-        let frame = AudioFrame(dataSize: Int(bufferSize[0]), audioFormat: descriptor.audioFormat)
+        let frame = AudioFrame(dataSize: UInt32(bufferSize[0]), audioFormat: descriptor.audioFormat)
         frame.numberOfSamples = UInt32(swr_convert(swrContext, &frame.data, outSamples, &frameBuffer, numberOfSamples))
         return frame
     }

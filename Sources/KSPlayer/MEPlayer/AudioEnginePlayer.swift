@@ -116,7 +116,6 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
     private var sourceNode: AVAudioSourceNode?
     private var sourceNodeAudioFormat: AVAudioFormat?
     private let timePitch = AVAudioUnitTimePitch()
-    private var sampleSize = UInt32(MemoryLayout<Float>.size)
     private var currentRenderReadOffset = UInt32(0)
     private var outputLatency = TimeInterval(0)
     public weak var renderSource: AudioOutputRenderSourceDelegate?
@@ -194,7 +193,6 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
             return
         }
         KSLog("[audio] new sourceNode inputFormat: \(sourceNode.inputFormat(forBus: 0))")
-        sampleSize = audioFormat.sampleSize
         engine.attach(sourceNode)
         var nodes: [AVAudioNode] = [sourceNode]
         nodes.append(contentsOf: audioNodes())
@@ -279,17 +277,19 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
 //        _ = AudioUnitSetProperty(audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &inputCallbackStruct, UInt32(MemoryLayout<AURenderCallbackStruct>.size))
 //    }
 
-    private func audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer, numberOfFrames: UInt32) {
-        var ioDataWriteOffset = 0
-        var numberOfSamples = numberOfFrames
-        while numberOfSamples > 0 {
+    private func audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer, numberOfFrames _: UInt32) {
+        guard ioData.count > 0 else {
+            return
+        }
+        var mDataByteSize = ioData[0].mDataByteSize
+        while mDataByteSize > 0 {
             if currentRender == nil {
                 currentRender = renderSource?.getAudioOutputRender()
             }
             guard let currentRender else {
                 break
             }
-            let residueLinesize = currentRender.numberOfSamples - currentRenderReadOffset
+            let residueLinesize = UInt32(currentRender.dataSize) - currentRenderReadOffset
             guard residueLinesize > 0 else {
                 self.currentRender = nil
                 continue
@@ -303,30 +303,25 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
                 }
                 return
             }
-            let framesToCopy = min(numberOfSamples, residueLinesize)
-            let bytesToCopy = Int(framesToCopy * sampleSize)
-            let offset = Int(currentRenderReadOffset * sampleSize)
+            let bytesToCopy = min(mDataByteSize, residueLinesize)
             for i in 0 ..< min(ioData.count, currentRender.data.count) {
                 if let source = currentRender.data[i], let destination = ioData[i].mData {
-                    (destination + ioDataWriteOffset).copyMemory(from: source + offset, byteCount: bytesToCopy)
+                    (destination + Int(ioData[i].mDataByteSize - mDataByteSize)).copyMemory(from: source + Int(currentRenderReadOffset), byteCount: Int(bytesToCopy))
                 }
             }
-            numberOfSamples -= framesToCopy
-            ioDataWriteOffset += bytesToCopy
-            currentRenderReadOffset += framesToCopy
+            currentRenderReadOffset += bytesToCopy
+            mDataByteSize -= bytesToCopy
         }
-        let sizeCopied = (numberOfFrames - numberOfSamples) * sampleSize
-        for i in 0 ..< ioData.count {
-            let sizeLeft = Int(ioData[i].mDataByteSize - sizeCopied)
-            if sizeLeft > 0 {
-                memset(ioData[i].mData! + Int(sizeCopied), 0, sizeLeft)
+        if mDataByteSize > 0 {
+            for i in 0 ..< ioData.count {
+                memset(ioData[i].mData! + Int(ioData[i].mDataByteSize - mDataByteSize), 0, Int(mDataByteSize))
             }
         }
     }
 
     private func audioPlayerDidRenderSample(sampleTimestamp _: AudioTimeStamp) {
         if let currentRender {
-            let currentPreparePosition = currentRender.timestamp + currentRender.duration * Int64(currentRenderReadOffset) / Int64(currentRender.numberOfSamples)
+            let currentPreparePosition = currentRender.timestamp + currentRender.duration * Int64(currentRenderReadOffset) / Int64(currentRender.dataSize)
             if currentPreparePosition > 0 {
                 var time = currentRender.timebase.cmtime(for: currentPreparePosition)
                 if outputLatency != 0 {
