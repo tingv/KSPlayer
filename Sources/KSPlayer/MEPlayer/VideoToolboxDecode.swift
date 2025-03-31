@@ -111,6 +111,9 @@ class VideoToolboxDecode: DecodeProtocol {
                         if frame.timestamp - lastTimestamp < 2 * duration
                             || frames.count > 6
                         {
+                            if frames.count > 6 {
+                                KSLog("[video] videoToolbox cache frame \(frames.count)")
+                            }
                             lastTimestamp = frame.timestamp
                             completionHandler(.success(frames.removeFirst()))
                         } else {

@@ -336,7 +336,10 @@ open class KSOptions {
 //                return false
 //            }
             if isFirst || isSeek {
-                guard capacity.frameCount >= 2 else {
+                /// 音频帧解码比较快，所以判断要占满一半。
+                /// 但是视频解码慢，并且会有顺序的问题，有可能要等到内部缓存满了(7个)才输出第一个视频帧，所以这边不判断视频帧了。
+                /// 防止命中硬盘缓存的时候，会加载太多的packet到内存里面
+                if capacity.mediaType == .audio, capacity.frameCount < capacity.frameMaxCount / 2 {
                     return false
                 }
                 if isSecondOpen {
