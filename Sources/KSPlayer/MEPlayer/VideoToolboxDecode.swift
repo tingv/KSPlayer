@@ -146,6 +146,7 @@ class VideoToolboxDecode: DecodeProtocol {
     func doFlushCodec() {
         maxTimestamp = 0
         startTime = 0
+        lastTimestamp = -1
         // 改成用赋值，减少多线程导致的crash
         frames = []
         VTDecompressionSessionFinishDelayedFrames(session.decompressionSession)
