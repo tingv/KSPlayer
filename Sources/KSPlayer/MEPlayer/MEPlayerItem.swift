@@ -475,7 +475,7 @@ extension MEPlayerItem {
                     /// cc字幕也会有这个问题，所以视频轨道也要改下。
                     /// 有些音频和视频会有0.01秒的差别，然后formatCtx跟Track会有1秒左右的差别。
                     /// 有的m3u8的音频和视频的startTime和formatCtx的startTime 差距很大，所以要做下判断
-                    if assetTrack.mediaType == .subtitle || abs((assetTrack.startTime - startTime).seconds) < 3 {
+                    if assetTrack.mediaType == .subtitle || abs((assetTrack.startTime - startTime).seconds) < 10 {
                         assetTrack.startTime = startTime
                     }
                     if assetTrack.mediaType == .audio {
