@@ -213,6 +213,7 @@ public struct LoadingState {
 }
 
 public let KSPlayerErrorDomain = "KSPlayerErrorDomain"
+let AVErrorDomain = "AVErrorDomain"
 
 public enum KSPlayerErrorCode: Int {
     case unknown

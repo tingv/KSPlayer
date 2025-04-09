@@ -363,7 +363,6 @@ extension MEPlayerItem {
     private func openThread() {
         openAndFindStream()
         guard let formatCtx else {
-            error = NSError(errorCode: .formatCreate)
             return
         }
         let flags = formatCtx.pointee.iformat.pointee.flags

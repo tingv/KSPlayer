@@ -429,17 +429,10 @@ extension AVRational: Equatable {
     }
 }
 
-public struct AVError: Error, Equatable {
-    public var code: Int32
-    public var message: String
-
-    init(code: Int32) {
-        self.code = code
-        message = String(avErrorCode: code)
-    }
-
-    var localizedDescription: String {
-        "code: \(code) message: \(message)"
+public class AVError: NSError {
+    convenience init(code: Int32) {
+        var userInfo = [NSLocalizedDescriptionKey: String(avErrorCode: code)]
+        self.init(domain: AVErrorDomain, code: Int(code), userInfo: userInfo)
     }
 }
 
