@@ -886,7 +886,7 @@ extension MEPlayerItem {
         } else if !interrupt {
             // 超时的话，进行重试；ts流断流之后需要重新建立连接，不然会有重复的内容播放
             if readResult == swift_AVERROR(ETIMEDOUT) || readResult == swift_AVERROR(EIO) {
-                KSLog("readFrame fail isLive: \(isLive) " + AVError(code: readResult).localizedDescription)
+                KSLog("readFrame fail isLive: \(isLive) " + FFmpegError(code: readResult).localizedDescription)
                 if isLive {
                     //                        openThread()
                     openAndFindStream()
@@ -896,7 +896,7 @@ extension MEPlayerItem {
                     }
                 } else {
                     // 点播失败的话，重新av_read_frame还是会继续报同样的错，所以直接抛出错误
-                    error = .init(errorCode: .readFrame, userInfo: [NSUnderlyingErrorKey: AVError(code: readResult)])
+                    error = .init(errorCode: .readFrame, userInfo: [NSUnderlyingErrorKey: FFmpegError(code: readResult)])
                 }
             } else if readResult == swift_AVERROR_EOF || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
@@ -906,7 +906,7 @@ extension MEPlayerItem {
                     allPlayerItemTracks.forEach { $0.isEndOfFile = true }
                     state = .finished
                 }
-            } else if readResult != AVError.tryAgain.code {
+            } else if readResult != FFmpegError.tryAgain.code {
                 //                        if IS_AVERROR_INVALIDDATA(readResult)
                 error = .init(errorCode: .readFrame, avErrorCode: readResult)
             }
