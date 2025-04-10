@@ -25,9 +25,7 @@
       "name": "Libmpv",
       "vendored_frameworks": "Sources/libmpv.xcframework",
       "dependencies": {
-        "FFmpegKit": [
-
-        ]
+        "FFmpegKit": []
       }
     }
   ]

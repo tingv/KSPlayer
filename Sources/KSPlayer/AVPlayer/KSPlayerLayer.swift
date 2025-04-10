@@ -168,7 +168,6 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         self.url = url
         self.options = options
         self.delegate = delegate
-        let firstPlayerType: MediaPlayerProtocol.Type
         player = KSOptions.firstPlayerType.init(url: url, options: options)
         isAutoPlay = KSOptions.isAutoPlay
         subtitleModel = SubtitleModel(url: url)

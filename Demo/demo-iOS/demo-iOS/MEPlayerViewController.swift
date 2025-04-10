@@ -26,6 +26,10 @@ class MEPlayerViewController: UIViewController {
 }
 
 extension MEPlayerViewController: MediaPlayerDelegate {
+    func changeBuffering(player _: some KSPlayer.MediaPlayerProtocol, progress _: UInt8) {}
+
+    func playerDidClear(player _: some KSPlayer.MediaPlayerProtocol) {}
+
     func readyToPlay(player: some KSPlayer.MediaPlayerProtocol) {
         player.play()
     }

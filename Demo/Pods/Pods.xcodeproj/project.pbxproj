@@ -29,6 +29,13 @@
 			remoteGlobalIDString = 9CB450B641767C72AE3FEED9D23A5B14;
 			remoteInfo = "Libass-macOS";
 		};
+		05AFD7503D0A292A126C776192C11D95 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8637F33F67B2687DF06EA4DB96BB25C7;
+			remoteInfo = "FFmpegKit-iOS";
+		};
 		070BF0AAC8D3FB57DFAD5C92A39F20CA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D359FDE91E4EAAB2940B68B5A54CDCCB /* DisplayCriteria.xcodeproj */;
@@ -36,19 +43,19 @@
 			remoteGlobalIDString = B2CAA65768CAEB010F26FB99B2B67AC0;
 			remoteInfo = "DisplayCriteria-tvOS";
 		};
+		0A73BC94AC5A3C4805C939A283135217 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
+			remoteInfo = "KSPlayer-macOS";
+		};
 		0EA828EA3BD75C93D6BD70CA71E067A5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6101D8A40385ADC22AB2024B83855FDB /* Libass.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 06498739A3E3D2FA4E1DEC2F1612BBFA;
 			remoteInfo = "Libass-visionOS";
-		};
-		125CADB3D2419E1D62323223E2C8F793 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 76E32F922538FF510AF79181FCA2A7C0;
-			remoteInfo = "FFmpegKit-visionOS";
 		};
 		1DBDF964F53BE689B86946A68A8B6ECC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -92,19 +99,12 @@
 			remoteGlobalIDString = 3C79E5F82E86276CE05C24C8B1DEF619;
 			remoteInfo = "Libass-tvOS";
 		};
-		5756808CFD2B8B2DDA8A6524B4674134 /* PBXContainerItemProxy */ = {
+		68A2B72FEDE7219AD11BC5B8495756C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
+			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
-			remoteInfo = "KSPlayer-tvOS";
-		};
-		6E3204A050CA848B915D94C12DC82B1B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
-			remoteInfo = "KSPlayer-iOS";
+			remoteGlobalIDString = CB51993EC5E6E907C0B253DFDF9ED7BF;
+			remoteInfo = "FFmpegKit-macOS";
 		};
 		7236EDB97C94A3AD1EA9A701D98C7D19 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -113,12 +113,12 @@
 			remoteGlobalIDString = 1379E322B8E36C1341AB2E7179C0537C;
 			remoteInfo = "MPVPlayer-visionOS";
 		};
-		844F094B133D2150B02B0DBC61016778 /* PBXContainerItemProxy */ = {
+		A2F6CE0E74B3066AEC3469BDEABCAED3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 5CA2D7972914D935704D989071619B4C;
-			remoteInfo = "FFmpegKit-tvOS";
+			remoteGlobalIDString = 76E32F922538FF510AF79181FCA2A7C0;
+			remoteInfo = "FFmpegKit-visionOS";
 		};
 		A6ADEFE28BB80A6B8B158E8474BFD02D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -127,12 +127,12 @@
 			remoteGlobalIDString = CBC14E47093C1CDAC387FADFFF093763;
 			remoteInfo = "DisplayCriteria-macOS";
 		};
-		BDE77D8ACEFFD40EDBD94210B5BEC1DF /* PBXContainerItemProxy */ = {
+		B33DB75E11543D408CE34BA4280973D3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
+			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 621DC206E1023A38D338534A9E682743;
-			remoteInfo = "KSPlayer-visionOS";
+			remoteGlobalIDString = 5CA2D7972914D935704D989071619B4C;
+			remoteInfo = "FFmpegKit-tvOS";
 		};
 		C087193044C8B3A32489C970EAA8E4C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -148,26 +148,33 @@
 			remoteGlobalIDString = 414B784CFBFE981829285DF44E2E68C5;
 			remoteInfo = "Libmpv-macOS";
 		};
-		D177BE784F20A7969C3AB0C5E0005F65 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
-			remoteInfo = "KSPlayer-macOS";
-		};
-		D34FA7B4DD0A562960AF0B5512FDABE4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8637F33F67B2687DF06EA4DB96BB25C7;
-			remoteInfo = "FFmpegKit-iOS";
-		};
 		D54DE751FCDD9B07CCA3EEE7E2426043 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D359FDE91E4EAAB2940B68B5A54CDCCB /* DisplayCriteria.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 10D6E2515C486AC9C2560B7F4B120F73;
 			remoteInfo = "DisplayCriteria-visionOS";
+		};
+		DB23BBD806E3A05CA30F70BB203C05FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
+			remoteInfo = "KSPlayer-iOS";
+		};
+		E204FBD79BE995A0A23FBE4875523CCF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 621DC206E1023A38D338534A9E682743;
+			remoteInfo = "KSPlayer-visionOS";
+		};
+		E261AF213E0401F26D9CFCBBC896B940 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D61CD43BF300314DCBA15E145E5DCE74 /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
+			remoteInfo = "KSPlayer-tvOS";
 		};
 		E3FCCA2716E165DBFAE5421BE1D5C07D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -182,13 +189,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = E9D29EC267067D41407F0D5CFC0EE5F3;
 			remoteInfo = "Libmpv-iOS";
-		};
-		F89FB632A25A9BA6D8FFCE8E89F59EAF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3AAD7236831B39B1FAF00CABAFE44F5F /* FFmpegKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = CB51993EC5E6E907C0B253DFDF9ED7BF;
-			remoteInfo = "FFmpegKit-macOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -490,8 +490,8 @@
 			);
 			dependencies = (
 				AFE63A62BA56E837463B72F7852CE38E /* PBXTargetDependency */,
-				A123FC966B6535776A7B57BC619EA642 /* PBXTargetDependency */,
-				098A1572C868B703D91DA8EC24A04D90 /* PBXTargetDependency */,
+				3AE7A79AF165E1AA39A7C5D53D4D0094 /* PBXTargetDependency */,
+				9E36D76FC8ECBE5FC501795366020BD2 /* PBXTargetDependency */,
 				A2DC83C9605F1D1612C459544837B9BE /* PBXTargetDependency */,
 				48980AEE9C4FDAC86A8E77728890E751 /* PBXTargetDependency */,
 				557F5D4E85ACA7013DFA7D3BFB6F0E2A /* PBXTargetDependency */,
@@ -514,8 +514,8 @@
 			);
 			dependencies = (
 				896D4485BFAA5B074036E4D7EAFDD311 /* PBXTargetDependency */,
-				ABB1C9F5628B3EA07D4A29CA85E35D52 /* PBXTargetDependency */,
-				3E2C7CC1C9B01E2AF74800CFF10E3766 /* PBXTargetDependency */,
+				3D60B2AD6F20472FF5BDBA7461BF5211 /* PBXTargetDependency */,
+				02776DE33A92862B972EC82BC132B21E /* PBXTargetDependency */,
 				F8EC57E354411144B5CBCAD65984AE30 /* PBXTargetDependency */,
 				2A07159662DAAECF2E850D7D9107EABC /* PBXTargetDependency */,
 				BAD777C6C39A52355289933E846109B6 /* PBXTargetDependency */,
@@ -538,8 +538,8 @@
 			);
 			dependencies = (
 				EF4021A22ED70D61E1CDCCF95FB9ED5A /* PBXTargetDependency */,
-				49B7A4DEA0766B19D271336C3587DDA3 /* PBXTargetDependency */,
-				9446D2B209B35BEE965F095EEA170006 /* PBXTargetDependency */,
+				46EF7A938E26CCC24ADDA65B7301CCCC /* PBXTargetDependency */,
+				FAE1FA4C916C71BF4AA7DB21422BD3F7 /* PBXTargetDependency */,
 				C552989638192BCC71CC3D030A091CB7 /* PBXTargetDependency */,
 				708F442998129956DC26622B89CF9471 /* PBXTargetDependency */,
 				91FB563494A26DB6E0EFE68182B7B48E /* PBXTargetDependency */,
@@ -562,8 +562,8 @@
 			);
 			dependencies = (
 				405372165CB9425B58552F8F12C9A221 /* PBXTargetDependency */,
-				1FE91323663DD4C6AC5FBF0A046092B3 /* PBXTargetDependency */,
-				ADA87B18C8B7F245CABF3DC331BF4AA6 /* PBXTargetDependency */,
+				5487F4DBF741B85A893B6EE1111D039F /* PBXTargetDependency */,
+				4EFC50209FBDA3831188230E29222AC7 /* PBXTargetDependency */,
 				4AD625C232DEBC57C571D307A1C9D137 /* PBXTargetDependency */,
 				7CA48703540711229716B30EE10D8720 /* PBXTargetDependency */,
 				517DCE31F315D33DBD8D2587126C0D4B /* PBXTargetDependency */,
@@ -692,50 +692,60 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		098A1572C868B703D91DA8EC24A04D90 /* PBXTargetDependency */ = {
+		02776DE33A92862B972EC82BC132B21E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "KSPlayer-iOS";
-			targetProxy = 6E3204A050CA848B915D94C12DC82B1B /* PBXContainerItemProxy */;
-		};
-		1FE91323663DD4C6AC5FBF0A046092B3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-visionOS";
-			targetProxy = 125CADB3D2419E1D62323223E2C8F793 /* PBXContainerItemProxy */;
+			name = "KSPlayer-tvOS";
+			targetProxy = E261AF213E0401F26D9CFCBBC896B940 /* PBXContainerItemProxy */;
 		};
 		2A07159662DAAECF2E850D7D9107EABC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-tvOS";
 			targetProxy = 22BC44130DA6DC3BA72CFAD401C20785 /* PBXContainerItemProxy */;
 		};
-		3E2C7CC1C9B01E2AF74800CFF10E3766 /* PBXTargetDependency */ = {
+		3AE7A79AF165E1AA39A7C5D53D4D0094 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "KSPlayer-tvOS";
-			targetProxy = 5756808CFD2B8B2DDA8A6524B4674134 /* PBXContainerItemProxy */;
+			name = "FFmpegKit-iOS";
+			targetProxy = 05AFD7503D0A292A126C776192C11D95 /* PBXContainerItemProxy */;
+		};
+		3D60B2AD6F20472FF5BDBA7461BF5211 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-tvOS";
+			targetProxy = B33DB75E11543D408CE34BA4280973D3 /* PBXContainerItemProxy */;
 		};
 		405372165CB9425B58552F8F12C9A221 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "DisplayCriteria-visionOS";
 			targetProxy = D54DE751FCDD9B07CCA3EEE7E2426043 /* PBXContainerItemProxy */;
 		};
+		46EF7A938E26CCC24ADDA65B7301CCCC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-macOS";
+			targetProxy = 68A2B72FEDE7219AD11BC5B8495756C8 /* PBXContainerItemProxy */;
+		};
 		48980AEE9C4FDAC86A8E77728890E751 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-iOS";
 			targetProxy = F022B340E29E10B102F60C010E3C440A /* PBXContainerItemProxy */;
-		};
-		49B7A4DEA0766B19D271336C3587DDA3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-macOS";
-			targetProxy = F89FB632A25A9BA6D8FFCE8E89F59EAF /* PBXContainerItemProxy */;
 		};
 		4AD625C232DEBC57C571D307A1C9D137 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libass-visionOS";
 			targetProxy = 0EA828EA3BD75C93D6BD70CA71E067A5 /* PBXContainerItemProxy */;
 		};
+		4EFC50209FBDA3831188230E29222AC7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "KSPlayer-visionOS";
+			targetProxy = E204FBD79BE995A0A23FBE4875523CCF /* PBXContainerItemProxy */;
+		};
 		517DCE31F315D33DBD8D2587126C0D4B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "MPVPlayer-visionOS";
 			targetProxy = 7236EDB97C94A3AD1EA9A701D98C7D19 /* PBXContainerItemProxy */;
+		};
+		5487F4DBF741B85A893B6EE1111D039F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FFmpegKit-visionOS";
+			targetProxy = A2F6CE0E74B3066AEC3469BDEABCAED3 /* PBXContainerItemProxy */;
 		};
 		557F5D4E85ACA7013DFA7D3BFB6F0E2A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -762,30 +772,15 @@
 			name = "MPVPlayer-macOS";
 			targetProxy = 1DBDF964F53BE689B86946A68A8B6ECC /* PBXContainerItemProxy */;
 		};
-		9446D2B209B35BEE965F095EEA170006 /* PBXTargetDependency */ = {
+		9E36D76FC8ECBE5FC501795366020BD2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "KSPlayer-macOS";
-			targetProxy = D177BE784F20A7969C3AB0C5E0005F65 /* PBXContainerItemProxy */;
-		};
-		A123FC966B6535776A7B57BC619EA642 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-iOS";
-			targetProxy = D34FA7B4DD0A562960AF0B5512FDABE4 /* PBXContainerItemProxy */;
+			name = "KSPlayer-iOS";
+			targetProxy = DB23BBD806E3A05CA30F70BB203C05FA /* PBXContainerItemProxy */;
 		};
 		A2DC83C9605F1D1612C459544837B9BE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libass-iOS";
 			targetProxy = 24F79DA07508471C2CE277CDDDA07333 /* PBXContainerItemProxy */;
-		};
-		ABB1C9F5628B3EA07D4A29CA85E35D52 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "FFmpegKit-tvOS";
-			targetProxy = 844F094B133D2150B02B0DBC61016778 /* PBXContainerItemProxy */;
-		};
-		ADA87B18C8B7F245CABF3DC331BF4AA6 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "KSPlayer-visionOS";
-			targetProxy = BDE77D8ACEFFD40EDBD94210B5BEC1DF /* PBXContainerItemProxy */;
 		};
 		AFE63A62BA56E837463B72F7852CE38E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -811,6 +806,11 @@
 			isa = PBXTargetDependency;
 			name = "Libass-tvOS";
 			targetProxy = 53C30B1B8530C99D50D078647917DF7E /* PBXContainerItemProxy */;
+		};
+		FAE1FA4C916C71BF4AA7DB21422BD3F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "KSPlayer-macOS";
+			targetProxy = 0A73BC94AC5A3C4805C939A283135217 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

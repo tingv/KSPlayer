@@ -42,12 +42,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		025A38886777707D54AF71888BD3D89B /* PBXContainerItemProxy */ = {
+		06E2C44D9967A4DBA2161EBE15EC6FC2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 621DC206E1023A38D338534A9E682743;
-			remoteInfo = "KSPlayer-visionOS";
+			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
+			remoteInfo = "KSPlayer-tvOS";
 		};
 		15E3A312EA9B8FE79683AA121E6801B6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -56,19 +56,12 @@
 			remoteGlobalIDString = D9D3D8532247338E7FB4726FE870B78B;
 			remoteInfo = "Libmpv-tvOS";
 		};
-		1EF4492AE38DA5AC45F44A37F80A0277 /* PBXContainerItemProxy */ = {
+		77F98704FE00D66E7E8C56899D2BFC5D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
-			remoteInfo = "KSPlayer-macOS";
-		};
-		317150F25D729CF45F4D4825A7822114 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 608A83DCB9EBF762DEECEF8F2EE81950;
-			remoteInfo = "KSPlayer-tvOS";
+			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
+			remoteInfo = "KSPlayer-iOS";
 		};
 		835078AB7D86114223E3EEC7E1836A09 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -84,19 +77,26 @@
 			remoteGlobalIDString = 414B784CFBFE981829285DF44E2E68C5;
 			remoteInfo = "Libmpv-macOS";
 		};
+		A702FBCFFB00EAC618410EAD59F4D23C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 95DA2FE73CA400BD80E9EC469E8608BA;
+			remoteInfo = "KSPlayer-macOS";
+		};
+		C952C152C06716DDF6334218D92A213D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 621DC206E1023A38D338534A9E682743;
+			remoteInfo = "KSPlayer-visionOS";
+		};
 		DD21BAB44DD1B723D6CBABEA3862140E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D70B9DAF459522DF995312B83EAFA370 /* Libmpv.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 9C3F4D5DE5D953D8DE280EB2863EA932;
 			remoteInfo = "Libmpv-visionOS";
-		};
-		DEAB6FAD17BC6F55D9A6B312AE69D35E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9BA873639DF7BF2866BF56C42FFDDDCF /* KSPlayer.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = F22803BCEDED223E4EE29EE62D7067B4;
-			remoteInfo = "KSPlayer-iOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -373,7 +373,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				49AE5893F2AF8D5654B566636C0721C0 /* PBXTargetDependency */,
+				A8845CD3355C012477EB62B30C7535B8 /* PBXTargetDependency */,
 				D2E2F499E03DA96D2C373E8734B43CE7 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-visionOS";
@@ -393,7 +393,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				2A615C4A5847D0927ED97B5BB03F9831 /* PBXTargetDependency */,
+				1B148AC01065BCF70D3EA427E6AB5A3B /* PBXTargetDependency */,
 				0104958A69BE2E0005CE0C76E67954C8 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-iOS";
@@ -413,7 +413,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				F168DC3B4EF705B62DF9F6B530FC53A3 /* PBXTargetDependency */,
+				E4DACEEBB5D1AA7EB3D1CA73684A11B8 /* PBXTargetDependency */,
 				52CCD97668D142CBA396A5CAAFF6A5C6 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-tvOS";
@@ -433,7 +433,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				F5D537347DE748CD2437787F10F52271 /* PBXTargetDependency */,
+				3AA86C2A0EB8EB87B371A088601A3DD2 /* PBXTargetDependency */,
 				2DCB95D10CC728E6DB1C7A130996EC68 /* PBXTargetDependency */,
 			);
 			name = "MPVPlayer-macOS";
@@ -573,40 +573,40 @@
 			name = "Libmpv-iOS";
 			targetProxy = 835078AB7D86114223E3EEC7E1836A09 /* PBXContainerItemProxy */;
 		};
-		2A615C4A5847D0927ED97B5BB03F9831 /* PBXTargetDependency */ = {
+		1B148AC01065BCF70D3EA427E6AB5A3B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "KSPlayer-iOS";
-			targetProxy = DEAB6FAD17BC6F55D9A6B312AE69D35E /* PBXContainerItemProxy */;
+			targetProxy = 77F98704FE00D66E7E8C56899D2BFC5D /* PBXContainerItemProxy */;
 		};
 		2DCB95D10CC728E6DB1C7A130996EC68 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-macOS";
 			targetProxy = 94A74668F052BCAE293FE2E53B67F8FD /* PBXContainerItemProxy */;
 		};
-		49AE5893F2AF8D5654B566636C0721C0 /* PBXTargetDependency */ = {
+		3AA86C2A0EB8EB87B371A088601A3DD2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "KSPlayer-visionOS";
-			targetProxy = 025A38886777707D54AF71888BD3D89B /* PBXContainerItemProxy */;
+			name = "KSPlayer-macOS";
+			targetProxy = A702FBCFFB00EAC618410EAD59F4D23C /* PBXContainerItemProxy */;
 		};
 		52CCD97668D142CBA396A5CAAFF6A5C6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-tvOS";
 			targetProxy = 15E3A312EA9B8FE79683AA121E6801B6 /* PBXContainerItemProxy */;
 		};
+		A8845CD3355C012477EB62B30C7535B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "KSPlayer-visionOS";
+			targetProxy = C952C152C06716DDF6334218D92A213D /* PBXContainerItemProxy */;
+		};
 		D2E2F499E03DA96D2C373E8734B43CE7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Libmpv-visionOS";
 			targetProxy = DD21BAB44DD1B723D6CBABEA3862140E /* PBXContainerItemProxy */;
 		};
-		F168DC3B4EF705B62DF9F6B530FC53A3 /* PBXTargetDependency */ = {
+		E4DACEEBB5D1AA7EB3D1CA73684A11B8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "KSPlayer-tvOS";
-			targetProxy = 317150F25D729CF45F4D4825A7822114 /* PBXContainerItemProxy */;
-		};
-		F5D537347DE748CD2437787F10F52271 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "KSPlayer-macOS";
-			targetProxy = 1EF4492AE38DA5AC45F44A37F80A0277 /* PBXContainerItemProxy */;
+			targetProxy = 06E2C44D9967A4DBA2161EBE15EC6FC2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

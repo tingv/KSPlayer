@@ -60,9 +60,7 @@
         "frameworks": "AppKit"
       },
       "dependencies": {
-        "DisplayCriteria": [
-
-        ]
+        "DisplayCriteria": []
       }
     },
     {
@@ -73,57 +71,39 @@
         "VideoToolbox"
       ],
       "dependencies": {
-        "FFmpegKit": [
-
-        ],
-        "KSPlayer/AVPlayer": [
-
-        ],
-        "KSPlayer/Metal": [
-
-        ],
-        "KSPlayer/Subtitle": [
-
-        ]
+        "FFmpegKit": [],
+        "KSPlayer/AVPlayer": [],
+        "KSPlayer/Metal": [],
+        "KSPlayer/Subtitle": []
       }
     },
     {
       "name": "Core",
       "source_files": "Sources/KSPlayer/Core/**/*.{swift}",
       "dependencies": {
-        "KSPlayer/AVPlayer": [
-
-        ]
+        "KSPlayer/AVPlayer": []
       }
     },
     {
       "name": "SwiftUI",
       "source_files": "Sources/KSPlayer/SwiftUI/*.swift",
       "dependencies": {
-        "KSPlayer/AVPlayer": [
-
-        ]
+        "KSPlayer/AVPlayer": []
       }
     },
     {
       "name": "Audio",
       "source_files": "Sources/KSPlayer/Audio/*.swift",
       "dependencies": {
-        "KSPlayer/Core": [
-
-        ]
+        "KSPlayer/Core": []
       }
     },
     {
       "name": "Video",
       "source_files": "Sources/KSPlayer/Video/*.swift",
       "dependencies": {
-        "KSPlayer/Core": [
-
-        ],
-        "KSPlayer/Subtitle": [
-
-        ]
+        "KSPlayer/Core": [],
+        "KSPlayer/Subtitle": []
       }
     }
   ]

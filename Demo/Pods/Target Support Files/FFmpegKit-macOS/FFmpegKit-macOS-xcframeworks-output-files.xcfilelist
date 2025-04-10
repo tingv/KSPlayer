@@ -19,4 +19,3 @@ ${PODS_XCFRAMEWORKS_BUILD_DIR}/FFmpegKit/FFmpegKit/hogweed.framework
 ${PODS_XCFRAMEWORKS_BUILD_DIR}/FFmpegKit/FFmpegKit/gnutls.framework
 ${PODS_XCFRAMEWORKS_BUILD_DIR}/FFmpegKit/FFmpegKit/libzvbi.framework
 ${PODS_XCFRAMEWORKS_BUILD_DIR}/FFmpegKit/FFmpegKit/libsrt.framework
-${PODS_XCFRAMEWORKS_BUILD_DIR}/FFmpegKit/FFmpegKit/libbluray.framework

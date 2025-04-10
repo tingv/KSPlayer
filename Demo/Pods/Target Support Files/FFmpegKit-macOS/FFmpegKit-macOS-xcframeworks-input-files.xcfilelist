@@ -20,4 +20,3 @@ ${PODS_ROOT}/../../../FFmpegKit/Sources/hogweed.xcframework
 ${PODS_ROOT}/../../../FFmpegKit/Sources/gnutls.xcframework
 ${PODS_ROOT}/../../../FFmpegKit/Sources/libzvbi.xcframework
 ${PODS_ROOT}/../../../FFmpegKit/Sources/libsrt.xcframework
-${PODS_ROOT}/../../../FFmpegKit/Sources/libbluray.xcframework

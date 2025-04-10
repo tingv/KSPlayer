@@ -73,6 +73,13 @@ class DetailViewController: UIViewController, DetailProtocol {
         playerView.becomeFirstResponder()
     }
 
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            playerView.resetPlayer()
+        }
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if UIDevice.current.userInterfaceIdiom == .phone {

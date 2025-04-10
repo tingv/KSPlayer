@@ -518,9 +518,6 @@ variant_for_slice()
   "libsrt.xcframework/xros-arm64-simulator")
     echo "simulator"
     ;;
-  "libbluray.xcframework/macos-arm64_x86_64")
-    echo ""
-    ;;
   esac
 }
 
@@ -1028,9 +1025,6 @@ archs_for_slice()
   "libsrt.xcframework/xros-arm64-simulator")
     echo "arm64"
     ;;
-  "libbluray.xcframework/macos-arm64_x86_64")
-    echo "arm64 x86_64"
-    ;;
   esac
 }
 
@@ -1134,5 +1128,4 @@ install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/hogweed.xcframework
 install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/gnutls.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
 install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libzvbi.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
 install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libsrt.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
-install_xcframework "${PODS_ROOT}/../../../FFmpegKit/Sources/libbluray.xcframework" "FFmpegKit/FFmpegKit" "framework" "macos-arm64_x86_64"
 

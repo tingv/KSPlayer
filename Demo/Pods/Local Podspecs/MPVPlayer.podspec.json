@@ -24,12 +24,8 @@
       "name": "MPVPlayer",
       "source_files": "Sources/MPVPlayer/*.{swift}",
       "dependencies": {
-        "KSPlayer": [
-
-        ],
-        "Libmpv": [
-
-        ]
+        "KSPlayer": [],
+        "Libmpv": []
       }
     }
   ]

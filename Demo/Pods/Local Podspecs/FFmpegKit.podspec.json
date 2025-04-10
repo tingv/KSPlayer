@@ -70,13 +70,8 @@
         "Sources/libzvbi.xcframework",
         "Sources/libsrt.xcframework"
       ],
-      "osx": {
-        "vendored_frameworks": "Sources/libbluray.xcframework"
-      },
       "dependencies": {
-        "Libass": [
-
-        ]
+        "Libass": []
       },
       "public_header_files": "Sources/FFmpegKit/include/*.h",
       "xcconfig": {

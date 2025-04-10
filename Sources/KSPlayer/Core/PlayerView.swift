@@ -150,7 +150,16 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     open func set(url: URL, options: KSOptions) {
         toolBar.currentTime = 0
         totalTime = 0
-        playerLayer = KSOptions.playerLayerType.init(url: url, options: options, delegate: self)
+        if let playerLayer {
+            if playerLayer.url == url {
+                playerLayer.delegate = self
+            }
+            playerLayer.delegate = nil
+            playerLayer.set(url: url, options: options)
+            playerLayer.delegate = self
+        } else {
+            playerLayer = KSOptions.playerLayerType.init(url: url, options: options, delegate: self)
+        }
     }
 
     // MARK: - KSSliderDelegate
