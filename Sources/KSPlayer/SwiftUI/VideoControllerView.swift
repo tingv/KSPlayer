@@ -13,6 +13,8 @@ struct VideoControllerView: View {
     @ObservedObject
     fileprivate var config: KSVideoPlayer.Coordinator
     @Binding
+    fileprivate var url: URL?
+    @Binding
     fileprivate var title: String
     fileprivate let playerWidth: CGFloat
     @FocusState
@@ -21,8 +23,9 @@ struct VideoControllerView: View {
     private var showVideoSetting = false
     @Environment(\.dismiss)
     private var dismiss
-    init(config: KSVideoPlayer.Coordinator, title: Binding<String>, playerWidth: CGFloat, focusableView: FocusState<KSVideoPlayerView.FocusableView?>) {
+    init(config: KSVideoPlayer.Coordinator, url: Binding<URL?>, title: Binding<String>, playerWidth: CGFloat, focusableView: FocusState<KSVideoPlayerView.FocusableView?>) {
         self.config = config
+        _url = url
         _title = title
         self.playerWidth = playerWidth
         _focusableView = focusableView
@@ -153,7 +156,7 @@ struct VideoControllerView: View {
             #endif
         }
         .sheet(isPresented: $showVideoSetting) {
-            VideoSettingView(config: config, subtitleTitle: title)
+            VideoSettingView(config: config, url: $url, subtitleTitle: $title)
         }
         #if os(visionOS)
         .ornament(visibility: config.isMaskShow ? .visible : .hidden, attachmentAnchor: .scene(.bottom)) {
@@ -240,7 +243,9 @@ struct VideoTimeShowView: View {
 struct VideoSettingView: View {
     @ObservedObject
     var config: KSVideoPlayer.Coordinator
-    @State
+    @Binding
+    var url: URL?
+    @Binding
     var subtitleTitle: String
     @Environment(\.dismiss)
     private var dismiss
@@ -249,6 +254,31 @@ struct VideoSettingView: View {
     var body: some View {
         PlatformView {
             if let playerLayer = config.playerLayer {
+                if let playList = playerLayer.player.ioContext as? PlayList {
+                    let list = playList.playlists.filter { $0.duration > 60 * 30 }
+                    if list.count > 1 {
+                        Picker(selection: Binding {
+                            playList.currentStream?.name
+                        } set: { value in
+                            if let value, var components = playerLayer.url.components {
+                                if components.scheme == "BDMVIOContext", var queryItems = components.queryItems, let index = queryItems.firstIndex { $0.name == "streamName" } {
+                                    queryItems[index].value = value
+                                    components.queryItems = queryItems
+                                    url = components.url
+                                } else if var newURL = URL(string: "BDMVIOContext://") {
+                                    newURL.append(queryItems: [URLQueryItem(name: "streamName", value: value), URLQueryItem(name: "url", value: playerLayer.url.description)])
+                                    url = newURL
+                                }
+                            }
+                        }) {
+                            ForEach(list, id: \.name) { stream in
+                                Text(stream.name + " duration: \(Int(stream.duration).toString(for: .minOrHour))").tag(stream.name as String?)
+                            }
+                        } label: {
+                            Label("Stream Name".localized, systemImage: "video.fill")
+                        }
+                    }
+                }
                 let videoTracks = playerLayer.player.tracks(mediaType: .video)
                 if !videoTracks.isEmpty {
                     Picker(selection: Binding {

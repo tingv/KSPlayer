@@ -120,7 +120,8 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     @MainActor
     var pipController: KSPictureInPictureProtocol? { get set }
     init(url: URL, options: KSOptions)
-    func replace(url: URL, options: KSOptions)
+    @MainActor
+    func replace(io: Either<URL, AbstractAVIOContext>, options: KSOptions)
     func play()
     func pause()
     // 这个是用来清空资源，例如断开网络和缓存，调用这个方法之后，就要调用replace(url)才能重新开始播放
@@ -135,6 +136,10 @@ public protocol MediaPlayerProtocol: MediaPlayback {
 }
 
 public extension MediaPlayerProtocol {
+    func replace(url: URL, options: KSOptions) {
+        replace(io: .left(url), options: options)
+    }
+
     @MainActor
     var contentMode: UIViewContentMode {
         get {

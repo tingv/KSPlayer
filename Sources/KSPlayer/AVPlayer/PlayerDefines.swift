@@ -368,8 +368,6 @@ public extension FixedWidthInteger {
 open class AbstractAVIOContext: DownloadProtocol {
     // 这个要调高一点才不会频繁的进行网络请求，减少卡顿
     public let bufferSize: Int32
-    public var audioLanguageCodeMap = [Int32: String]()
-    public var subtitleLanguageCodeMap = [Int32: String]()
     public init(bufferSize: Int32 = 256 * 1024) {
         self.bufferSize = bufferSize
     }
@@ -392,6 +390,19 @@ open class AbstractAVIOContext: DownloadProtocol {
 
     open func close() {}
     open func addSub(url _: URL, flags _: Int32, options _: UnsafeMutablePointer<OpaquePointer?>?, interrupt _: AVIOInterruptCB) -> UnsafeMutablePointer<AVIOContext>? { nil }
+}
+
+public protocol PlayList {
+    var audioLanguageCodeMap: [Int32: String] { get }
+    var subtitleLanguageCodeMap: [Int32: String] { get }
+    var playlists: [MovieStream] { get }
+    var currentStream: MovieStream? { get }
+}
+
+public protocol MovieStream {
+    var name: String { get }
+    // 以秒为单位
+    var duration: UInt32 { get }
 }
 
 public protocol DownloadProtocol {

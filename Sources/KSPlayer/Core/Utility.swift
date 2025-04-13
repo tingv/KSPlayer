@@ -946,9 +946,11 @@ extension Float: Identifiable {
     public var id: Self { self }
 }
 
-public enum Either<Left: Sendable, Right: Sendable>: Sendable {
+public enum Either<Left, Right> {
     case left(Left), right(Right)
 }
+
+extension Either: Sendable where Left: Sendable, Right: Sendable {}
 
 public extension Either {
     init(_ left: Left, or _: Right.Type) { self = .left(left) }

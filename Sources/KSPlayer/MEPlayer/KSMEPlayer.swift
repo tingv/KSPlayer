@@ -333,8 +333,9 @@ extension KSMEPlayer: MediaPlayerProtocol {
 
     public var view: UIView { videoOutput }
 
-    public func replace(url: URL, options: KSOptions) {
-        replace(item: MEPlayerItem(url: url, options: options))
+    @MainActor
+    public func replace(io: Either<URL, AbstractAVIOContext>, options: KSOptions) {
+        replace(item: MEPlayerItem(io: io, options: options))
     }
 
     @MainActor

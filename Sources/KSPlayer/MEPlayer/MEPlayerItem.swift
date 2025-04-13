@@ -14,7 +14,7 @@ import Libavformat
 import Libavutil
 
 public final class MEPlayerItem: @unchecked Sendable {
-    private let url: URL
+    private let io: Either<URL, AbstractAVIOContext>
     let options: KSOptions
     private let operationQueue = OperationQueue()
     private let condition = NSCondition()
@@ -187,8 +187,12 @@ public final class MEPlayerItem: @unchecked Sendable {
     }
 
     weak var delegate: MEPlayerDelegate?
-    public init(url: URL, options: KSOptions) {
-        self.url = url
+    public convenience init(url: URL, options: KSOptions) {
+        self.init(io: .left(url), options: options)
+    }
+
+    public init(io: Either<URL, AbstractAVIOContext>, options: KSOptions) {
+        self.io = io
         self.options = options
         operationQueue.name = "KSPlayer_" + String(describing: self).components(separatedBy: ".").last!
         operationQueue.maxConcurrentOperationCount = 1
@@ -269,18 +273,6 @@ extension MEPlayerItem {
         }
         formatCtx.pointee.interrupt_callback = interruptCB
         formatCtx.pointee.opaque = Unmanaged.passUnretained(self).toOpaque()
-        if options.useSystemHTTPProxy {
-            setHttpProxy()
-        }
-        ioContext = options.process(url: url, interrupt: interruptCB)
-        if let ioContext {
-            // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
-            formatCtx.pointee.pb = ioContext.getContext()
-            pbArray.append(PBClass(pb: formatCtx.pointee.pb))
-            if ioContext is PreLoadProtocol {
-                options.seekUsePacketCache = false
-            }
-        }
         defaultIOOpen = formatCtx.pointee.io_open
         // 处理m3u8这种有子url的情况。
         formatCtx.pointee.io_open = { s, pb, url, flags, options -> Int32 in
@@ -314,11 +306,26 @@ extension MEPlayerItem {
             let result = playerItem.defaultIOClose?(s, pb) ?? -1
             return result
         }
-        let urlString: String
-        if url.isFileURL {
-            urlString = url.path
-        } else {
-            urlString = url.absoluteString
+        let urlString: String?
+        switch io {
+        case let .left(url):
+            ioContext = options.process(url: url, interrupt: interruptCB)
+            if url.isFileURL {
+                urlString = url.path
+            } else {
+                urlString = url.absoluteString
+            }
+        case let .right(context):
+            ioContext = context
+            urlString = nil
+        }
+        if let ioContext {
+            // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
+            formatCtx.pointee.pb = ioContext.getContext()
+            pbArray.append(PBClass(pb: formatCtx.pointee.pb))
+            if ioContext is PreLoadProtocol {
+                options.seekUsePacketCache = false
+            }
         }
         var avOptions = options.formatContextOptions.avOptions
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
@@ -355,12 +362,15 @@ extension MEPlayerItem {
             avformat_close_input(&self.formatCtx)
             return
         }
-        options.fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir/\(urlString.md5())")
+        options.fontsDir = URL(fileURLWithPath: NSTemporaryDirectory() + "fontsDir/\(urlString?.md5() ?? UUID().uuidString)")
         // FIXME: hack, ffplay maybe should not use avio_feof() to test for the end
         formatCtx.pointee.pb?.pointee.eof_reached = 0
     }
 
     private func openThread() {
+        if options.useSystemHTTPProxy {
+            setHttpProxy()
+        }
         openAndFindStream()
         guard let formatCtx else {
             return
@@ -478,14 +488,14 @@ extension MEPlayerItem {
                         assetTrack.startTime = startTime
                     }
                     if assetTrack.mediaType == .audio {
-                        if let ioContext, ioContext.audioLanguageCodeMap.count > 0 {
+                        if let ioContext = ioContext as? PlayList, ioContext.audioLanguageCodeMap.count > 0 {
                             if assetTrack.languageCode == nil, let id = assetTrack.stream?.pointee.id, let languageCode = ioContext.audioLanguageCodeMap[id] {
                                 assetTrack.languageCode = languageCode
                             }
                         }
                     }
                     if assetTrack.mediaType == .subtitle {
-                        if let ioContext, ioContext.subtitleLanguageCodeMap.count > 0 {
+                        if let ioContext = ioContext as? PlayList, ioContext.subtitleLanguageCodeMap.count > 0 {
                             if assetTrack.languageCode == nil, let id = assetTrack.stream?.pointee.id, let languageCode = ioContext.subtitleLanguageCodeMap[id] {
                                 assetTrack.languageCode = languageCode
                             }

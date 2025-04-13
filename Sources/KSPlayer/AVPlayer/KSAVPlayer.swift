@@ -470,10 +470,12 @@ extension KSAVPlayer: MediaPlayerProtocol {
         delegate?.playerDidClear(player: self)
     }
 
-    public func replace(url: URL, options: KSOptions) {
+    public func replace(io: Either<URL, AbstractAVIOContext>, options: KSOptions) {
         KSLog("replaceUrl \(self)")
         shutdown()
-        urlAsset = AVURLAsset(url: url, options: options.avOptions)
+        if let url = io.left {
+            urlAsset = AVURLAsset(url: url, options: options.avOptions)
+        }
         self.options = options
     }
 

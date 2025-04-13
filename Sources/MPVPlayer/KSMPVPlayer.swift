@@ -185,8 +185,10 @@ extension KSMPVPlayer: MediaPlayerProtocol {
         // swiftlint:enable force_cast
     }
 
-    public func replace(url: URL, options _: KSPlayer.KSOptions) {
-        self.url = url
+    public func replace(io: Either<URL, AbstractAVIOContext>, options _: KSOptions) {
+        if let url = io.left {
+            self.url = url
+        }
         prepareToPlay()
     }
 
