@@ -25,7 +25,7 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor, @unche
     #if os(macOS)
     private var volumeBeforeMute: Float = 0.0
     #endif
-    private var outputLatency = TimeInterval(0)
+    public var outputLatency = TimeInterval(0)
     public weak var renderSource: AudioOutputRenderSourceDelegate?
     private var currentRender: AudioFrame? {
         didSet {

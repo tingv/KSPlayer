@@ -52,7 +52,7 @@ public final class AudioUnitPlayer: AudioOutput, @unchecked Sendable {
 
     public var playbackRate: Float = 1
     public var isMuted: Bool = false
-    private var outputLatency = TimeInterval(0)
+    public var outputLatency = TimeInterval(0)
     public init() {
         var descriptionForOutput = AudioComponentDescription()
         descriptionForOutput.componentType = kAudioUnitType_Output

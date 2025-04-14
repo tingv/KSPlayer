@@ -12,6 +12,8 @@ import Foundation
  支持airpod的空间音频。
  */
 public class AudioRendererPlayer: AudioOutput {
+    // AVSampleBufferAudioRenderer 不需要计算outputLatency，会自动计算。
+    public var outputLatency = TimeInterval(0)
     public var playbackRate: Float = 1 {
         didSet {
             if !isPaused {

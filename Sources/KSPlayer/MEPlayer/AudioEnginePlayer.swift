@@ -14,6 +14,8 @@ public protocol AudioOutput: FrameOutput {
     var playbackRate: Float { get set }
 //    @MainActor
     var volume: Float { get set }
+    // macOS无法获取音频设备的延迟，所以需要开发者自己设置下。
+    var outputLatency: TimeInterval { get set }
 //    @MainActor
     var isMuted: Bool { get set }
     @MainActor
@@ -117,7 +119,7 @@ public class AudioEnginePlayer: AudioOutput, @unchecked Sendable {
     private var sourceNodeAudioFormat: AVAudioFormat?
     private let timePitch = AVAudioUnitTimePitch()
     private var currentRenderReadOffset = UInt32(0)
-    private var outputLatency = TimeInterval(0)
+    public var outputLatency = TimeInterval(0)
     public weak var renderSource: AudioOutputRenderSourceDelegate?
     private var currentRender: AudioFrame? {
         didSet {
