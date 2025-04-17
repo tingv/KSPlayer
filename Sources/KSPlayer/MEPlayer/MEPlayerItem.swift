@@ -480,6 +480,10 @@ extension MEPlayerItem {
             if let coreStream = formatCtx.pointee.streams[i] {
                 coreStream.pointee.discard = AVDISCARD_ALL
                 if let assetTrack = FFmpegAssetTrack(stream: coreStream) {
+                    /// 过滤掉不支持的格式。
+                    if assetTrack.codecpar.codec_id == AV_CODEC_ID_NONE {
+                        return nil
+                    }
                     /// 有遇到字幕的startTime不准，需要从formatCtx取，才是准的。
                     /// cc字幕也会有这个问题，所以视频轨道也要改下。
                     /// 有些音频和视频会有0.01秒的差别，然后formatCtx跟Track会有1秒左右的差别。

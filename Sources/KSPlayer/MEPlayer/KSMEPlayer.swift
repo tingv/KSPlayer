@@ -210,12 +210,10 @@ extension KSMEPlayer: MEPlayerDelegate {
         options.readyTime = CACurrentMediaTime()
         runOnMainThread { [weak self] in
             guard let self else { return }
-            let audioDescriptor = tracks(mediaType: .audio).first { $0.isEnabled }.flatMap {
-                $0 as? FFmpegAssetTrack
-            }?.audioDescriptor
             if let outputURL = options.outputURL {
                 startRecord(url: outputURL)
             }
+            let audioDescriptor = (tracks(mediaType: .audio).first { $0.isEnabled } as? FFmpegAssetTrack)?.audioDescriptor
             if let audioDescriptor {
                 KSLog("[audio] audio type: \(audioOutput) prepare audioFormat )")
                 audioOutput.prepare(audioFormat: audioDescriptor.audioFormat)
