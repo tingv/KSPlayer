@@ -115,7 +115,10 @@ class VideoToolboxDecode: DecodeProtocol {
                                 KSLog("[video] videoToolbox cache frame \(frames.count)")
                             }
                             lastTimestamp = frame.timestamp
-                            completionHandler(.success(frames.removeFirst()))
+                            if let frame = frames.first {
+                                frames.removeFirst()
+                                completionHandler(.success(frame))
+                            }
                         } else {
                             break
                         }
