@@ -245,7 +245,7 @@ extension CAMetalLayer: Drawable {
             var edr = frame.edrMetadata
             if edr == nil, let doviData = frame.doviData {
                 /// sdr的屏幕，maxLuminance不能超过 500，不然会太暗。
-                let factor = isHDRScreen ? 1 : doviData.maxLuminance / 500
+                let factor = isHDRScreen || doviData.maxLuminance <= 500 ? 1 : doviData.maxLuminance / 500
                 edr = CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance / factor, maxLuminance: doviData.maxLuminance / factor, opticalOutputScale: 10000)
             }
             edrMetadata = edr

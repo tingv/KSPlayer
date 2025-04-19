@@ -116,13 +116,13 @@ open class KSOptions {
     /// 一开始播放的播放速度
     public var startPlayRate: Float = 1.0
     public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
-    
+
     @MainActor public static var playerTypes: [MediaPlayerProtocol.Type] = [KSAVPlayer.self, KSMEPlayer.self] {
         didSet {
             validate(playerTypes: playerTypes)
         }
     }
-    
+
     @MainActor
     static func validate(playerTypes: [MediaPlayerProtocol.Type]) {
         if playerTypes.isEmpty {
@@ -139,24 +139,29 @@ open class KSOptions {
             assertionFailure("Duplicate player types found: \(duplicates.joined(separator: ", "))")
         }
     }
-    
-    @MainActor public static var firstPlayerType: MediaPlayerProtocol.Type {
+
+    @MainActor
+    public static var firstPlayerType: MediaPlayerProtocol.Type {
         set {
             if playerTypes.isEmpty {
                 playerTypes.append(newValue)
             } else {
-                playerTypes[0] = newValue
+                if secondPlayerType == newValue {
+                    playerTypes.removeFirst()
+                } else {
+                    playerTypes[0] = newValue
+                }
             }
         }
         get {
             playerTypes.first ?? KSAVPlayer.self
         }
     }
-    
+
     @MainActor
     public static var secondPlayerType: MediaPlayerProtocol.Type? {
         set {
-            if let newValue = newValue {
+            if let newValue, firstPlayerType != newValue {
                 playerTypes = [firstPlayerType, newValue]
             } else {
                 playerTypes = [firstPlayerType]
@@ -170,7 +175,7 @@ open class KSOptions {
             }
         }
     }
-    
+
     @MainActor
     public static var playerLayerType: KSPlayerLayer.Type = KSComplexPlayerLayer.self
     /// 是否开启秒开
@@ -187,15 +192,14 @@ open class KSOptions {
     public static var isSeekedAutoPlay = true
     /// 是否开启秒开
     public var isSecondOpen: Bool
-    
+
     @MainActor var firstPlayerType: MediaPlayerProtocol.Type { playerTypes.first ?? KSAVPlayer.self }
     @MainActor
-    public lazy var playerTypes: [MediaPlayerProtocol.Type] = Self.playerTypes {
+    public var playerTypes: [MediaPlayerProtocol.Type] = KSOptions.playerTypes {
         didSet {
             Self.validate(playerTypes: playerTypes)
         }
     }
-
 
     /// Applies to short videos only
     public var isLoopPlay: Bool

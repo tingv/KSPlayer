@@ -626,7 +626,8 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
         if let error {
             KSLog(error as CustomStringConvertible)
             if let index = options.playerTypes.firstIndex(where: { $0.typeName == player.typeName }),
-               (index + 1) < options.playerTypes.count {
+               (index + 1) < options.playerTypes.count
+            {
                 let playerType = options.playerTypes[index + 1]
                 self.player = playerType.init(url: url, options: options)
             }
