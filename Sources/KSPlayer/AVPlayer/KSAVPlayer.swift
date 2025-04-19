@@ -373,6 +373,7 @@ extension KSAVPlayer {
 }
 
 extension KSAVPlayer: MediaPlayerProtocol {
+    public static let typeName: String = "KSAVPlayer"
     public var ioContext: AbstractAVIOContext? {
         nil
     }

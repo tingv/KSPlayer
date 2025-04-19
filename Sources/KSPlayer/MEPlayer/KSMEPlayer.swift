@@ -306,6 +306,7 @@ extension KSMEPlayer: MEPlayerDelegate {
 }
 
 extension KSMEPlayer: MediaPlayerProtocol {
+    public static var typeName: String = "KSMEPlayer"
     public var ioContext: AbstractAVIOContext? {
         playerItem.ioContext
     }

@@ -92,6 +92,7 @@ public struct Chapter {
 
 @MainActor
 public protocol MediaPlayerProtocol: MediaPlayback {
+    static var typeName: String { get }
     var delegate: MediaPlayerDelegate? { get set }
     var view: UIView { get }
     /// 当前已缓存的最大时间戳
@@ -136,6 +137,8 @@ public protocol MediaPlayerProtocol: MediaPlayback {
 }
 
 public extension MediaPlayerProtocol {
+    var typeName: String { Self.typeName }
+
     func replace(url: URL, options: KSOptions) {
         replace(io: .left(url), options: options)
     }
