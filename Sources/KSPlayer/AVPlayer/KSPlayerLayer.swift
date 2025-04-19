@@ -118,7 +118,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
     public internal(set) var url: URL {
         didSet {
             subtitleModel.url = url
-            let firstPlayerType = KSOptions.firstPlayerType
+            let firstPlayerType = options.firstPlayerType
             if type(of: player) == firstPlayerType {
                 if url == oldValue, state != .initialized {
                     if isAutoPlay {
@@ -168,7 +168,7 @@ open class KSPlayerLayer: NSObject, MediaPlayerDelegate {
         self.url = url
         self.options = options
         self.delegate = delegate
-        player = KSOptions.firstPlayerType.init(url: url, options: options)
+        player = options.firstPlayerType.init(url: url, options: options)
         isAutoPlay = KSOptions.isAutoPlay
         subtitleModel = SubtitleModel(url: url)
         subtitleVC = UIHostingController(rootView: VideoSubtitleView(model: subtitleModel))
@@ -625,9 +625,10 @@ open class KSComplexPlayerLayer: KSPlayerLayer {
     override public func finish(player: some MediaPlayerProtocol, error: (any Error)?) {
         if let error {
             KSLog(error as CustomStringConvertible)
-            if type(of: player) != KSOptions.secondPlayerType, let secondPlayerType = KSOptions.secondPlayerType {
-                self.player = secondPlayerType.init(url: url, options: options)
-                return
+            if let index = options.playerTypes.firstIndex(where: { $0.typeName == player.typeName }),
+               (index + 1) < options.playerTypes.count {
+                let playerType = options.playerTypes[index + 1]
+                self.player = playerType.init(url: url, options: options)
             }
         }
         super.finish(player: player, error: error)

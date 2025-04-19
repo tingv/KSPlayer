@@ -131,6 +131,7 @@ public final class KSMPVPlayer: MPVHandle, @unchecked Sendable {
 }
 
 extension KSMPVPlayer: MediaPlayerProtocol {
+    public static var typeName: String = "KSMPVPlayer"
     public var ioContext: AbstractAVIOContext? {
         nil
     }
