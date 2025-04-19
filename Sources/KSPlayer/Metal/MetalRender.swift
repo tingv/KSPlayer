@@ -254,7 +254,11 @@ extension CAMetalLayer: Drawable {
             if #available(iOS 16.0, *) {
                 if let name = colorspace?.name, name != CGColorSpace.sRGB {
                     #if os(macOS)
-                    wantsExtendedDynamicRangeContent = NSScreen.main?.maximumPotentialExtendedDynamicRangeColorComponentValue ?? 1.0 > 1.0
+                    if let view = value(forKey: "NS_view") as? UIView, let value = view.window?.screen?.maximumPotentialExtendedDynamicRangeColorComponentValue, value > 1.0 {
+                        wantsExtendedDynamicRangeContent = true
+                    } else {
+                        wantsExtendedDynamicRangeContent = false
+                    }
                     #else
                     wantsExtendedDynamicRangeContent = true
                     #endif

@@ -106,39 +106,42 @@ public struct KSVideoPlayerView: View {
             #if !os(macOS)
                 .toolbar(.hidden, for: .tabBar)
             #endif
-                .focusedObject(config)
-                .onChange(of: config.isMaskShow) { newValue in
-                    if newValue {
-                        focusableView = .slider
-                    } else {
+            #if os(iOS)
+            .statusBar(hidden: !config.isMaskShow)
+            #endif
+            .focusedObject(config)
+            .onChange(of: config.isMaskShow) { newValue in
+                if newValue {
+                    focusableView = .slider
+                } else {
+                    focusableView = .play
+                }
+            }
+            #if os(tvOS)
+            // 要放在最上层才不会有焦点丢失问题
+            .onPlayPauseCommand {
+                if config.state.isPlaying {
+                    config.playerLayer?.pause()
+                } else {
+                    config.playerLayer?.play()
+                }
+            }
+            .onExitCommand {
+                if config.isMaskShow {
+                    config.isMaskShow = false
+                } else {
+                    switch focusableView {
+                    case .play:
+                        dismiss()
+                    default:
                         focusableView = .play
                     }
                 }
-            #if os(tvOS)
-                // 要放在最上层才不会有焦点丢失问题
-                .onPlayPauseCommand {
-                    if config.state.isPlaying {
-                        config.playerLayer?.pause()
-                    } else {
-                        config.playerLayer?.play()
-                    }
-                }
-                .onExitCommand {
-                    if config.isMaskShow {
-                        config.isMaskShow = false
-                    } else {
-                        switch focusableView {
-                        case .play:
-                            dismiss()
-                        default:
-                            focusableView = .play
-                        }
-                    }
-                }
+            }
             #endif
             #if !os(tvOS)
             // 要放在最上面的view。这样才不会被controllerView盖住
-                .onHover { new in
+            .onHover { new in
                 config.isMaskShow = new
             }
             #endif
