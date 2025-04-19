@@ -511,9 +511,6 @@ extension VideoVTBFrame {
                 return CAEDRMetadata.hdr10(minLuminance: 0.1, maxLuminance: 1000, opticalOutputScale: 10000)
             }
         }
-        if let doviData {
-            return CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance, maxLuminance: doviData.maxLuminance, opticalOutputScale: 10000)
-        }
         return nil
     }
     #endif

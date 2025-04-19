@@ -229,10 +229,26 @@ public protocol Drawable {
 extension CAMetalLayer: Drawable {
     public func draw(frame: VideoVTBFrame, display: DisplayEnum) {
         #if !os(tvOS)
+        let isHDRScreen: Bool
+        #if os(macOS)
+        if let view = value(forKey: "NS_view") as? UIView, let value = view.window?.screen?.maximumPotentialExtendedDynamicRangeColorComponentValue, value > 1.0 {
+            isHDRScreen = true
+        } else {
+            isHDRScreen = false
+        }
+        #else
+        isHDRScreen = true
+        #endif
         /// 设置edrMetadata 需要同时设置对的colorspace，不然会导致过度曝光。
         /// 加了这个代码就会导致iOS截图里面的内容左右颠倒。
         if #available(iOS 16, *) {
-            edrMetadata = frame.edrMetadata
+            var edr = frame.edrMetadata
+            if edr == nil, let doviData = frame.doviData {
+                /// sdr的屏幕，maxLuminance不能超过 500，不然会太暗。
+                let factor = isHDRScreen ? 1 : doviData.maxLuminance / 500
+                edr = CAEDRMetadata.hdr10(minLuminance: doviData.minLuminance / factor, maxLuminance: doviData.maxLuminance / factor, opticalOutputScale: 10000)
+            }
+            edrMetadata = edr
         }
         #endif
         let size: CGSize
@@ -253,15 +269,7 @@ extension CAMetalLayer: Drawable {
             #if !os(tvOS)
             if #available(iOS 16.0, *) {
                 if let name = colorspace?.name, name != CGColorSpace.sRGB {
-                    #if os(macOS)
-                    if let view = value(forKey: "NS_view") as? UIView, let value = view.window?.screen?.maximumPotentialExtendedDynamicRangeColorComponentValue, value > 1.0 {
-                        wantsExtendedDynamicRangeContent = true
-                    } else {
-                        wantsExtendedDynamicRangeContent = false
-                    }
-                    #else
-                    wantsExtendedDynamicRangeContent = true
-                    #endif
+                    wantsExtendedDynamicRangeContent = isHDRScreen
                 } else {
                     wantsExtendedDynamicRangeContent = false
                 }
