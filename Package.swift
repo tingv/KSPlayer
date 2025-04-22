@@ -5,21 +5,27 @@ import PackageDescription
 let package = Package(
     name: "KSPlayer",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v13), .tvOS(.v13),
-                .visionOS(.v1)],
+    platforms: [
+        .macOS(.v10_15),
+        .macCatalyst(.v14),
+        .iOS(.v13),
+        .tvOS(.v13),
+        .visionOS(.v1),
+    ],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "KSPlayer",
             // todo clang: warning: using sysroot for 'iPhoneSimulator' but targeting 'MacOSX' [-Wincompatible-sysroot]
 //            type: .dynamic,
-            targets: ["KSPlayer"]
-        ),
+            targets: ["KSPlayer"]),
         .library(
             name: "MPVPlayer",
 //            type: .dynamic,
-            targets: ["MPVPlayer"]
-        ),
+            targets: ["MPVPlayer"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/littleTurnip/FFmpegKit.git", from: "7.1.0"),
     ],
     targets: [
         .target(
@@ -31,8 +37,7 @@ let package = Package(
 //                .product(name: "libzvbi", package: "FFmpegKit", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS])),
             ],
             swiftSettings: [
-            ]
-        ),
+            ]),
         .target(
             name: "KSPlayer",
             dependencies: [
@@ -41,42 +46,15 @@ let package = Package(
             ],
             resources: [.process("Metal/Resources")],
             swiftSettings: [
-            ]
-        ),
+            ]),
         .target(
-            name: "DisplayCriteria"
-        ),
+            name: "DisplayCriteria"),
         .testTarget(
             name: "KSPlayerTests",
             dependencies: ["KSPlayer"],
-            resources: [.process("Resources")]
-        ),
+            resources: [.process("Resources")]),
     ],
     swiftLanguageVersions: [
         .v5,
         .version("6"),
-    ]
-)
-
-var ffmpegKitPath = FileManager.default.currentDirectoryPath + "/FFmpegKit"
-if !FileManager.default.fileExists(atPath: ffmpegKitPath) {
-    ffmpegKitPath = FileManager.default.currentDirectoryPath + "/../FFmpegKit"
-}
-
-if !FileManager.default.fileExists(atPath: ffmpegKitPath), let url = URL(string: #file) {
-    let path = url.deletingLastPathComponent().path
-    // 解决用xcode引入spm的时候，依赖关系出错的问题
-    if !path.contains("/checkouts/") {
-        ffmpegKitPath = path + "/../FFmpegKit"
-    }
-}
-
-if FileManager.default.fileExists(atPath: ffmpegKitPath + "/Package.swift") {
-    package.dependencies += [
-        .package(path: ffmpegKitPath),
-    ]
-} else {
-    package.dependencies += [
-        .package(url: "git@github.com:TracyPlayer/FFmpegKit.git", from: "7.1.0"),
-    ]
-}
+    ])
